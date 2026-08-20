@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: ministrysprout
       POSTGRES_USER: ministrysprout
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ministrysprout-dev-only-password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
     ports:
       - "127.0.0.1:5432:5432"
     volumes:

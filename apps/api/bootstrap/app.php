@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\ResolveChurchMembership;
+use App\Http\Middleware\TenantDatabaseTransaction;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,7 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'tenant.resolve' => ResolveChurchMembership::class,
+            'tenant.transaction' => TenantDatabaseTransaction::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
@@ -28,7 +34,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
+            $isRowSecurityViolation = $exception instanceof QueryException
+                && ($exception->errorInfo[0] ?? null) === '42501';
+
             $status = match (true) {
+                $isRowSecurityViolation => 403,
                 $exception instanceof ValidationException => $exception->status,
                 $exception instanceof HttpExceptionInterface => $exception->getStatusCode(),
                 default => 500,
