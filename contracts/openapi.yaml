@@ -2,4 +2,91 @@ openapi: 3.1.0
 info:
   title: MinistrySprout API
   version: 1.0.0
-paths: {}
+servers:
+  - url: /api
+components:
+  schemas:
+    ApiError:
+      type: object
+      required: [code, message, correlation_id]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        correlation_id:
+          type: string
+          format: uuid
+        field_errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+    PageMeta:
+      type: object
+      required: [next_cursor, has_more]
+      properties:
+        next_cursor:
+          type: [string, 'null']
+        has_more:
+          type: boolean
+    SyncPushRequest:
+      type: object
+      required: [device_id, batch_id, events]
+      properties:
+        device_id:
+          type: string
+          format: uuid
+        batch_id:
+          type: string
+          format: uuid
+        events:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    SyncPushResponse:
+      type: object
+      required: [results]
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    SyncPullResponse:
+      type: object
+      required: [changes, page]
+      properties:
+        changes:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        page:
+          $ref: '#/components/schemas/PageMeta'
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        default:
+          description: Safe API error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
