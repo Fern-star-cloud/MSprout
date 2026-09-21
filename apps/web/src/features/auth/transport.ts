@@ -5,6 +5,7 @@ export function safeAuthMessage(error: unknown): string {
   switch (status) {
     case 401: return 'Please sign in again to continue.'
     case 403: return 'This action is unavailable. Check your verification and account access.'
+    case 409: return 'An active application or a different decision already exists. Refresh to view the current status.'
     case 410: return 'This setup link has expired or has already been used.'
     case 419: return 'Your session expired. Please try again.'
     case 422: return 'Check the information you entered and try again.'

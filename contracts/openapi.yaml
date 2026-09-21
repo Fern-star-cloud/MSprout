@@ -388,6 +388,132 @@ components:
           writeOnly: true
         password: *a4
         password_confirmation: *a4
+    ChurchApplication:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - status
+        - church_name
+        - city
+        - address
+        - timezone
+        - church_id
+        - category
+        - reason
+        - submitted_at
+        - decided_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - pending
+            - approved
+            - rejected
+        church_name: &a6
+          type: &a7
+            - string
+            - "null"
+        city: *a6
+        address: *a6
+        timezone: *a6
+        church_id:
+          type: *a7
+          format: uuid
+        category:
+          type: *a7
+          enum:
+            - duplicate
+            - ineligible
+            - incomplete
+            - other
+            - null
+        reason: *a6
+        submitted_at:
+          type: string
+          format: date-time
+        decided_at:
+          type: *a7
+          format: date-time
+    SubmitChurchApplication:
+      type: object
+      additionalProperties: false
+      required:
+        - church_name
+        - city
+        - timezone
+        - captcha_token
+      properties:
+        church_name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        city:
+          type: string
+          minLength: 1
+          maxLength: 120
+        address:
+          type:
+            - string
+            - "null"
+          maxLength: 240
+        timezone:
+          type: string
+          description: IANA timezone identifier
+          maxLength: 100
+        captcha_token:
+          type: string
+          minLength: 1
+          maxLength: 2048
+          writeOnly: true
+    CurrentChurchApplication:
+      type: object
+      additionalProperties: false
+      required:
+        - application
+      properties:
+        application:
+          anyOf:
+            - $ref: "#/components/schemas/ChurchApplication"
+            - type: "null"
+    ApplicationReviewPage:
+      type: object
+      additionalProperties: false
+      required:
+        - data
+        - page
+        - has_more
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChurchApplication"
+        page:
+          type: integer
+          minimum: 1
+        has_more:
+          type: boolean
+    RejectChurchApplication:
+      type: object
+      additionalProperties: false
+      required:
+        - category
+        - reason
+      properties:
+        category:
+          type: string
+          enum:
+            - duplicate
+            - ineligible
+            - incomplete
+            - other
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
   securitySchemes:
     ChurchSession:
       type: apiKey
@@ -401,8 +527,7 @@ components:
       description: Distinct platform session scoped to /platform; mandatory confirmed MFA.
   responses:
     AuthError:
-      description: Safe error envelope. 401 unauthenticated; 403 access or recent-password confirmation required;
-        410 expired setup; 419 CSRF mismatch; 422 invalid input; 429 rate limit. Responses are no-store.
+      description: Safe error envelope. 401 unauthenticated; 403 access or recent-password confirmation required; 410 expired setup; 419 CSRF mismatch; 422 invalid input; 429 rate limit. Responses are no-store.
       content:
         application/json:
           schema:
@@ -512,8 +637,7 @@ paths:
   /me:
     get:
       operationId: getChurchAccount
-      description: Requires verified email, active trusted church membership, and confirmed Owner MFA. Teacher MFA
-        is optional. Assignments are empty until assignment features are implemented.
+      description: Requires verified email, active trusted church membership, and confirmed Owner MFA. Teacher MFA is optional. Assignments are empty until assignment features are implemented.
       security:
         - ChurchSession: []
       responses:
@@ -536,8 +660,7 @@ paths:
       - url: /
     post:
       operationId: requestPasswordReset
-      description: Same generic response for known, unknown and broker-throttled accounts; IP rate limit is
-        independent of account existence.
+      description: Same generic response for known, unknown and broker-throttled accounts; IP rate limit is independent of account existence.
       security: []
       responses:
         "200":
@@ -813,8 +936,7 @@ paths:
       - url: /
     get:
       operationId: getChurchRecoveryCodes
-      description: Requires recent password confirmation. Sensitive one-time recovery codes; do not persist in app
-        storage.
+      description: Requires recent password confirmation. Sensitive one-time recovery codes; do not persist in app storage.
       security:
         - ChurchSession: []
       responses:
@@ -983,8 +1105,7 @@ paths:
       - url: /
     get:
       operationId: getPlatformSession
-      description: Online-only. Rechecks active status, verified email, confirmed MFA and recovery acknowledgement.
-        No tenant data.
+      description: Online-only. Rechecks active status, verified email, confirmed MFA and recovery acknowledgement. No tenant data.
       security:
         - PlatformSession: []
       responses:
@@ -1014,8 +1135,7 @@ paths:
           $ref: "#/components/responses/AuthError"
     post:
       operationId: beginPlatformSetup
-      description: Signed invitation proves recovery-email possession. Set password and return enrollment material
-        once; session-bound confirmation is required.
+      description: Signed invitation proves recovery-email possession. Set password and return enrollment material once; session-bound confirmation is required.
       security: []
       responses:
         "200":
@@ -1058,8 +1178,7 @@ paths:
       - url: /
     post:
       operationId: confirmPlatformSetup
-      description: Requires the same setup session, unexpired invitation, valid TOTP and explicit recovery-code
-        acknowledgement. Activates admin and invalidates setup invitation.
+      description: Requires the same setup session, unexpired invitation, valid TOTP and explicit recovery-code acknowledgement. Activates admin and invalidates setup invitation.
       security: []
       responses:
         "204":
@@ -1083,3 +1202,193 @@ paths:
         name: platformAdmin
         required: true
         schema: *a2
+  /church-applications:
+    post:
+      operationId: submitChurchApplication
+      description: Requires a verified church web session and CSRF protection. Accepts no uploads or unknown fields. Limited to five attempts per user and ten per IP per minute; active duplicates return 409.
+      responses:
+        "201":
+          description: Successful response
+          headers:
+            X-Correlation-Id:
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChurchApplication"
+        default:
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitChurchApplication"
+  /church-applications/current:
+    get:
+      operationId: currentChurchApplication
+      description: Requires a verified church web session. Returns only the current applicant's latest unpurged application, or null.
+      responses:
+        "200":
+          description: Successful response
+          headers:
+            X-Correlation-Id:
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentChurchApplication"
+        default:
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /platform/applications:
+    servers:
+      - url: /
+    get:
+      operationId: listChurchApplications
+      description: Requires the isolated active sage.dev platform session with confirmed MFA and current-session MFA assurance. Returns 20 unpurged applications per page, filtered by status.
+      responses:
+        "200":
+          description: Successful response
+          headers:
+            X-Correlation-Id:
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationReviewPage"
+        default:
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100000
+            default: 1
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - pending
+              - approved
+              - rejected
+            default: pending
+  /platform/applications/{id}:
+    servers:
+      - url: /
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: showChurchApplication
+      description: Requires the isolated active sage.dev platform session with confirmed MFA and current-session MFA assurance. Unknown or purged application IDs return 404.
+      responses:
+        "200":
+          description: Successful response
+          headers:
+            X-Correlation-Id:
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChurchApplication"
+        default:
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /platform/applications/{id}/approve:
+    servers:
+      - url: /
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: approveChurchApplication
+      description: Requires the isolated active sage.dev platform session with current-session MFA assurance and platform CSRF protection. Accepts no request fields. Approval is atomic; replay returns the original result and an opposing decision returns 409.
+      responses:
+        "200":
+          description: Successful response
+          headers:
+            X-Correlation-Id:
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChurchApplication"
+        default:
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /platform/applications/{id}/reject:
+    servers:
+      - url: /
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: rejectChurchApplication
+      description: Requires the isolated active sage.dev platform session with current-session MFA assurance and platform CSRF protection. Rejects unknown fields. Same-decision replay returns the original result; an opposing decision returns 409. Retention removes personal fields after 30 days.
+      responses:
+        "200":
+          description: Successful response
+          headers:
+            X-Correlation-Id:
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChurchApplication"
+        default:
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectChurchApplication"

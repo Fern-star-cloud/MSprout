@@ -478,6 +478,114 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/church-applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Requires a verified church web session and CSRF protection. Accepts no uploads or unknown fields. Limited to five attempts per user and ten per IP per minute; active duplicates return 409. */
+        post: operations["submitChurchApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/church-applications/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Requires a verified church web session. Returns only the current applicant's latest unpurged application, or null. */
+        get: operations["currentChurchApplication"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Requires the isolated active sage.dev platform session with confirmed MFA and current-session MFA assurance. Returns 20 unpurged applications per page, filtered by status. */
+        get: operations["listChurchApplications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/applications/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Requires the isolated active sage.dev platform session with confirmed MFA and current-session MFA assurance. Unknown or purged application IDs return 404. */
+        get: operations["showChurchApplication"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/applications/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Requires the isolated active sage.dev platform session with current-session MFA assurance and platform CSRF protection. Accepts no request fields. Approval is atomic; replay returns the original result and an opposing decision returns 409. */
+        post: operations["approveChurchApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/applications/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Requires the isolated active sage.dev platform session with current-session MFA assurance and platform CSRF protection. Rejects unknown fields. Same-decision replay returns the original result; an opposing decision returns 409. Retention removes personal fields after 30 days. */
+        post: operations["rejectChurchApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -635,6 +743,46 @@ export interface components {
             password: string;
             /** Format: password */
             password_confirmation: string;
+        };
+        ChurchApplication: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "pending" | "approved" | "rejected";
+            church_name: string | null;
+            city: string | null;
+            address: string | null;
+            timezone: string | null;
+            /** Format: uuid */
+            church_id: string | null;
+            /** @enum {string|null} */
+            category: "duplicate" | "ineligible" | "incomplete" | "other" | null;
+            reason: string | null;
+            /** Format: date-time */
+            submitted_at: string;
+            /** Format: date-time */
+            decided_at: string | null;
+        };
+        SubmitChurchApplication: {
+            church_name: string;
+            city: string;
+            address?: string | null;
+            /** @description IANA timezone identifier */
+            timezone: string;
+            captcha_token: string;
+        };
+        CurrentChurchApplication: {
+            application: components["schemas"]["ChurchApplication"] | null;
+        };
+        ApplicationReviewPage: {
+            data: components["schemas"]["ChurchApplication"][];
+            page: number;
+            has_more: boolean;
+        };
+        RejectChurchApplication: {
+            /** @enum {string} */
+            category: "duplicate" | "ineligible" | "incomplete" | "other";
+            reason: string;
         };
     };
     responses: {
@@ -1314,6 +1462,203 @@ export interface operations {
         responses: {
             204: components["responses"]["NoContent"];
             default: components["responses"]["AuthError"];
+        };
+    };
+    submitChurchApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitChurchApplication"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            201: {
+                headers: {
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChurchApplication"];
+                };
+            };
+            /** @description Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    currentChurchApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentChurchApplication"];
+                };
+            };
+            /** @description Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    listChurchApplications: {
+        parameters: {
+            query?: {
+                page?: number;
+                status?: "pending" | "approved" | "rejected";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationReviewPage"];
+                };
+            };
+            /** @description Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    showChurchApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChurchApplication"];
+                };
+            };
+            /** @description Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    approveChurchApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChurchApplication"];
+                };
+            };
+            /** @description Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    rejectChurchApplication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectChurchApplication"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChurchApplication"];
+                };
+            };
+            /** @description Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
         };
     };
 }

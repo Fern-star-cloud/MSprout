@@ -16,6 +16,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -55,6 +56,18 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->report(function (Throwable $exception) {
+            if (request()->is('api/church-applications', 'api/church-applications/*', 'platform/applications', 'platform/applications/*')) {
+                $correlationId = request()->header('X-Correlation-Id');
+                $correlationId = Str::isUuid($correlationId) ? $correlationId : (string) Str::uuid();
+                Log::error('Church application operation failed.', ['correlation_id' => $correlationId]);
+
+                return false;
+            }
+
+            return null;
+        });
+
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request): bool => $request->expectsJson() || ! $request->is('/'),
         );
@@ -79,6 +92,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 401 => ['unauthenticated', 'Authentication is required.'],
                 403 => ['forbidden', 'You are not authorized to perform this action.'],
                 404 => ['not_found', 'Resource not found.'],
+                409 => ['application_conflict', 'An active application or a different decision already exists.'],
                 410 => ['expired', 'This setup invitation is no longer available.'],
                 419 => ['csrf_mismatch', 'Refresh the session and try again.'],
                 422 => ['validation_failed', 'The request could not be validated.'],

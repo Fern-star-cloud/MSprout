@@ -23,3 +23,12 @@ input:focus-visible, a:focus-visible, button:focus-visible { outline: 3px solid 
 .privacy-note { color: #516657; font-size: .85rem; margin-top: 2rem; }
 .secondary { background: #ecf3ea; color: #245c42; }
 footer { margin-top: 2rem; font-size: .85rem; }
+
+select, textarea { width: 100%; min-height: 48px; border: 1px solid #789784; border-radius: 7px; padding: .7rem; font: inherit; background: white; color: #17382d; margin-bottom: 1rem; }
+textarea { min-height: 120px; resize: vertical; }
+select:focus-visible, textarea:focus-visible { outline: 3px solid #bb741b; outline-offset: 3px; }
+.application-list { list-style: none; padding: 0; }
+.application-list li { border-bottom: 1px solid #cedbcf; padding: 1rem 0; overflow-wrap: anywhere; }
+.application-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+dd { margin: 0 0 1rem; overflow-wrap: anywhere; }
+dt { font-weight: 600; }

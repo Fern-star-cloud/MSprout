@@ -35,6 +35,7 @@ export function AuthScreen({ initialPage, fragment = '' }: { initialPage: AuthPa
         if (result.two_factor) setPage('challenge'); else await loadAccount()
       }} />
       <a href="/account/forgot-password">Forgot your password?</a>
+      <p><a href="/account/application">Church application</a></p>
       <AuthForm fields={[]} submitLabel="Continue signed-in session" onSubmit={loadAccount} />
     </>}
     {page === 'challenge' && <>
@@ -82,6 +83,7 @@ export function AuthScreen({ initialPage, fragment = '' }: { initialPage: AuthPa
     </>}
     {page === 'account' && <>
       <p>Email: {verified ? 'Verified' : 'Verification needed'}</p>
+      <p><a href="/account/application">View church application</a></p>
       <p>Authenticator: {mfaConfirmed ? 'Confirmed' : 'Not yet enabled'}</p>
       {!mfaConfirmed && <button onClick={() => setPage('mfa')}>Set up MFA</button>}
       <AuthForm fields={[]} submitLabel="Sign out" onSubmit={async () => {

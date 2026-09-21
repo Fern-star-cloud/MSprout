@@ -2,7 +2,12 @@
 
 namespace App\Providers;
 
+use App\Support\Captcha\CaptchaVerifier;
+use App\Support\Captcha\TurnstileVerifier;
 use App\Support\Tenancy\TenantContext;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,6 +18,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(TenantContext::class);
+        $this->app->bind(CaptchaVerifier::class, TurnstileVerifier::class);
     }
 
     /**
@@ -20,6 +26,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        RateLimiter::for('church-applications', fn (Request $request) => [
+            Limit::perMinute(5)->by('applicant:'.$request->user('web')->id),
+            Limit::perMinute(10)->by('application-ip:'.$request->ip()),
+        ]);
     }
 }
