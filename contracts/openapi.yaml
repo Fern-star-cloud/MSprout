@@ -8,7 +8,10 @@ components:
   schemas:
     ApiError:
       type: object
-      required: [code, message, correlation_id]
+      required:
+        - code
+        - message
+        - correlation_id
       properties:
         code:
           type: string
@@ -25,22 +28,31 @@ components:
               type: string
     Health:
       type: object
-      required: [status]
+      required:
+        - status
       properties:
         status:
           type: string
-          enum: [ok]
+          enum:
+            - ok
     PageMeta:
       type: object
-      required: [next_cursor, has_more]
+      required:
+        - next_cursor
+        - has_more
       properties:
         next_cursor:
-          type: [string, 'null']
+          type:
+            - string
+            - "null"
         has_more:
           type: boolean
     SyncPushRequest:
       type: object
-      required: [device_id, batch_id, events]
+      required:
+        - device_id
+        - batch_id
+        - events
       properties:
         device_id:
           type: string
@@ -55,7 +67,8 @@ components:
             additionalProperties: true
     SyncPushResponse:
       type: object
-      required: [results]
+      required:
+        - results
       properties:
         results:
           type: array
@@ -64,7 +77,9 @@ components:
             additionalProperties: true
     SyncPullResponse:
       type: object
-      required: [changes, page]
+      required:
+        - changes
+        - page
       properties:
         changes:
           type: array
@@ -72,21 +87,999 @@ components:
             type: object
             additionalProperties: true
         page:
-          $ref: '#/components/schemas/PageMeta'
+          $ref: "#/components/schemas/PageMeta"
+    AccountSession:
+      type: object
+      additionalProperties: false
+      required:
+        - email_verified
+        - mfa_confirmed
+      properties:
+        email_verified: &a1
+          type: boolean
+        mfa_confirmed: *a1
+    ChurchAccount:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - display_name
+        - email_verified
+        - memberships
+        - assignments
+        - active_session
+      properties:
+        id:
+          type: integer
+        display_name: &a3
+          type: string
+        email_verified: *a1
+        memberships:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - church_id
+              - role
+              - status
+            properties:
+              church_id: &a2
+                type: string
+                format: uuid
+              role:
+                type: string
+                enum:
+                  - owner
+                  - teacher
+              status:
+                type: string
+                const: active
+        assignments:
+          type: object
+          additionalProperties: false
+          required:
+            - ministry_ids
+          properties:
+            ministry_ids:
+              type: array
+              items: *a2
+        active_session:
+          type: object
+          additionalProperties: false
+          required:
+            - mfa_confirmed
+          properties:
+            mfa_confirmed: *a1
+    PlatformSession:
+      type: object
+      additionalProperties: false
+      required:
+        - handle
+        - online_only
+      properties:
+        handle: *a3
+        online_only:
+          type: boolean
+          const: true
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 1
+          maxLength: 128
+          writeOnly: true
+    PlatformLoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - handle
+        - password
+      properties:
+        handle:
+          type: string
+          maxLength: 64
+        password:
+          type: string
+          format: password
+          minLength: 1
+          maxLength: 128
+          writeOnly: true
+    LoginResult:
+      type: object
+      additionalProperties: false
+      required:
+        - two_factor
+      properties:
+        two_factor: *a1
+    NewPassword:
+      type: object
+      additionalProperties: false
+      required:
+        - password
+        - password_confirmation
+      properties:
+        password: &a4
+          type: string
+          format: password
+          minLength: 12
+          maxLength: 128
+          writeOnly: true
+        password_confirmation: *a4
+    ResetPasswordRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - email
+        - token
+        - password
+        - password_confirmation
+      properties:
+        email:
+          type: string
+          format: email
+        token:
+          type: string
+          writeOnly: true
+        password: *a4
+        password_confirmation: *a4
+    PasswordConfirmation:
+      type: object
+      additionalProperties: false
+      required:
+        - password
+      properties:
+        password:
+          type: string
+          format: password
+          minLength: 1
+          maxLength: 128
+          writeOnly: true
+    MfaChallenge:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required:
+            - code
+          properties:
+            code:
+              type: string
+              pattern: ^\d{6}$
+              writeOnly: true
+        - type: object
+          additionalProperties: false
+          required:
+            - recovery_code
+          properties:
+            recovery_code:
+              type: string
+              maxLength: 128
+              writeOnly: true
+    MfaCode:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          pattern: ^\d{6}$
+          writeOnly: true
+    PlatformSetupConfirmation:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - recovery_codes_acknowledged
+      properties:
+        code:
+          type: string
+          pattern: ^\d{6}$
+          writeOnly: true
+        recovery_codes_acknowledged:
+          type: boolean
+          const: true
+    PlatformSetupStatus:
+      type: object
+      additionalProperties: false
+      required:
+        - handle
+        - status
+        - expires_at
+      properties:
+        handle: *a3
+        status:
+          type: string
+          const: pending
+        expires_at:
+          type: string
+          format: date-time
+    PlatformEnrollment:
+      type: object
+      additionalProperties: false
+      required:
+        - secret
+        - qr_code
+        - recovery_codes
+      properties:
+        secret: *a3
+        qr_code:
+          type: string
+          description: otpauth URI for an authenticator; not HTML or SVG.
+        recovery_codes: &a5
+          type: array
+          items: *a3
+    CsrfToken:
+      type: object
+      additionalProperties: false
+      required:
+        - csrf_token
+      properties:
+        csrf_token: *a3
+    Message:
+      type: object
+      additionalProperties: false
+      required:
+        - message
+      properties:
+        message: *a3
+    SecretKey:
+      type: object
+      additionalProperties: false
+      required:
+        - secretKey
+      properties:
+        secretKey: *a3
+    QrCode:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required:
+            - svg
+            - url
+          properties:
+            svg: *a3
+            url: *a3
+        - type: array
+          maxItems: 0
+    RecoveryCodes: *a5
+    PasswordStatus:
+      type: object
+      additionalProperties: false
+      required:
+        - confirmed
+      properties:
+        confirmed: *a1
+    UpdateProfile:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - email
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        email:
+          type: string
+          format: email
+    UpdatePassword:
+      type: object
+      additionalProperties: false
+      required:
+        - current_password
+        - password
+        - password_confirmation
+      properties:
+        current_password:
+          type: string
+          format: password
+          minLength: 1
+          maxLength: 128
+          writeOnly: true
+        password: *a4
+        password_confirmation: *a4
+  securitySchemes:
+    ChurchSession:
+      type: apiKey
+      in: cookie
+      name: ministrysprout_session
+      description: Sanctum same-origin SPA session; cookie name configurable via SESSION_COOKIE. No bearer tokens.
+    PlatformSession:
+      type: apiKey
+      in: cookie
+      name: ministrysprout_platform_session
+      description: Distinct platform session scoped to /platform; mandatory confirmed MFA.
+  responses:
+    AuthError:
+      description: Safe error envelope. 401 unauthenticated; 403 access or recent-password confirmation required;
+        410 expired setup; 419 CSRF mismatch; 422 invalid input; 429 rate limit. Responses are no-store.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    NoContent:
+      description: Completed; no response body.
+    FortifySuccess:
+      description: Fortify operation completed.
+      content:
+        application/json:
+          schema:
+            type: string
+            const: ""
 paths:
   /health:
     get:
       operationId: getHealth
       responses:
-        '200':
+        "200":
           description: Healthy
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Health'
+                $ref: "#/components/schemas/Health"
         default:
           description: Safe API error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiError'
+                $ref: "#/components/schemas/ApiError"
+  /sanctum/csrf-cookie:
+    servers:
+      - url: /
+    get:
+      operationId: initializeChurchCsrf
+      description: Initialize same-origin church session and XSRF-TOKEN cookie.
+      security: []
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        default:
+          $ref: "#/components/responses/AuthError"
+  /login:
+    servers:
+      - url: /
+    post:
+      operationId: churchLogin
+      description: Rate limited. two_factor=true requires /two-factor-challenge before authentication completes.
+      security: []
+      responses:
+        "200":
+          description: Successful response; Cache-Control no-store, private.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResult"
+        default:
+          $ref: "#/components/responses/AuthError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      parameters:
+        - in: header
+          name: X-XSRF-TOKEN
+          required: true
+          schema: *a3
+          description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+  /logout:
+    servers:
+      - url: /
+    post:
+      operationId: churchLogout
+      description: Invalidate church session.
+      security:
+        - ChurchSession: []
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        default:
+          $ref: "#/components/responses/AuthError"
+      parameters:
+        - in: header
+          name: X-XSRF-TOKEN
+          required: true
+          schema: *a3
+          description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+  /auth/session:
+    servers:
+      - url: /
+    get:
+      operationId: getAccountSession
+      description: Safe enrollment state, available before verification/MFA or tenant selection.
+      security:
+        - ChurchSession: []
+      responses:
+        "200":
+          description: Successful response; Cache-Control no-store, private.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountSession"
+        default:
+          $ref: "#/components/responses/AuthError"
+  /me:
+    get:
+      operationId: getChurchAccount
+      description: Requires verified email, active trusted church membership, and confirmed Owner MFA. Teacher MFA
+        is optional. Assignments are empty until assignment features are implemented.
+      security:
+        - ChurchSession: []
+      responses:
+        "200":
+          description: Successful response; Cache-Control no-store, private.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChurchAccount"
+        default:
+          $ref: "#/components/responses/AuthError"
+      parameters:
+        - in: header
+          name: X-Church-Id
+          required: true
+          schema: *a2
+          description: Requested church; server validates active membership under PostgreSQL RLS.
+  /forgot-password:
+    servers:
+      - url: /
+    post:
+      operationId: requestPasswordReset
+      description: Same generic response for known, unknown and broker-throttled accounts; IP rate limit is
+        independent of account existence.
+      security: []
+      responses:
+        "200":
+          description: Successful response; Cache-Control no-store, private.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        default:
+          $ref: "#/components/responses/AuthError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      parameters:
+        - in: header
+          name: X-XSRF-TOKEN
+          required: true
+          schema: *a3
+          description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+  /reset-password:
+    servers:
+      - url: /
+    post:
+      operationId: resetPassword
+      description: Single-use reset token from private email. Does not bypass MFA.
+      security: []
+      responses:
+        "200":
+          description: Successful response; Cache-Control no-store, private.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        default:
+          $ref: "#/components/responses/AuthError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+      parameters:
+        - in: header
+          name: X-XSRF-TOKEN
+          required: true
+          schema: *a3
+          description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+  /email/verification-notification:
+    servers:
+      - url: /
+    post:
+      operationId: resendVerification
+      description: Rate-limited verification email resend.
+      security:
+        - ChurchSession: []
+      responses:
+        "202":
+          $ref: "#/components/responses/FortifySuccess"
+        "204":
+          $ref: "#/components/responses/NoContent"
+        default:
+          $ref: "#/components/responses/AuthError"
+      parameters:
+        - in: header
+          name: X-XSRF-TOKEN
+          required: true
+          schema: *a3
+          description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+  /email/verify/{id}/{hash}:
+    servers:
+      - url: /
+    get:
+      operationId: verifyChurchEmail
+      description: Signed expiring link must match the authenticated church user.
+      security:
+        - ChurchSession: []
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        default:
+          $ref: "#/components/responses/AuthError"
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: *a3
+      - in: path
+        name: hash
+        required: true
+        schema: *a3
+      - in: query
+        name: expires
+        required: true
+        schema:
+          type: integer
+      - in: query
+        name: signature
+        required: true
+        schema:
+          type: string
+  /user/confirm-password:
+    servers:
+      - url: /
+    post:
+      operationId: confirmPassword
+      description: Confirm current password before MFA management; confirmation expires.
+      security:
+        - ChurchSession: []
+      responses:
+        "201":
+          $ref: "#/components/responses/FortifySuccess"
+        default:
+          $ref: "#/components/responses/AuthError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordConfirmation"
+      parameters:
+        - in: header
+          name: X-XSRF-TOKEN
+          required: true
+          schema: *a3
+          description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+  /user/confirmed-password-status:
+    servers:
+      - url: /
+    get:
+      operationId: getPasswordConfirmationStatus
+      description: Check recent password confirmation.
+      security:
+        - ChurchSession: []
+      responses:
+        "200":
+          description: Successful response; Cache-Control no-store, private.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PasswordStatus"
+        default:
+          $ref: "#/components/responses/AuthError"
+  /two-factor-challenge:
+    servers:
+      - url: /
+    post:
+      operationId: churchMfaChallenge
+      description: Requires pending login session. Use TOTP or a single-use recovery code.
+      security: []
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        default:
+          $ref: "#/components/responses/AuthError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MfaChallenge"
+      parameters:
+        - in: header
+          name: X-XSRF-TOKEN
+          required: true
+          schema: *a3
+          description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+  /user/two-factor-authentication:
+    servers:
+      - url: /
+    post:
+      operationId: enableChurchMfa
+      description: Requires recent password confirmation; enable and then confirm TOTP.
+      security:
+        - ChurchSession: []
+      responses:
+        "200":
+          $ref: "#/components/responses/FortifySuccess"
+        default:
+          $ref: "#/components/responses/AuthError"
+      parameters:
+        - in: header
+          name: X-XSRF-TOKEN
+          required: true
+          schema: *a3
+          description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+    delete:
+      operationId: disableChurchMfa
+      description: Requires recent password confirmation. Owner tenant access is blocked again immediately.
+      security:
+        - ChurchSession: []
+      responses:
+        "200":
+          $ref: "#/components/responses/FortifySuccess"
+        default:
+          $ref: "#/components/responses/AuthError"
+      parameters:
+        - in: header
+          name: X-XSRF-TOKEN
+          required: true
+          schema: *a3
+          description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+  /user/confirmed-two-factor-authentication:
+    servers:
+      - url: /
+    post:
+      operationId: confirmChurchMfa
+      description: Requires recent password confirmation and a valid TOTP.
+      security:
+        - ChurchSession: []
+      responses:
+        "200":
+          $ref: "#/components/responses/FortifySuccess"
+        default:
+          $ref: "#/components/responses/AuthError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MfaCode"
+      parameters:
+        - in: header
+          name: X-XSRF-TOKEN
+          required: true
+          schema: *a3
+          description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+  /user/two-factor-secret-key:
+    servers:
+      - url: /
+    get:
+      operationId: getChurchMfaSecret
+      description: Requires recent password confirmation. Sensitive enrollment material; do not persist.
+      security:
+        - ChurchSession: []
+      responses:
+        "200":
+          description: Successful response; Cache-Control no-store, private.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecretKey"
+        default:
+          $ref: "#/components/responses/AuthError"
+  /user/two-factor-qr-code:
+    servers:
+      - url: /
+    get:
+      operationId: getChurchMfaQrCode
+      description: Requires recent password confirmation. Sensitive enrollment material; no-store.
+      security:
+        - ChurchSession: []
+      responses:
+        "200":
+          description: Successful response; Cache-Control no-store, private.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QrCode"
+        default:
+          $ref: "#/components/responses/AuthError"
+  /user/two-factor-recovery-codes:
+    servers:
+      - url: /
+    get:
+      operationId: getChurchRecoveryCodes
+      description: Requires recent password confirmation. Sensitive one-time recovery codes; do not persist in app
+        storage.
+      security:
+        - ChurchSession: []
+      responses:
+        "200":
+          description: Successful response; Cache-Control no-store, private.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecoveryCodes"
+        default:
+          $ref: "#/components/responses/AuthError"
+    post:
+      operationId: regenerateChurchRecoveryCodes
+      description: Requires recent password confirmation. Replaces prior codes.
+      security:
+        - ChurchSession: []
+      responses:
+        "200":
+          $ref: "#/components/responses/FortifySuccess"
+        default:
+          $ref: "#/components/responses/AuthError"
+      parameters:
+        - in: header
+          name: X-XSRF-TOKEN
+          required: true
+          schema: *a3
+          description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+  /user/profile-information:
+    servers:
+      - url: /
+    put:
+      operationId: updateChurchProfile
+      description: Email change clears verified status and requires re-verification.
+      security:
+        - ChurchSession: []
+      responses:
+        "200":
+          $ref: "#/components/responses/FortifySuccess"
+        default:
+          $ref: "#/components/responses/AuthError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfile"
+      parameters:
+        - in: header
+          name: X-XSRF-TOKEN
+          required: true
+          schema: *a3
+          description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+  /user/password:
+    servers:
+      - url: /
+    put:
+      operationId: updateChurchPassword
+      description: Requires current password.
+      security:
+        - ChurchSession: []
+      responses:
+        "200":
+          $ref: "#/components/responses/FortifySuccess"
+        default:
+          $ref: "#/components/responses/AuthError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePassword"
+      parameters:
+        - in: header
+          name: X-XSRF-TOKEN
+          required: true
+          schema: *a3
+          description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+  /platform/csrf-token:
+    servers:
+      - url: /
+    get:
+      operationId: getPlatformCsrf
+      description: Initialize isolated platform session and return CSRF token; never persist outside memory.
+      security: []
+      responses:
+        "200":
+          description: Successful response; Cache-Control no-store, private.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CsrfToken"
+        default:
+          $ref: "#/components/responses/AuthError"
+  /platform/login:
+    servers:
+      - url: /
+    post:
+      operationId: platformLogin
+      description: Only fully active admins; creates a short-lived pending MFA challenge, not an authenticated session.
+      security: []
+      responses:
+        "200":
+          description: Successful response; Cache-Control no-store, private.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResult"
+        default:
+          $ref: "#/components/responses/AuthError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlatformLoginRequest"
+      parameters:
+        - in: header
+          name: X-CSRF-TOKEN
+          required: true
+          schema: *a3
+          description: Obtain from /platform/csrf-token before each mutation.
+  /platform/two-factor-challenge:
+    servers:
+      - url: /
+    post:
+      operationId: platformMfaChallenge
+      description: Requires pending platform login; rotates session on success. Recovery codes are consumed atomically.
+      security: []
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        default:
+          $ref: "#/components/responses/AuthError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MfaChallenge"
+      parameters:
+        - in: header
+          name: X-CSRF-TOKEN
+          required: true
+          schema: *a3
+          description: Obtain from /platform/csrf-token before each mutation.
+  /platform/logout:
+    servers:
+      - url: /
+    post:
+      operationId: platformLogout
+      description: Invalidate platform session only.
+      security: []
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        default:
+          $ref: "#/components/responses/AuthError"
+      parameters:
+        - in: header
+          name: X-CSRF-TOKEN
+          required: true
+          schema: *a3
+          description: Obtain from /platform/csrf-token before each mutation.
+  /platform/me:
+    servers:
+      - url: /
+    get:
+      operationId: getPlatformSession
+      description: Online-only. Rechecks active status, verified email, confirmed MFA and recovery acknowledgement.
+        No tenant data.
+      security:
+        - PlatformSession: []
+      responses:
+        "200":
+          description: Successful response; Cache-Control no-store, private.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformSession"
+        default:
+          $ref: "#/components/responses/AuthError"
+  /platform/setup/{platformAdmin}:
+    servers:
+      - url: /
+    get:
+      operationId: getPlatformSetup
+      description: Short-lived signed invitation for a pending admin.
+      security: []
+      responses:
+        "200":
+          description: Successful response; Cache-Control no-store, private.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformSetupStatus"
+        default:
+          $ref: "#/components/responses/AuthError"
+    post:
+      operationId: beginPlatformSetup
+      description: Signed invitation proves recovery-email possession. Set password and return enrollment material
+        once; session-bound confirmation is required.
+      security: []
+      responses:
+        "200":
+          description: Successful response; Cache-Control no-store, private.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformEnrollment"
+        default:
+          $ref: "#/components/responses/AuthError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewPassword"
+      parameters:
+        - in: header
+          name: X-CSRF-TOKEN
+          required: true
+          schema: *a3
+          description: Obtain from /platform/csrf-token before each mutation.
+    parameters:
+      - in: path
+        name: platformAdmin
+        required: true
+        schema: *a2
+      - in: query
+        name: expires
+        required: true
+        schema:
+          type: integer
+      - in: query
+        name: signature
+        required: true
+        schema:
+          type: string
+  /platform/setup/{platformAdmin}/confirm:
+    servers:
+      - url: /
+    post:
+      operationId: confirmPlatformSetup
+      description: Requires the same setup session, unexpired invitation, valid TOTP and explicit recovery-code
+        acknowledgement. Activates admin and invalidates setup invitation.
+      security: []
+      responses:
+        "204":
+          $ref: "#/components/responses/NoContent"
+        default:
+          $ref: "#/components/responses/AuthError"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlatformSetupConfirmation"
+      parameters:
+        - in: header
+          name: X-CSRF-TOKEN
+          required: true
+          schema: *a3
+          description: Obtain from /platform/csrf-token before each mutation.
+    parameters:
+      - in: path
+        name: platformAdmin
+        required: true
+        schema: *a2

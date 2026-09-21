@@ -19,6 +19,8 @@ MinistrySprout is a secure, multi-church attendance PWA for children's ministry.
 
 The React PWA lives in `apps/web`, the Laravel API lives in `apps/api`, and the OpenAPI source of truth is `contracts/openapi.yaml`.
 
+Authentication setup, the isolated platform invitation, and verification commands are documented in [Task 4 authentication](docs/security/task-4-authentication.md).
+
 ## Security
 
 Never commit credentials, tokens, personally identifiable child data, or production configuration. The local Compose stack is development-only and binds PostgreSQL and Mailpit to loopback addresses.

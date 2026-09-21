@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\ChurchAccountController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -13,3 +14,12 @@ Route::get('/health', function (Request $request): JsonResponse {
         ->json(['status' => 'ok'])
         ->header('X-Correlation-Id', $correlationId);
 });
+
+Route::get('/me', ChurchAccountController::class)
+    ->middleware([
+        'auth:sanctum',
+        'verified',
+        'tenant.resolve',
+        'tenant.transaction',
+        'owner.mfa',
+    ]);

@@ -20,6 +20,464 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sanctum/csrf-cookie": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Initialize same-origin church session and XSRF-TOKEN cookie. */
+        get: operations["initializeChurchCsrf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Rate limited. two_factor=true requires /two-factor-challenge before authentication completes. */
+        post: operations["churchLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Invalidate church session. */
+        post: operations["churchLogout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Safe enrollment state, available before verification/MFA or tenant selection. */
+        get: operations["getAccountSession"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Requires verified email, active trusted church membership, and confirmed Owner MFA. Teacher MFA is optional. Assignments are empty until assignment features are implemented. */
+        get: operations["getChurchAccount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Same generic response for known, unknown and broker-throttled accounts; IP rate limit is independent of account existence. */
+        post: operations["requestPasswordReset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Single-use reset token from private email. Does not bypass MFA. */
+        post: operations["resetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/email/verification-notification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Rate-limited verification email resend. */
+        post: operations["resendVerification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/email/verify/{id}/{hash}": {
+        parameters: {
+            query: {
+                expires: number;
+                signature: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+                hash: string;
+            };
+            cookie?: never;
+        };
+        /** @description Signed expiring link must match the authenticated church user. */
+        get: operations["verifyChurchEmail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/confirm-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Confirm current password before MFA management; confirmation expires. */
+        post: operations["confirmPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/confirmed-password-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Check recent password confirmation. */
+        get: operations["getPasswordConfirmationStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/two-factor-challenge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Requires pending login session. Use TOTP or a single-use recovery code. */
+        post: operations["churchMfaChallenge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/two-factor-authentication": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Requires recent password confirmation; enable and then confirm TOTP. */
+        post: operations["enableChurchMfa"];
+        /** @description Requires recent password confirmation. Owner tenant access is blocked again immediately. */
+        delete: operations["disableChurchMfa"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/confirmed-two-factor-authentication": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Requires recent password confirmation and a valid TOTP. */
+        post: operations["confirmChurchMfa"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/two-factor-secret-key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Requires recent password confirmation. Sensitive enrollment material; do not persist. */
+        get: operations["getChurchMfaSecret"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/two-factor-qr-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Requires recent password confirmation. Sensitive enrollment material; no-store. */
+        get: operations["getChurchMfaQrCode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/two-factor-recovery-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Requires recent password confirmation. Sensitive one-time recovery codes; do not persist in app storage. */
+        get: operations["getChurchRecoveryCodes"];
+        put?: never;
+        /** @description Requires recent password confirmation. Replaces prior codes. */
+        post: operations["regenerateChurchRecoveryCodes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/profile-information": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** @description Email change clears verified status and requires re-verification. */
+        put: operations["updateChurchProfile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** @description Requires current password. */
+        put: operations["updateChurchPassword"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/csrf-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Initialize isolated platform session and return CSRF token; never persist outside memory. */
+        get: operations["getPlatformCsrf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Only fully active admins; creates a short-lived pending MFA challenge, not an authenticated session. */
+        post: operations["platformLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/two-factor-challenge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Requires pending platform login; rotates session on success. Recovery codes are consumed atomically. */
+        post: operations["platformMfaChallenge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Invalidate platform session only. */
+        post: operations["platformLogout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Online-only. Rechecks active status, verified email, confirmed MFA and recovery acknowledgement. No tenant data. */
+        get: operations["getPlatformSession"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/setup/{platformAdmin}": {
+        parameters: {
+            query: {
+                expires: number;
+                signature: string;
+            };
+            header?: never;
+            path: {
+                platformAdmin: string;
+            };
+            cookie?: never;
+        };
+        /** @description Short-lived signed invitation for a pending admin. */
+        get: operations["getPlatformSetup"];
+        put?: never;
+        /** @description Signed invitation proves recovery-email possession. Set password and return enrollment material once; session-bound confirmation is required. */
+        post: operations["beginPlatformSetup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/setup/{platformAdmin}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                platformAdmin: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Requires the same setup session, unexpired invitation, valid TOTP and explicit recovery-code acknowledgement. Activates admin and invalidates setup invitation. */
+        post: operations["confirmPlatformSetup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -61,8 +519,151 @@ export interface components {
             }[];
             page: components["schemas"]["PageMeta"];
         };
+        AccountSession: {
+            email_verified: boolean;
+            mfa_confirmed: boolean;
+        };
+        ChurchAccount: {
+            id: number;
+            display_name: string;
+            email_verified: boolean;
+            memberships: {
+                /** Format: uuid */
+                church_id: string;
+                /** @enum {string} */
+                role: "owner" | "teacher";
+                /** @constant */
+                status: "active";
+            }[];
+            assignments: {
+                ministry_ids: string[];
+            };
+            active_session: {
+                mfa_confirmed: boolean;
+            };
+        };
+        PlatformSession: {
+            handle: string;
+            /** @constant */
+            online_only: true;
+        };
+        LoginRequest: {
+            /** Format: email */
+            email: string;
+            /** Format: password */
+            password: string;
+        };
+        PlatformLoginRequest: {
+            handle: string;
+            /** Format: password */
+            password: string;
+        };
+        LoginResult: {
+            two_factor: boolean;
+        };
+        NewPassword: {
+            /** Format: password */
+            password: string;
+            /** Format: password */
+            password_confirmation: string;
+        };
+        ResetPasswordRequest: {
+            /** Format: email */
+            email: string;
+            token: string;
+            /** Format: password */
+            password: string;
+            /** Format: password */
+            password_confirmation: string;
+        };
+        PasswordConfirmation: {
+            /** Format: password */
+            password: string;
+        };
+        MfaChallenge: {
+            code: string;
+        } | {
+            recovery_code: string;
+        };
+        MfaCode: {
+            code: string;
+        };
+        PlatformSetupConfirmation: {
+            code: string;
+            /** @constant */
+            recovery_codes_acknowledged: true;
+        };
+        PlatformSetupStatus: {
+            handle: string;
+            /** @constant */
+            status: "pending";
+            /** Format: date-time */
+            expires_at: string;
+        };
+        PlatformEnrollment: {
+            secret: string;
+            /** @description otpauth URI for an authenticator; not HTML or SVG. */
+            qr_code: string;
+            recovery_codes: string[];
+        };
+        CsrfToken: {
+            csrf_token: string;
+        };
+        Message: {
+            message: string;
+        };
+        SecretKey: {
+            secretKey: string;
+        };
+        QrCode: {
+            svg: string;
+            url: string;
+        } | unknown[];
+        RecoveryCodes: string[];
+        PasswordStatus: {
+            confirmed: boolean;
+        };
+        UpdateProfile: {
+            name: string;
+            /** Format: email */
+            email: string;
+        };
+        UpdatePassword: {
+            /** Format: password */
+            current_password: string;
+            /** Format: password */
+            password: string;
+            /** Format: password */
+            password_confirmation: string;
+        };
     };
-    responses: never;
+    responses: {
+        /** @description Safe error envelope. 401 unauthenticated; 403 access or recent-password confirmation required; 410 expired setup; 419 CSRF mismatch; 422 invalid input; 429 rate limit. Responses are no-store. */
+        AuthError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ApiError"];
+            };
+        };
+        /** @description Completed; no response body. */
+        NoContent: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content?: never;
+        };
+        /** @description Fortify operation completed. */
+        FortifySuccess: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": "";
+            };
+        };
+    };
     parameters: never;
     requestBodies: never;
     headers: never;
@@ -97,6 +698,622 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+        };
+    };
+    initializeChurchCsrf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: components["responses"]["NoContent"];
+            default: components["responses"]["AuthError"];
+        };
+    };
+    churchLogin: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
+                "X-XSRF-TOKEN": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful response; Cache-Control no-store, private. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResult"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    churchLogout: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
+                "X-XSRF-TOKEN": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: components["responses"]["NoContent"];
+            default: components["responses"]["AuthError"];
+        };
+    };
+    getAccountSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response; Cache-Control no-store, private. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountSession"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    getChurchAccount: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Requested church; server validates active membership under PostgreSQL RLS. */
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response; Cache-Control no-store, private. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChurchAccount"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    requestPasswordReset: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
+                "X-XSRF-TOKEN": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: email */
+                    email: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response; Cache-Control no-store, private. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    resetPassword: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
+                "X-XSRF-TOKEN": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful response; Cache-Control no-store, private. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Message"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    resendVerification: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
+                "X-XSRF-TOKEN": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            202: components["responses"]["FortifySuccess"];
+            204: components["responses"]["NoContent"];
+            default: components["responses"]["AuthError"];
+        };
+    };
+    verifyChurchEmail: {
+        parameters: {
+            query: {
+                expires: number;
+                signature: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+                hash: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: components["responses"]["NoContent"];
+            default: components["responses"]["AuthError"];
+        };
+    };
+    confirmPassword: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
+                "X-XSRF-TOKEN": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordConfirmation"];
+            };
+        };
+        responses: {
+            201: components["responses"]["FortifySuccess"];
+            default: components["responses"]["AuthError"];
+        };
+    };
+    getPasswordConfirmationStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response; Cache-Control no-store, private. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PasswordStatus"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    churchMfaChallenge: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
+                "X-XSRF-TOKEN": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MfaChallenge"];
+            };
+        };
+        responses: {
+            204: components["responses"]["NoContent"];
+            default: components["responses"]["AuthError"];
+        };
+    };
+    enableChurchMfa: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
+                "X-XSRF-TOKEN": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["FortifySuccess"];
+            default: components["responses"]["AuthError"];
+        };
+    };
+    disableChurchMfa: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
+                "X-XSRF-TOKEN": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["FortifySuccess"];
+            default: components["responses"]["AuthError"];
+        };
+    };
+    confirmChurchMfa: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
+                "X-XSRF-TOKEN": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MfaCode"];
+            };
+        };
+        responses: {
+            200: components["responses"]["FortifySuccess"];
+            default: components["responses"]["AuthError"];
+        };
+    };
+    getChurchMfaSecret: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response; Cache-Control no-store, private. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SecretKey"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    getChurchMfaQrCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response; Cache-Control no-store, private. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QrCode"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    getChurchRecoveryCodes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response; Cache-Control no-store, private. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecoveryCodes"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    regenerateChurchRecoveryCodes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
+                "X-XSRF-TOKEN": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["FortifySuccess"];
+            default: components["responses"]["AuthError"];
+        };
+    };
+    updateChurchProfile: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
+                "X-XSRF-TOKEN": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProfile"];
+            };
+        };
+        responses: {
+            200: components["responses"]["FortifySuccess"];
+            default: components["responses"]["AuthError"];
+        };
+    };
+    updateChurchPassword: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
+                "X-XSRF-TOKEN": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePassword"];
+            };
+        };
+        responses: {
+            200: components["responses"]["FortifySuccess"];
+            default: components["responses"]["AuthError"];
+        };
+    };
+    getPlatformCsrf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response; Cache-Control no-store, private. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CsrfToken"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    platformLogin: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Obtain from /platform/csrf-token before each mutation. */
+                "X-CSRF-TOKEN": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformLoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful response; Cache-Control no-store, private. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResult"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    platformMfaChallenge: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Obtain from /platform/csrf-token before each mutation. */
+                "X-CSRF-TOKEN": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MfaChallenge"];
+            };
+        };
+        responses: {
+            204: components["responses"]["NoContent"];
+            default: components["responses"]["AuthError"];
+        };
+    };
+    platformLogout: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Obtain from /platform/csrf-token before each mutation. */
+                "X-CSRF-TOKEN": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: components["responses"]["NoContent"];
+            default: components["responses"]["AuthError"];
+        };
+    };
+    getPlatformSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response; Cache-Control no-store, private. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformSession"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    getPlatformSetup: {
+        parameters: {
+            query: {
+                expires: number;
+                signature: string;
+            };
+            header?: never;
+            path: {
+                platformAdmin: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response; Cache-Control no-store, private. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformSetupStatus"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    beginPlatformSetup: {
+        parameters: {
+            query: {
+                expires: number;
+                signature: string;
+            };
+            header: {
+                /** @description Obtain from /platform/csrf-token before each mutation. */
+                "X-CSRF-TOKEN": string;
+            };
+            path: {
+                platformAdmin: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewPassword"];
+            };
+        };
+        responses: {
+            /** @description Successful response; Cache-Control no-store, private. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformEnrollment"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    confirmPlatformSetup: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Obtain from /platform/csrf-token before each mutation. */
+                "X-CSRF-TOKEN": string;
+            };
+            path: {
+                platformAdmin: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformSetupConfirmation"];
+            };
+        };
+        responses: {
+            204: components["responses"]["NoContent"];
+            default: components["responses"]["AuthError"];
         };
     };
 }

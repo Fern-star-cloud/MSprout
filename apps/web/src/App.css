@@ -1,42 +1,25 @@
 #root {
-  max-width: 1280px;
+  max-width: 700px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  padding: clamp(1rem, 5vw, 3rem);
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
+.brand, footer { text-align: center; margin-bottom: 2rem; }
+.brand p { color: #476457; }
+.auth-card { background: white; border: 1px solid #cedbcf; border-radius: 16px; padding: clamp(1.2rem, 4vw, 2.4rem); box-shadow: 0 8px 32px #193e2b08; }
+.eyebrow { font-size: .8rem; text-transform: uppercase; letter-spacing: .1em; color: #4b6858; }
+.auth-card h2 { margin-top: .25rem; font-size: 1.75rem; }
+.form-field { margin-bottom: 1rem; }
+label { display: block; font-weight: 600; margin-bottom: .35rem; }
+input { width: 100%; min-height: 48px; border: 1px solid #789784; border-radius: 7px; padding: .7rem; font: inherit; background: white; color: #17382d; }
+input[type="checkbox"] { width: 24px; min-height: 24px; accent-color: #245c42; }
+form { margin: 1.5rem 0; }
+form button { width: 100%; }
+input:focus-visible, a:focus-visible, button:focus-visible { outline: 3px solid #bb741b; outline-offset: 3px; }
+[role="alert"], [aria-invalid="true"] { border: 1px solid #a53232; }
+[role="alert"] { padding: .8rem; color: #802424; background: #fff6f4; border-radius: 6px; }
+[role="status"] { padding: .8rem; background: #e9f4e9; border-radius: 6px; }
+.secret { display: block; overflow-wrap: anywhere; padding: 1rem; background: #f1f5ef; }
+.privacy-note { color: #516657; font-size: .85rem; margin-top: 2rem; }
+.secondary { background: #ecf3ea; color: #245c42; }
+footer { margin-top: 2rem; font-size: .85rem; }
