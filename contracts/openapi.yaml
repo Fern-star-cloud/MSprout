@@ -514,12 +514,227 @@ components:
           type: string
           minLength: 1
           maxLength: 500
+    Teacher:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - display_name
+        - status
+        - ministry_ids
+        - can_manage
+      properties:
+        id: &a8
+          type: string
+          format: uuid
+        display_name:
+          type: string
+        status:
+          type: string
+          enum:
+            - active
+            - revoked
+        ministry_ids:
+          type: array
+          maxItems: 100
+          uniqueItems: true
+          items: *a8
+        can_manage:
+          type: boolean
+    TeacherList:
+      type: object
+      additionalProperties: false
+      required:
+        - data
+        - has_more
+        - can_invite
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Teacher"
+        has_more:
+          type: boolean
+        can_invite:
+          type: boolean
+    TeacherInvitation:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - email
+        - role
+        - status
+        - expires_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+            - teacher
+        status:
+          type: string
+          enum:
+            - pending
+            - accepted
+            - expired
+            - revoked
+        expires_at:
+          type: string
+          format: date-time
+    TeacherInvitationList:
+      type: object
+      additionalProperties: false
+      required:
+        - data
+        - has_more
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeacherInvitation"
+        has_more:
+          type: boolean
+    InviteTeacher:
+      type: object
+      additionalProperties: false
+      required:
+        - email
+        - ministry_ids
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        ministry_ids:
+          type: array
+          maxItems: 100
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+    TeacherAssignments:
+      type: object
+      additionalProperties: false
+      required:
+        - ministry_ids
+      properties:
+        ministry_ids:
+          type: array
+          maxItems: 100
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+    AcceptTeacherInvitation:
+      type: object
+      additionalProperties: false
+      required:
+        - church_id
+        - invitation_id
+        - token
+        - signature
+        - expires
+        - email
+      properties:
+        church_id: &a8
+          type: string
+          format: uuid
+        invitation_id: *a8
+        token:
+          type: string
+          minLength: 64
+          maxLength: 64
+          writeOnly: true
+        signature:
+          type: string
+          minLength: 64
+          maxLength: 64
+          writeOnly: true
+        expires:
+          type: integer
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        name:
+          type: string
+          maxLength: 120
+        password:
+          type: string
+          minLength: 12
+          maxLength: 128
+          format: password
+          writeOnly: true
+    InvitationAccepted:
+      type: object
+      additionalProperties: false
+      required:
+        - church_id
+        - status
+      properties:
+        church_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - accepted
+    TransferOwnership:
+      type: object
+      additionalProperties: false
+      required:
+        - target_membership_id
+        - password
+        - code
+      properties:
+        target_membership_id:
+          type: string
+          format: uuid
+        password:
+          type: string
+          format: password
+          maxLength: 128
+          writeOnly: true
+        code:
+          type: string
+          pattern: ^\d{6}$
+          writeOnly: true
+    AssignedMinistry:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    AssignedMinistries:
+      type: object
+      additionalProperties: false
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssignedMinistry"
   securitySchemes:
     ChurchSession:
       type: apiKey
       in: cookie
       name: ministrysprout_session
-      description: Sanctum same-origin SPA session; cookie name configurable via SESSION_COOKIE. No bearer tokens.
+      description: Sanctum same-origin SPA session; cookie name configurable via
+        SESSION_COOKIE. No bearer tokens.
     PlatformSession:
       type: apiKey
       in: cookie
@@ -527,7 +742,9 @@ components:
       description: Distinct platform session scoped to /platform; mandatory confirmed MFA.
   responses:
     AuthError:
-      description: Safe error envelope. 401 unauthenticated; 403 access or recent-password confirmation required; 410 expired setup; 419 CSRF mismatch; 422 invalid input; 429 rate limit. Responses are no-store.
+      description: Safe error envelope. 401 unauthenticated; 403 access or
+        recent-password confirmation required; 410 expired setup; 419 CSRF
+        mismatch; 422 invalid input; 429 rate limit. Responses are no-store.
       content:
         application/json:
           schema:
@@ -575,7 +792,8 @@ paths:
       - url: /
     post:
       operationId: churchLogin
-      description: Rate limited. two_factor=true requires /two-factor-challenge before authentication completes.
+      description: Rate limited. two_factor=true requires /two-factor-challenge before
+        authentication completes.
       security: []
       responses:
         "200":
@@ -622,7 +840,8 @@ paths:
       - url: /
     get:
       operationId: getAccountSession
-      description: Safe enrollment state, available before verification/MFA or tenant selection.
+      description: Safe enrollment state, available before verification/MFA or tenant
+        selection.
       security:
         - ChurchSession: []
       responses:
@@ -637,7 +856,9 @@ paths:
   /me:
     get:
       operationId: getChurchAccount
-      description: Requires verified email, active trusted church membership, and confirmed Owner MFA. Teacher MFA is optional. Assignments are empty until assignment features are implemented.
+      description: Requires verified email, active trusted church membership, and
+        confirmed Owner MFA. Teacher MFA is optional. Assignments are empty
+        until assignment features are implemented.
       security:
         - ChurchSession: []
       responses:
@@ -654,13 +875,15 @@ paths:
           name: X-Church-Id
           required: true
           schema: *a2
-          description: Requested church; server validates active membership under PostgreSQL RLS.
+          description: Requested church; server validates active membership under
+            PostgreSQL RLS.
   /forgot-password:
     servers:
       - url: /
     post:
       operationId: requestPasswordReset
-      description: Same generic response for known, unknown and broker-throttled accounts; IP rate limit is independent of account existence.
+      description: Same generic response for known, unknown and broker-throttled
+        accounts; IP rate limit is independent of account existence.
       security: []
       responses:
         "200":
@@ -858,7 +1081,8 @@ paths:
           description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
     delete:
       operationId: disableChurchMfa
-      description: Requires recent password confirmation. Owner tenant access is blocked again immediately.
+      description: Requires recent password confirmation. Owner tenant access is
+        blocked again immediately.
       security:
         - ChurchSession: []
       responses:
@@ -902,7 +1126,8 @@ paths:
       - url: /
     get:
       operationId: getChurchMfaSecret
-      description: Requires recent password confirmation. Sensitive enrollment material; do not persist.
+      description: Requires recent password confirmation. Sensitive enrollment
+        material; do not persist.
       security:
         - ChurchSession: []
       responses:
@@ -919,7 +1144,8 @@ paths:
       - url: /
     get:
       operationId: getChurchMfaQrCode
-      description: Requires recent password confirmation. Sensitive enrollment material; no-store.
+      description: Requires recent password confirmation. Sensitive enrollment
+        material; no-store.
       security:
         - ChurchSession: []
       responses:
@@ -936,7 +1162,8 @@ paths:
       - url: /
     get:
       operationId: getChurchRecoveryCodes
-      description: Requires recent password confirmation. Sensitive one-time recovery codes; do not persist in app storage.
+      description: Requires recent password confirmation. Sensitive one-time recovery
+        codes; do not persist in app storage.
       security:
         - ChurchSession: []
       responses:
@@ -1019,7 +1246,8 @@ paths:
       - url: /
     get:
       operationId: getPlatformCsrf
-      description: Initialize isolated platform session and return CSRF token; never persist outside memory.
+      description: Initialize isolated platform session and return CSRF token; never
+        persist outside memory.
       security: []
       responses:
         "200":
@@ -1035,7 +1263,8 @@ paths:
       - url: /
     post:
       operationId: platformLogin
-      description: Only fully active admins; creates a short-lived pending MFA challenge, not an authenticated session.
+      description: Only fully active admins; creates a short-lived pending MFA
+        challenge, not an authenticated session.
       security: []
       responses:
         "200":
@@ -1063,7 +1292,8 @@ paths:
       - url: /
     post:
       operationId: platformMfaChallenge
-      description: Requires pending platform login; rotates session on success. Recovery codes are consumed atomically.
+      description: Requires pending platform login; rotates session on success.
+        Recovery codes are consumed atomically.
       security: []
       responses:
         "204":
@@ -1105,7 +1335,8 @@ paths:
       - url: /
     get:
       operationId: getPlatformSession
-      description: Online-only. Rechecks active status, verified email, confirmed MFA and recovery acknowledgement. No tenant data.
+      description: Online-only. Rechecks active status, verified email, confirmed MFA
+        and recovery acknowledgement. No tenant data.
       security:
         - PlatformSession: []
       responses:
@@ -1135,7 +1366,9 @@ paths:
           $ref: "#/components/responses/AuthError"
     post:
       operationId: beginPlatformSetup
-      description: Signed invitation proves recovery-email possession. Set password and return enrollment material once; session-bound confirmation is required.
+      description: Signed invitation proves recovery-email possession. Set password
+        and return enrollment material once; session-bound confirmation is
+        required.
       security: []
       responses:
         "200":
@@ -1178,7 +1411,9 @@ paths:
       - url: /
     post:
       operationId: confirmPlatformSetup
-      description: Requires the same setup session, unexpired invitation, valid TOTP and explicit recovery-code acknowledgement. Activates admin and invalidates setup invitation.
+      description: Requires the same setup session, unexpired invitation, valid TOTP
+        and explicit recovery-code acknowledgement. Activates admin and
+        invalidates setup invitation.
       security: []
       responses:
         "204":
@@ -1205,7 +1440,9 @@ paths:
   /church-applications:
     post:
       operationId: submitChurchApplication
-      description: Requires a verified church web session and CSRF protection. Accepts no uploads or unknown fields. Limited to five attempts per user and ten per IP per minute; active duplicates return 409.
+      description: Requires a verified church web session and CSRF protection. Accepts
+        no uploads or unknown fields. Limited to five attempts per user and ten
+        per IP per minute; active duplicates return 409.
       responses:
         "201":
           description: Successful response
@@ -1219,7 +1456,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ChurchApplication"
         default:
-          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate
+            or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500
+            server error."
           content:
             application/json:
               schema:
@@ -1233,7 +1472,8 @@ paths:
   /church-applications/current:
     get:
       operationId: currentChurchApplication
-      description: Requires a verified church web session. Returns only the current applicant's latest unpurged application, or null.
+      description: Requires a verified church web session. Returns only the current
+        applicant's latest unpurged application, or null.
       responses:
         "200":
           description: Successful response
@@ -1247,7 +1487,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/CurrentChurchApplication"
         default:
-          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate
+            or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500
+            server error."
           content:
             application/json:
               schema:
@@ -1257,7 +1499,9 @@ paths:
       - url: /
     get:
       operationId: listChurchApplications
-      description: Requires the isolated active sage.dev platform session with confirmed MFA and current-session MFA assurance. Returns 20 unpurged applications per page, filtered by status.
+      description: Requires the isolated active sage.dev platform session with
+        confirmed MFA and current-session MFA assurance. Returns 20 unpurged
+        applications per page, filtered by status.
       responses:
         "200":
           description: Successful response
@@ -1271,7 +1515,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApplicationReviewPage"
         default:
-          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate
+            or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500
+            server error."
           content:
             application/json:
               schema:
@@ -1305,7 +1551,9 @@ paths:
           format: uuid
     get:
       operationId: showChurchApplication
-      description: Requires the isolated active sage.dev platform session with confirmed MFA and current-session MFA assurance. Unknown or purged application IDs return 404.
+      description: Requires the isolated active sage.dev platform session with
+        confirmed MFA and current-session MFA assurance. Unknown or purged
+        application IDs return 404.
       responses:
         "200":
           description: Successful response
@@ -1319,7 +1567,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ChurchApplication"
         default:
-          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate
+            or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500
+            server error."
           content:
             application/json:
               schema:
@@ -1336,7 +1586,10 @@ paths:
           format: uuid
     post:
       operationId: approveChurchApplication
-      description: Requires the isolated active sage.dev platform session with current-session MFA assurance and platform CSRF protection. Accepts no request fields. Approval is atomic; replay returns the original result and an opposing decision returns 409.
+      description: Requires the isolated active sage.dev platform session with
+        current-session MFA assurance and platform CSRF protection. Accepts no
+        request fields. Approval is atomic; replay returns the original result
+        and an opposing decision returns 409.
       responses:
         "200":
           description: Successful response
@@ -1350,7 +1603,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ChurchApplication"
         default:
-          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate
+            or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500
+            server error."
           content:
             application/json:
               schema:
@@ -1367,7 +1622,11 @@ paths:
           format: uuid
     post:
       operationId: rejectChurchApplication
-      description: Requires the isolated active sage.dev platform session with current-session MFA assurance and platform CSRF protection. Rejects unknown fields. Same-decision replay returns the original result; an opposing decision returns 409. Retention removes personal fields after 30 days.
+      description: Requires the isolated active sage.dev platform session with
+        current-session MFA assurance and platform CSRF protection. Rejects
+        unknown fields. Same-decision replay returns the original result; an
+        opposing decision returns 409. Retention removes personal fields after
+        30 days.
       responses:
         "200":
           description: Successful response
@@ -1381,7 +1640,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ChurchApplication"
         default:
-          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate
+            or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500
+            server error."
           content:
             application/json:
               schema:
@@ -1392,3 +1653,317 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/RejectChurchApplication"
+  /teachers:
+    parameters:
+      - name: X-Church-Id
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Requested church. Active membership and policy are verified
+          server-side under RLS.
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+    get:
+      operationId: listTeachers
+      description: Requires a verified active Owner with MFA assurance in the current
+        church session. Online only; cookie authentication and CSRF protect
+        mutations.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeacherList"
+        default:
+          description: Safe error envelope; no account existence or submitted secrets are
+            disclosed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /teachers/{id}:
+    parameters:
+      - name: X-Church-Id
+        in: header
+        required: true
+        schema: &a8
+          type: string
+          format: uuid
+        description: Requested church. Active membership and policy are verified
+          server-side under RLS.
+      - name: id
+        in: path
+        required: true
+        schema: *a8
+    delete:
+      operationId: revokeTeacher
+      description: Requires a verified active Owner with MFA assurance in the current
+        church session. Online only; cookie authentication and CSRF protect
+        mutations.
+      responses:
+        "204":
+          description: Completed
+        default:
+          description: Safe error envelope; no account existence or submitted secrets are
+            disclosed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /teachers/{id}/assignments:
+    parameters:
+      - name: X-Church-Id
+        in: header
+        required: true
+        schema: &a8
+          type: string
+          format: uuid
+        description: Requested church. Active membership and policy are verified
+          server-side under RLS.
+      - name: id
+        in: path
+        required: true
+        schema: *a8
+    put:
+      operationId: assignTeacher
+      description: Requires a verified active Owner with MFA assurance in the current
+        church session. Online only; cookie authentication and CSRF protect
+        mutations.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeacherAssignments"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeacherAssignments"
+        default:
+          description: Safe error envelope; no account existence or submitted secrets are
+            disclosed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /teacher-invitations:
+    parameters:
+      - name: X-Church-Id
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Requested church. Active membership and policy are verified
+          server-side under RLS.
+    get:
+      operationId: listTeacherInvitations
+      description: Requires a verified active Owner with MFA assurance in the current
+        church session. Online only; cookie authentication and CSRF protect
+        mutations.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeacherInvitationList"
+        default: &a8
+          description: Safe error envelope; no account existence or submitted secrets are
+            disclosed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+    post:
+      operationId: inviteTeacher
+      description: Requires a verified active Owner with MFA assurance in the current
+        church session. Online only; cookie authentication and CSRF protect
+        mutations.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InviteTeacher"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeacherInvitation"
+        default: *a8
+  /teacher-invitations/{id}:
+    parameters:
+      - name: X-Church-Id
+        in: header
+        required: true
+        schema: &a8
+          type: string
+          format: uuid
+        description: Requested church. Active membership and policy are verified
+          server-side under RLS.
+      - name: id
+        in: path
+        required: true
+        schema: *a8
+    delete:
+      operationId: revokeTeacherInvitation
+      description: Requires a verified active Owner with MFA assurance in the current
+        church session. Online only; cookie authentication and CSRF protect
+        mutations.
+      responses:
+        "204":
+          description: Completed
+        default:
+          description: Safe error envelope; no account existence or submitted secrets are
+            disclosed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /teacher-invitations/accept:
+    post:
+      operationId: acceptTeacherInvitation
+      description: Public, rate-limited, CSRF-protected POST of the signed proof from
+        the email URL fragment. Proof expires after seven days and is single
+        use. Exact normalized email required. Existing accounts must sign in and
+        verify their email. New invitees supply name and a password (12+
+        characters with upper/lowercase, number and symbol); the emailed proof
+        verifies their address. No raw proof is persisted. No account session is
+        created by acceptance; sign in afterward.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptTeacherInvitation"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvitationAccepted"
+        default:
+          description: Safe error envelope; no account existence or submitted secrets are
+            disclosed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /ownership-transfer:
+    parameters:
+      - name: X-Church-Id
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Requested church. Active membership and policy are verified
+          server-side under RLS.
+    post:
+      operationId: transferOwnership
+      description: Active Owner only. Requires current password and a fresh, unused
+        TOTP challenge in this request, not previous session MFA alone.
+        Serializes on church and membership rows; atomically demotes/promotes
+        and appends one high-risk audit. Both memberships lose existing
+        sessions, offline leases and push authorization. New Owner must
+        enroll/confirm MFA before access.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferOwnership"
+      responses:
+        "204":
+          description: Completed
+        default:
+          description: Safe error envelope; no account existence or submitted secrets are
+            disclosed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /assigned-ministries:
+    parameters:
+      - name: X-Church-Id
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Requested church. Active membership and policy are verified
+          server-side under RLS.
+    get:
+      operationId: listAssignedMinistries
+      description: Verified active membership required. Owner with session MFA sees
+        active church ministries. Teachers see only actively assigned
+        ministries. No roster data.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssignedMinistries"
+        default:
+          description: Safe error envelope; no account existence or submitted secrets are
+            disclosed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /assigned-ministries/{id}:
+    parameters:
+      - name: X-Church-Id
+        in: header
+        required: true
+        schema: &a8
+          type: string
+          format: uuid
+        description: Requested church. Active membership and policy are verified
+          server-side under RLS.
+      - name: id
+        in: path
+        required: true
+        schema: *a8
+    get:
+      operationId: getAssignedMinistry
+      description: Same policy as listAssignedMinistries. Unassigned, archived or
+        cross-church ministries return 404.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssignedMinistry"
+        default:
+          description: Safe error envelope; no account existence or submitted secrets are
+            disclosed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"

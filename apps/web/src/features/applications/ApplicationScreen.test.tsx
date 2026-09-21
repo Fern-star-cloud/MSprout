@@ -45,3 +45,10 @@ it('offers retry and sign in after a failed initial load', async () => {
   expect(screen.getByRole('link', { name: 'Sign in' })).toBeDefined()
   await waitFor(() => expect(screen.getByRole('button', { name: 'Refresh status' })).toBeDefined())
 })
+
+it('links an approved workspace to Teacher management', async () => {
+  const church = crypto.randomUUID()
+  vi.mocked(authRequest).mockResolvedValueOnce({ email_verified: true, mfa_confirmed: true }).mockResolvedValueOnce({ application: { id: 'application', status: 'approved', church_name: 'Grace Church', church_id: church } })
+  render(<ApplicationScreen />)
+  expect((await screen.findByRole('link', { name: 'Manage Teachers' })).getAttribute('href')).toBe('/account/teachers?church=' + church)
+})

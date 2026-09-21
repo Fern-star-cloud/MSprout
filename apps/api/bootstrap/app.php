@@ -57,7 +57,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->report(function (Throwable $exception) {
-            if (request()->is('api/church-applications', 'api/church-applications/*', 'platform/applications', 'platform/applications/*')) {
+            if (request()->is('api/church-applications', 'api/church-applications/*', 'platform/applications', 'platform/applications/*', 'api/teachers', 'api/teachers/*', 'api/teacher-invitations', 'api/teacher-invitations/*', 'api/ownership-transfer', 'api/assigned-ministries', 'api/assigned-ministries/*')) {
                 $correlationId = request()->header('X-Correlation-Id');
                 $correlationId = Str::isUuid($correlationId) ? $correlationId : (string) Str::uuid();
                 Log::error('Church application operation failed.', ['correlation_id' => $correlationId]);

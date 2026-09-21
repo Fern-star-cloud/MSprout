@@ -27,7 +27,7 @@ async function readResponse(response: Response): Promise<unknown> {
 }
 
 export async function authRequest<T = Record<string, unknown>>(
-  path: string, method: 'GET' | 'POST' | 'DELETE' | 'PUT' = 'GET', body?: Record<string, unknown>,
+  path: string, method: 'GET' | 'POST' | 'DELETE' | 'PUT' = 'GET', body?: Record<string, unknown>, churchId?: string,
 ): Promise<T> {
   if (globalThis.navigator?.onLine === false) throw new Error('Connect to the internet and try again.')
   if (!path.startsWith('/') || path.startsWith('//') || path.includes('\\')) throw new Error('Invalid authentication path')
@@ -35,6 +35,10 @@ export async function authRequest<T = Record<string, unknown>>(
     Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-Correlation-Id': crypto.randomUUID(),
   }
   const options = { credentials: 'same-origin', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer' } as const
+  if (churchId) {
+    if (!/^[a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12}$/i.test(churchId)) throw new Error('Invalid workspace')
+    headers['X-Church-Id'] = churchId
+  }
   if (method !== 'GET') {
     if (path.startsWith('/platform/')) {
       const csrf = await readResponse(await fetch('/platform/csrf-token', { ...options, headers })) as { csrf_token: string }

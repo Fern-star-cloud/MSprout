@@ -46,3 +46,14 @@ it('accepts only same-origin signed links for the expected endpoint', () => {
   expect(signedInvitation(encodeURIComponent('https://attacker.test' + path), 'platform')).toBeNull()
   expect(signedInvitation(encodeURIComponent(location.origin + '/logout'), 'platform')).toBeNull()
 })
+
+it('sends a validated church header with CSRF protected membership mutations', async () => {
+  const church = crypto.randomUUID()
+  document.cookie = 'XSRF-TOKEN=csrf-value'
+  const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+  vi.stubGlobal('fetch', fetcher)
+  await authRequest('/api/teachers/' + crypto.randomUUID(), 'DELETE', undefined, church)
+  expect(fetcher.mock.calls[1][1]).toMatchObject({ method: 'DELETE', cache: 'no-store', headers: { 'X-Church-Id': church, 'X-XSRF-TOKEN': 'csrf-value' } })
+  await expect(authRequest('/api/teachers', 'GET', undefined, 'invalid')).rejects.toThrow('Invalid workspace')
+  expect(fetcher).toHaveBeenCalledTimes(2)
+})

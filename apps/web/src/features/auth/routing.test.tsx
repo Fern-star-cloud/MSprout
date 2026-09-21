@@ -14,6 +14,8 @@ it.each([
   ['/account/platform-setup', 'Set up sage.dev'],
   ['/account/application', 'Your church, ready to grow'],
   ['/account/platform-applications', 'Church applications'],
+  ['/account/teachers', 'Teachers'],
+  ['/account/teacher-invitation', 'Teacher invitation'],
 ])('opens %s from a direct browser visit', (path, heading) => {
   history.replaceState(null, '', path)
   render(<App />)

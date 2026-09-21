@@ -46,7 +46,8 @@ export function ApplicationScreen() {
         <p>{application.church_name}</p>
         {application.status === 'pending' && <p>Your application is awaiting review. You will receive an email when a decision is made.</p>}
         {application.status === 'approved' && <><p>Your church workspace is approved. Owner access requires confirmed MFA.</p>
-          {!session?.mfa_confirmed ? <a href="/account/mfa">Set up MFA</a> : <p>Your authenticator is confirmed.</p>}</>}
+          {!session?.mfa_confirmed ? <a href="/account/mfa">Set up MFA</a> : <p>Your authenticator is confirmed.</p>}
+          {session?.mfa_confirmed && application.church_id && <a href={'/account/teachers?church=' + encodeURIComponent(application.church_id)}>Manage Teachers</a>}</>}
         {application.status === 'rejected' && <><p>{application.reason}</p><p>Application details are removed after 30 days. You may submit a new application.</p>
           <button onClick={() => { setApplication(null); setCaptcha(''); setChallenge((value) => value + 1) }}>Apply again</button></>}
       </>}

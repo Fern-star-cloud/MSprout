@@ -3,6 +3,7 @@
 namespace App\Support\Tenancy;
 
 use App\Enums\ChurchRole;
+use App\Models\Church;
 use App\Models\ChurchMembership;
 use Closure;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -62,7 +63,7 @@ final class TenantContext
                 ->where('status', 'active')
                 ->first();
 
-            if ($membership === null) {
+            if ($membership === null || ! Church::whereKey($churchId)->where('status', 'active')->exists()) {
                 throw new AuthorizationException;
             }
 

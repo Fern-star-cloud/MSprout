@@ -586,6 +586,194 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/teachers": {
+        parameters: {
+            query?: {
+                page?: number;
+            };
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Requires a verified active Owner with MFA assurance in the current church session. Online only; cookie authentication and CSRF protect mutations. */
+        get: operations["listTeachers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/teachers/{id}": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Requires a verified active Owner with MFA assurance in the current church session. Online only; cookie authentication and CSRF protect mutations. */
+        delete: operations["revokeTeacher"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/teachers/{id}/assignments": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** @description Requires a verified active Owner with MFA assurance in the current church session. Online only; cookie authentication and CSRF protect mutations. */
+        put: operations["assignTeacher"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/teacher-invitations": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Requires a verified active Owner with MFA assurance in the current church session. Online only; cookie authentication and CSRF protect mutations. */
+        get: operations["listTeacherInvitations"];
+        put?: never;
+        /** @description Requires a verified active Owner with MFA assurance in the current church session. Online only; cookie authentication and CSRF protect mutations. */
+        post: operations["inviteTeacher"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/teacher-invitations/{id}": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Requires a verified active Owner with MFA assurance in the current church session. Online only; cookie authentication and CSRF protect mutations. */
+        delete: operations["revokeTeacherInvitation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/teacher-invitations/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Public, rate-limited, CSRF-protected POST of the signed proof from the email URL fragment. Proof expires after seven days and is single use. Exact normalized email required. Existing accounts must sign in and verify their email. New invitees supply name and a password (12+ characters with upper/lowercase, number and symbol); the emailed proof verifies their address. No raw proof is persisted. No account session is created by acceptance; sign in afterward. */
+        post: operations["acceptTeacherInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ownership-transfer": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Active Owner only. Requires current password and a fresh, unused TOTP challenge in this request, not previous session MFA alone. Serializes on church and membership rows; atomically demotes/promotes and appends one high-risk audit. Both memberships lose existing sessions, offline leases and push authorization. New Owner must enroll/confirm MFA before access. */
+        post: operations["transferOwnership"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/assigned-ministries": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Verified active membership required. Owner with session MFA sees active church ministries. Teachers see only actively assigned ministries. No roster data. */
+        get: operations["listAssignedMinistries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/assigned-ministries/{id}": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Same policy as listAssignedMinistries. Unassigned, archived or cross-church ministries return 404. */
+        get: operations["getAssignedMinistry"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -783,6 +971,79 @@ export interface components {
             /** @enum {string} */
             category: "duplicate" | "ineligible" | "incomplete" | "other";
             reason: string;
+        };
+        Teacher: {
+            /** Format: uuid */
+            id: string;
+            display_name: string;
+            /** @enum {string} */
+            status: "active" | "revoked";
+            ministry_ids: string[];
+            can_manage: boolean;
+        };
+        TeacherList: {
+            data: components["schemas"]["Teacher"][];
+            has_more: boolean;
+            can_invite: boolean;
+        };
+        TeacherInvitation: {
+            /** Format: uuid */
+            id: string;
+            /** Format: email */
+            email: string;
+            /** @enum {string} */
+            role: "teacher";
+            /** @enum {string} */
+            status: "pending" | "accepted" | "expired" | "revoked";
+            /** Format: date-time */
+            expires_at: string;
+        };
+        TeacherInvitationList: {
+            data: components["schemas"]["TeacherInvitation"][];
+            has_more: boolean;
+        };
+        InviteTeacher: {
+            /** Format: email */
+            email: string;
+            ministry_ids: string[];
+        };
+        TeacherAssignments: {
+            ministry_ids: string[];
+        };
+        AcceptTeacherInvitation: {
+            /** Format: uuid */
+            church_id: string;
+            /** Format: uuid */
+            invitation_id: string;
+            token: string;
+            signature: string;
+            expires: number;
+            /** Format: email */
+            email: string;
+            name?: string;
+            /** Format: password */
+            password?: string;
+        };
+        InvitationAccepted: {
+            /** Format: uuid */
+            church_id: string;
+            /** @enum {string} */
+            status: "accepted";
+        };
+        TransferOwnership: {
+            /** Format: uuid */
+            target_membership_id: string;
+            /** Format: password */
+            password: string;
+            code: string;
+        };
+        AssignedMinistry: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        AssignedMinistries: {
+            data: components["schemas"]["AssignedMinistry"][];
         };
     };
     responses: {
@@ -1651,6 +1912,345 @@ export interface operations {
                 };
             };
             /** @description Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    listTeachers: {
+        parameters: {
+            query?: {
+                page?: number;
+            };
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeacherList"];
+                };
+            };
+            /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    revokeTeacher: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Completed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    assignTeacher: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeacherAssignments"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeacherAssignments"];
+                };
+            };
+            /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    listTeacherInvitations: {
+        parameters: {
+            query?: {
+                page?: number;
+            };
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeacherInvitationList"];
+                };
+            };
+            /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    inviteTeacher: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InviteTeacher"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeacherInvitation"];
+                };
+            };
+            /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    revokeTeacherInvitation: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Completed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    acceptTeacherInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptTeacherInvitation"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationAccepted"];
+                };
+            };
+            /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    transferOwnership: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransferOwnership"];
+            };
+        };
+        responses: {
+            /** @description Completed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    listAssignedMinistries: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignedMinistries"];
+                };
+            };
+            /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getAssignedMinistry: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Requested church. Active membership and policy are verified server-side under RLS. */
+                "X-Church-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignedMinistry"];
+                };
+            };
+            /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
             default: {
                 headers: {
                     [name: string]: unknown;
