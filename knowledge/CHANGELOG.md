@@ -1,0 +1,16 @@
+# Development Changelog
+
+Meaningful completed milestones only. This is a concise index, not a replacement for Git history or QA reports.
+
+| Date | Milestone | Result | Commit |
+|---|---|---|---|
+| 2026-08-20 | Task 1 — independent monorepo and quality baseline | React/Laravel workspace, local PostgreSQL/Mailpit, CI/security workflows, initial contract and structure checks | `e351988d0cd309d91a2e555f7d344704ed8366f2` |
+| 2026-08-20 | Task 2 — typed API contract | OpenAPI response conventions, generated TypeScript, typed transport, health endpoint and tests | `6642be93019019d8623d7f8fd9225d885d74cbe7` |
+| 2026-08-20 | PostgreSQL 18 setup correction | Corrected local PostgreSQL 18 volume/configuration assumptions | `aeb40ad78cf044112109db71e22f0433482ce1ba` |
+| 2026-08-20 | Task 3 — tenant schema and RLS | Church/membership schema, trusted tenant context, restricted runtime role, forced RLS and isolation tests | `2807089e6d4f9b1b399770c67cf679d75d030682` |
+| 2026-09-21 | Task 4 — church/platform authentication | Fortify/Sanctum church flows, Owner MFA, isolated `sage.dev` guard/setup, frontend authentication flows | `fe52346d5740d5edd1aa95e73c799101a078b246` |
+| 2026-09-21 | Task 5 — approval-gated church registration | Applicant lifecycle, CAPTCHA/limits, platform approval/rejection, transactional notification/audit, 30-day cleanup | `763bc93610ca44167a1800bd810edd643358620c` |
+| 2026-09-22 | Task 6 — teacher membership management | Invitations, assignments, revocation, ownership transfer, session/device invalidation, UI and verification report | `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f` |
+| 2026-09-27 | Task 7 — append-only audit, security, and correlation logging | Canonical immutable evidence, legacy preservation, transactional high-risk/auth auditing, denial telemetry, redaction, scoped viewers, frontend/contract, and complete validation | `32fad0a1735c0e2a677832252f72197252c8cd05` |
+
+Task 7 passed its complete validation gate before commit. Its handoff state is in [CURRENT_STATE.md](CURRENT_STATE.md) and [the verification report](../docs/qa/task-7-verification.md).
