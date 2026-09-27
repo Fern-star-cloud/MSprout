@@ -47,7 +47,7 @@ it('preserves identities with active or recent applications and memberships hidd
 });
 
 it('denies direct runtime audit mutation', function () {
-    foreach (['UPDATE platform_application_audits SET category = NULL', 'DELETE FROM platform_application_audits'] as $sql) {
+    foreach (['UPDATE audit_events SET category = NULL', 'DELETE FROM audit_events'] as $sql) {
         expect(fn () => DB::statement($sql))->toThrow(QueryException::class);
     }
 });

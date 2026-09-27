@@ -1,6 +1,9 @@
 <?php
 
+use App\Domain\Audit\CorrelationContext;
+use App\Http\Middleware\AuditAuthentication;
 use App\Http\Middleware\AuthResponseHeaders;
+use App\Http\Middleware\CorrelationId;
 use App\Http\Middleware\RequireConfirmedOwnerMfa;
 use App\Http\Middleware\ResolveChurchMembership;
 use App\Http\Middleware\TenantDatabaseTransaction;
@@ -37,7 +40,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
+        $middleware->prepend(CorrelationId::class);
         $middleware->append(AuthResponseHeaders::class);
+        $middleware->web(append: [AuditAuthentication::class]);
 
         $middleware->alias([
             'owner.mfa' => RequireConfirmedOwnerMfa::class,
@@ -53,6 +58,7 @@ return Application::configure(basePath: dirname(__DIR__))
             ShareErrorsFromSession::class,
             ValidatePlatformCsrfToken::class,
             SubstituteBindings::class,
+            AuditAuthentication::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -65,7 +71,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 return false;
             }
 
-            return null;
+            Log::error('Application operation failed.', ['correlation_id' => request()->header('X-Correlation-Id') ?? app(CorrelationContext::class)->id()]);
+
+            return false;
         });
 
         $exceptions->shouldRenderJsonWhen(

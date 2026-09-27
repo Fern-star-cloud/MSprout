@@ -29,7 +29,7 @@ it('requires a fresh MFA challenge password and explicit active Teacher', functi
     $rows = DB::connection('pgsql_migration')->table('church_memberships')->where('church_id', $this->church->id);
     expect((clone $rows)->where('role', 'owner')->where('status', 'active')->pluck('id')->all())->toBe([$this->target->id]);
     expect((clone $rows)->where('id', $this->membership->id)->value('role'))->toBe('teacher');
-    expect(DB::connection('pgsql_migration')->table('membership_audits')->where('action', 'ownership.transferred')->count())->toBe(1);
+    expect(DB::connection('pgsql_migration')->table('audit_events')->where('action', 'ownership.transferred')->count())->toBe(1);
     $this->travel(61)->seconds();
     $this->postJson('/api/ownership-transfer', $payload)->assertUnauthorized();
 });
@@ -43,7 +43,7 @@ it('rejects missing stale and previously consumed MFA challenges', function () {
     $code = (new Google2FA)->getCurrentOtp($this->secret);
     app(TwoFactorAuthenticationProvider::class)->verify($this->secret, $code);
     $this->postJson('/api/ownership-transfer', $payload + ['code' => $code])->assertUnprocessable();
-    expect(DB::connection('pgsql_migration')->table('membership_audits')->count())->toBe(0);
+    expect(DB::connection('pgsql_migration')->table('audit_events')->count())->toBe(0);
 });
 
 it('immediately signs out the former Owner and rejects every old database session cookie', function () {
@@ -112,7 +112,7 @@ it('rolls back both roles when required audit persistence fails', function () {
     foreach (['offline_authorizations', 'push_subscriptions'] as $table) {
         expect(DB::connection('pgsql_migration')->table($table)->whereNull('revoked_at')->count())->toBe(2);
     }
-    expect(DB::connection('pgsql_migration')->table('membership_audits')->count())->toBe(0);
+    expect(DB::connection('pgsql_migration')->table('audit_events')->count())->toBe(0);
     $this->assertAuthenticatedAs($this->owner, 'web');
     $this->getJson('/api/me')->assertOk()->assertJsonPath('memberships.0.role', 'owner');
 });

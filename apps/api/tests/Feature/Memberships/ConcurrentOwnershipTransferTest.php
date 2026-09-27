@@ -52,7 +52,7 @@ it('serializes two simultaneous transfers and denies the stale Owner after the l
         sort($results);
         expect($results)->toBe(['denied', 'transferred']);
         expect($admin->table('church_memberships')->where('church_id', $church->id)->where('role', 'owner')->where('status', 'active')->count())->toBe(1);
-        expect($admin->table('membership_audits')->where('action', 'ownership.transferred')->count())->toBe(1);
+        expect($admin->table('audit_events')->where('action', 'ownership.transferred')->count())->toBe(1);
     } finally {
         if ($admin->transactionLevel() > 0) {
             $admin->rollBack();

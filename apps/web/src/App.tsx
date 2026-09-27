@@ -6,6 +6,7 @@ import { ApplicationScreen } from './features/applications/ApplicationScreen'
 import { ApplicationReviewScreen } from './features/platform/applications/ApplicationReviewScreen'
 import { TeacherManagementScreen } from './features/teachers/TeacherManagementScreen'
 import { TeacherInvitationScreen } from './features/teachers/TeacherInvitationScreen'
+import { AuditScreen } from './features/audit/AuditScreen'
 
 function App() {
   const [entry] = useState(() => ({ path: globalThis.location?.pathname ?? '/', fragment: globalThis.location?.hash.slice(1) ?? '' }))
@@ -14,7 +15,7 @@ function App() {
   return (
     <main>
       <header className="brand"><h1>MinistrySprout</h1><p>Children&apos;s ministry, ready anywhere.</p></header>
-      {page === 'teachers' ? <TeacherManagementScreen /> : page === 'teacher-invitation' ? <TeacherInvitationScreen fragment={entry.fragment} /> : page === 'application' ? <ApplicationScreen /> : page === 'platform-applications' ? <ApplicationReviewScreen /> : page === 'platform-login' || page === 'platform-setup'
+      {page === 'audit' || page === 'platform-audit' ? <AuditScreen platform={page === 'platform-audit'} /> : page === 'teachers' ? <TeacherManagementScreen /> : page === 'teacher-invitation' ? <TeacherInvitationScreen fragment={entry.fragment} /> : page === 'application' ? <ApplicationScreen /> : page === 'platform-applications' ? <ApplicationReviewScreen /> : page === 'platform-login' || page === 'platform-setup'
         ? <PlatformAuthScreen setup={page === 'platform-setup'} fragment={entry.fragment} />
         : <AuthScreen initialPage={pages.includes(page as AuthPage) ? page as AuthPage : 'login'} fragment={entry.fragment} />}
       <footer><a href="/account/platform-login">Platform administration</a></footer>

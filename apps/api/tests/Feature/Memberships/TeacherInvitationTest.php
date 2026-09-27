@@ -85,7 +85,7 @@ it('revokes sessions assignments push subscriptions and offline leases without e
     foreach (['offline_authorizations', 'push_subscriptions'] as $table) {
         expect($db->table($table)->where('membership_id', $membership->id)->whereNull('revoked_at')->count())->toBe(0);
     }
-    expect($db->table('membership_audits')->count())->toBe(2);
+    expect($db->table('audit_events')->count())->toBe(2);
     $teacher = User::findOrFail($teacher->id);
     $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()])->getJson('/api/me')->assertForbidden();
 });

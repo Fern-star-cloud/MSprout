@@ -75,7 +75,7 @@ it('rolls back the audit and approval if the database notification queue cannot 
     config(['queue.connections.database.table' => 'unavailable_notification_queue']);
     $this->actingAs(PlatformAdmin::factory()->active()->create(['handle' => 'sage.dev']), 'platform')->withSession(['platform.mfa' => true])
         ->postJson('/platform/applications/'.$id.'/approve')->assertStatus(500);
-    expect(DB::table('platform_application_audits')->count())->toBe(0);
+    expect(DB::table('audit_events')->count())->toBe(0);
     expect(DB::connection('pgsql_migration')->table('churches')->count())->toBe(0);
     expect(ChurchApplication::findOrFail($id)->status->value)->toBe('pending');
 });

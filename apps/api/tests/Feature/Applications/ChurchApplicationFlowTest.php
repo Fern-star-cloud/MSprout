@@ -109,7 +109,7 @@ it('makes approval atomic idempotent audited and MFA gated', function () {
     $this->postJson('/platform/applications/'.$id.'/reject', ['category' => 'other', 'reason' => 'Changed mind'])->assertConflict();
     expect(DB::connection('pgsql_migration')->table('churches')->count())->toBe(1);
     expect(DB::connection('pgsql_migration')->table('church_memberships')->count())->toBe(1);
-    expect(DB::table('platform_application_audits')->where('correlation_id', $correlation)->count())->toBe(1);
+    expect(DB::table('audit_events')->where('correlation_id', $correlation)->count())->toBe(1);
     Mail::assertQueued(ChurchApplicationDecisionMail::class, 1);
     $this->actingAs($user, 'web')->withHeader('X-Church-Id', $first['church_id'])->getJson('/api/me')->assertForbidden();
     expect(DB::table('churches')->count())->toBe(0); // RLS context did not leak.
@@ -125,8 +125,8 @@ it('rejects with a sanitized reason and preserves the original decision on repla
     $this->postJson('/platform/applications/'.$id.'/reject', ['category' => 'other', 'reason' => 'Another reason'])->assertExactJson($first);
     $this->postJson('/platform/applications/'.$id.'/approve')->assertConflict();
     Mail::assertQueued(ChurchApplicationDecisionMail::class, 1);
-    expect(DB::table('platform_application_audits')->count())->toBe(1);
-    expect(json_encode(DB::table('platform_application_audits')->first()))->not->toContain('Already registered')->not->toContain('Grace Church');
+    expect(DB::table('audit_events')->count())->toBe(1);
+    expect(json_encode(DB::table('audit_events')->first()))->not->toContain('Already registered')->not->toContain('Grace Church');
 });
 
 it('rolls back approval and notification when required audit persistence fails', function () {

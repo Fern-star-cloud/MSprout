@@ -110,7 +110,7 @@ it('keeps every new tenant table under forced RLS and audits append only', funct
     [, $other] = ChurchScenario::owner();
     $foreign = MembershipScenario::ministry($other->id);
     $this->postJson('/api/teacher-invitations', ['email' => 'invited@example.test', 'ministry_ids' => [MembershipScenario::ministry($this->church->id)]])->assertCreated();
-    foreach (['ministries', 'invitations', 'invitation_ministries', 'teacher_ministry_assignments', 'offline_authorizations', 'push_subscriptions', 'membership_audits'] as $table) {
+    foreach (['ministries', 'invitations', 'invitation_ministries', 'teacher_ministry_assignments', 'offline_authorizations', 'push_subscriptions', 'audit_events'] as $table) {
         expect(DB::table($table)->count())->toBe(0);
         $flags = DB::selectOne('SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE relname = ?', [$table]);
         expect($flags->relrowsecurity)->toBeTrue()->and($flags->relforcerowsecurity)->toBeTrue();
@@ -120,8 +120,8 @@ it('keeps every new tenant table under forced RLS and audits append only', funct
         expect(DB::table('ministries')->where('id', $foreign)->update(['name' => 'Forbidden']))->toBe(0);
         expect(DB::table('ministries')->where('id', $foreign)->delete())->toBe(0);
         expect(fn () => DB::transaction(fn () => DB::table('ministries')->insert(['id' => (string) Str::uuid(), 'church_id' => $other->id, 'name' => 'Forbidden'])))->toThrow(QueryException::class);
-        expect(fn () => DB::transaction(fn () => DB::table('membership_audits')->update(['action' => 'changed'])))->toThrow(QueryException::class);
-        expect(fn () => DB::transaction(fn () => DB::table('membership_audits')->delete()))->toThrow(QueryException::class);
+        expect(fn () => DB::transaction(fn () => DB::table('audit_events')->update(['action' => 'changed'])))->toThrow(QueryException::class);
+        expect(fn () => DB::transaction(fn () => DB::table('audit_events')->delete()))->toThrow(QueryException::class);
     });
 });
 
@@ -152,7 +152,7 @@ it('blocks cross tenant writes and foreign parent assignments at the database la
     MembershipScenario::deviceAccess($member);
     $this->postJson('/api/teacher-invitations', ['email' => 'invited@example.test', 'ministry_ids' => [$ministry]])->assertCreated();
     app(TenantContext::class)->run($this->church->id, function () use ($other, $foreignMinistry) {
-        foreach (['ministries', 'invitations', 'invitation_ministries', 'teacher_ministry_assignments', 'offline_authorizations', 'push_subscriptions', 'membership_audits'] as $table) {
+        foreach (['ministries', 'invitations', 'invitation_ministries', 'teacher_ministry_assignments', 'offline_authorizations', 'push_subscriptions', 'audit_events'] as $table) {
             $row = (array) DB::table($table)->first();
             expect($row)->not->toBeEmpty();
             $row['id'] = (string) Str::uuid();
@@ -210,5 +210,5 @@ it('rolls back invitation and audit if mail cannot be delivered', function () {
     Mail::shouldReceive('send')->andThrow(new RuntimeException('delivery unavailable'));
     $this->postJson('/api/teacher-invitations', ['email' => 'invited@example.test', 'ministry_ids' => [$ministry]])->assertStatus(500);
     expect(DB::connection('pgsql_migration')->table('invitations')->count())->toBe(0);
-    expect(DB::connection('pgsql_migration')->table('membership_audits')->count())->toBe(0);
+    expect(DB::connection('pgsql_migration')->table('audit_events')->count())->toBe(0);
 });

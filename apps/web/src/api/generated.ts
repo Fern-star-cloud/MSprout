@@ -774,6 +774,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/audit-events": {
+        parameters: {
+            query?: {
+                page?: number;
+                per_page?: number;
+            };
+            header: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * View active-church audit or own permitted activity
+         * @description Online only. Authorization and active membership are rechecked server-side. Ordered by occurred_at descending then UUID descending. Only page and per_page query parameters are accepted. No raw metadata or security records are returned.
+         */
+        get: operations["churchAuditEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/audit-events": {
+        parameters: {
+            query?: {
+                page?: number;
+                per_page?: number;
+            };
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * View permitted platform audit events
+         * @description Online only. Authorization and active membership are rechecked server-side. Ordered by occurred_at descending then UUID descending. Only page and per_page query parameters are accepted. No raw metadata or security records are returned.
+         */
+        get: operations["platformAuditEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1045,6 +1098,32 @@ export interface components {
         AssignedMinistries: {
             data: components["schemas"]["AssignedMinistry"][];
         };
+        AuditEvent: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            category: "church" | "platform";
+            action: string;
+            /** @enum {string} */
+            result: "success" | "failure" | "denied";
+            /** @enum {string} */
+            actor_type: "user" | "platform_admin" | "system" | "anonymous";
+            actor_id: string | null;
+            target_type: string;
+            target_id: string | null;
+            /** Format: uuid */
+            correlation_id: string;
+            /** Format: date-time */
+            occurred_at: string;
+        };
+        AuditPage: {
+            data: components["schemas"]["AuditEvent"][];
+            page: number;
+            per_page: number;
+            has_more: boolean;
+            /** @enum {string} */
+            scope: "church" | "own" | "platform";
+        };
     };
     responses: {
         /** @description Safe error envelope. 401 unauthenticated; 403 access or recent-password confirmation required; 410 expired setup; 419 CSRF mismatch; 422 invalid input; 429 rate limit. Responses are no-store. */
@@ -1083,7 +1162,10 @@ export interface operations {
     getHealth: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1092,6 +1174,8 @@ export interface operations {
             /** @description Healthy */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1101,6 +1185,8 @@ export interface operations {
             /** @description Safe API error */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1112,7 +1198,10 @@ export interface operations {
     initializeChurchCsrf: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1128,6 +1217,8 @@ export interface operations {
             header: {
                 /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
                 "X-XSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1141,6 +1232,8 @@ export interface operations {
             /** @description Successful response; Cache-Control no-store, private. */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1156,6 +1249,8 @@ export interface operations {
             header: {
                 /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
                 "X-XSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1169,7 +1264,10 @@ export interface operations {
     getAccountSession: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1178,6 +1276,8 @@ export interface operations {
             /** @description Successful response; Cache-Control no-store, private. */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1193,6 +1293,8 @@ export interface operations {
             header: {
                 /** @description Requested church; server validates active membership under PostgreSQL RLS. */
                 "X-Church-Id": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1202,6 +1304,8 @@ export interface operations {
             /** @description Successful response; Cache-Control no-store, private. */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1217,6 +1321,8 @@ export interface operations {
             header: {
                 /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
                 "X-XSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1233,6 +1339,8 @@ export interface operations {
             /** @description Successful response; Cache-Control no-store, private. */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1248,6 +1356,8 @@ export interface operations {
             header: {
                 /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
                 "X-XSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1261,6 +1371,8 @@ export interface operations {
             /** @description Successful response; Cache-Control no-store, private. */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1276,6 +1388,8 @@ export interface operations {
             header: {
                 /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
                 "X-XSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1293,7 +1407,10 @@ export interface operations {
                 expires: number;
                 signature: string;
             };
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path: {
                 id: string;
                 hash: string;
@@ -1312,6 +1429,8 @@ export interface operations {
             header: {
                 /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
                 "X-XSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1329,7 +1448,10 @@ export interface operations {
     getPasswordConfirmationStatus: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1338,6 +1460,8 @@ export interface operations {
             /** @description Successful response; Cache-Control no-store, private. */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1353,6 +1477,8 @@ export interface operations {
             header: {
                 /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
                 "X-XSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1373,6 +1499,8 @@ export interface operations {
             header: {
                 /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
                 "X-XSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1389,6 +1517,8 @@ export interface operations {
             header: {
                 /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
                 "X-XSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1405,6 +1535,8 @@ export interface operations {
             header: {
                 /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
                 "X-XSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1422,7 +1554,10 @@ export interface operations {
     getChurchMfaSecret: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1431,6 +1566,8 @@ export interface operations {
             /** @description Successful response; Cache-Control no-store, private. */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1443,7 +1580,10 @@ export interface operations {
     getChurchMfaQrCode: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1452,6 +1592,8 @@ export interface operations {
             /** @description Successful response; Cache-Control no-store, private. */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1464,7 +1606,10 @@ export interface operations {
     getChurchRecoveryCodes: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1473,6 +1618,8 @@ export interface operations {
             /** @description Successful response; Cache-Control no-store, private. */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1488,6 +1635,8 @@ export interface operations {
             header: {
                 /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
                 "X-XSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1504,6 +1653,8 @@ export interface operations {
             header: {
                 /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
                 "X-XSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1524,6 +1675,8 @@ export interface operations {
             header: {
                 /** @description URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie. */
                 "X-XSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1541,7 +1694,10 @@ export interface operations {
     getPlatformCsrf: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1550,6 +1706,8 @@ export interface operations {
             /** @description Successful response; Cache-Control no-store, private. */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1565,6 +1723,8 @@ export interface operations {
             header: {
                 /** @description Obtain from /platform/csrf-token before each mutation. */
                 "X-CSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1578,6 +1738,8 @@ export interface operations {
             /** @description Successful response; Cache-Control no-store, private. */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1593,6 +1755,8 @@ export interface operations {
             header: {
                 /** @description Obtain from /platform/csrf-token before each mutation. */
                 "X-CSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1613,6 +1777,8 @@ export interface operations {
             header: {
                 /** @description Obtain from /platform/csrf-token before each mutation. */
                 "X-CSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1626,7 +1792,10 @@ export interface operations {
     getPlatformSession: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1635,6 +1804,8 @@ export interface operations {
             /** @description Successful response; Cache-Control no-store, private. */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1650,7 +1821,10 @@ export interface operations {
                 expires: number;
                 signature: string;
             };
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path: {
                 platformAdmin: string;
             };
@@ -1661,6 +1835,8 @@ export interface operations {
             /** @description Successful response; Cache-Control no-store, private. */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1679,6 +1855,8 @@ export interface operations {
             header: {
                 /** @description Obtain from /platform/csrf-token before each mutation. */
                 "X-CSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path: {
                 platformAdmin: string;
@@ -1694,6 +1872,8 @@ export interface operations {
             /** @description Successful response; Cache-Control no-store, private. */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1709,6 +1889,8 @@ export interface operations {
             header: {
                 /** @description Obtain from /platform/csrf-token before each mutation. */
                 "X-CSRF-TOKEN": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path: {
                 platformAdmin: string;
@@ -1728,7 +1910,10 @@ export interface operations {
     submitChurchApplication: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1741,6 +1926,7 @@ export interface operations {
             /** @description Successful response */
             201: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
                     "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
@@ -1751,6 +1937,8 @@ export interface operations {
             /** @description Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error. */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1762,7 +1950,10 @@ export interface operations {
     currentChurchApplication: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1771,6 +1962,7 @@ export interface operations {
             /** @description Successful response */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
                     "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
@@ -1781,6 +1973,8 @@ export interface operations {
             /** @description Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error. */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1795,7 +1989,10 @@ export interface operations {
                 page?: number;
                 status?: "pending" | "approved" | "rejected";
             };
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1804,6 +2001,7 @@ export interface operations {
             /** @description Successful response */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
                     "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
@@ -1814,6 +2012,8 @@ export interface operations {
             /** @description Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error. */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1825,7 +2025,10 @@ export interface operations {
     showChurchApplication: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path: {
                 id: string;
             };
@@ -1836,6 +2039,7 @@ export interface operations {
             /** @description Successful response */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
                     "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
@@ -1846,6 +2050,8 @@ export interface operations {
             /** @description Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error. */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1857,7 +2063,10 @@ export interface operations {
     approveChurchApplication: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path: {
                 id: string;
             };
@@ -1868,6 +2077,7 @@ export interface operations {
             /** @description Successful response */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
                     "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
@@ -1878,6 +2088,8 @@ export interface operations {
             /** @description Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error. */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1889,7 +2101,10 @@ export interface operations {
     rejectChurchApplication: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path: {
                 id: string;
             };
@@ -1904,6 +2119,7 @@ export interface operations {
             /** @description Successful response */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
                     "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
@@ -1914,6 +2130,8 @@ export interface operations {
             /** @description Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error. */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1930,6 +2148,8 @@ export interface operations {
             header: {
                 /** @description Requested church. Active membership and policy are verified server-side under RLS. */
                 "X-Church-Id": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1939,6 +2159,8 @@ export interface operations {
             /** @description Success */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1948,6 +2170,8 @@ export interface operations {
             /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1962,6 +2186,8 @@ export interface operations {
             header: {
                 /** @description Requested church. Active membership and policy are verified server-side under RLS. */
                 "X-Church-Id": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path: {
                 id: string;
@@ -1973,6 +2199,8 @@ export interface operations {
             /** @description Completed */
             204: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content?: never;
@@ -1980,6 +2208,8 @@ export interface operations {
             /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -1994,6 +2224,8 @@ export interface operations {
             header: {
                 /** @description Requested church. Active membership and policy are verified server-side under RLS. */
                 "X-Church-Id": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path: {
                 id: string;
@@ -2009,6 +2241,8 @@ export interface operations {
             /** @description Success */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2018,6 +2252,8 @@ export interface operations {
             /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2034,6 +2270,8 @@ export interface operations {
             header: {
                 /** @description Requested church. Active membership and policy are verified server-side under RLS. */
                 "X-Church-Id": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -2043,6 +2281,8 @@ export interface operations {
             /** @description Success */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2052,6 +2292,8 @@ export interface operations {
             /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2066,6 +2308,8 @@ export interface operations {
             header: {
                 /** @description Requested church. Active membership and policy are verified server-side under RLS. */
                 "X-Church-Id": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -2079,6 +2323,8 @@ export interface operations {
             /** @description Success */
             201: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2088,6 +2334,8 @@ export interface operations {
             /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2102,6 +2350,8 @@ export interface operations {
             header: {
                 /** @description Requested church. Active membership and policy are verified server-side under RLS. */
                 "X-Church-Id": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path: {
                 id: string;
@@ -2113,6 +2363,8 @@ export interface operations {
             /** @description Completed */
             204: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content?: never;
@@ -2120,6 +2372,8 @@ export interface operations {
             /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2131,7 +2385,10 @@ export interface operations {
     acceptTeacherInvitation: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2144,6 +2401,8 @@ export interface operations {
             /** @description Success */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2153,6 +2412,8 @@ export interface operations {
             /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2167,6 +2428,8 @@ export interface operations {
             header: {
                 /** @description Requested church. Active membership and policy are verified server-side under RLS. */
                 "X-Church-Id": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -2180,6 +2443,8 @@ export interface operations {
             /** @description Completed */
             204: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content?: never;
@@ -2187,6 +2452,8 @@ export interface operations {
             /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2201,6 +2468,8 @@ export interface operations {
             header: {
                 /** @description Requested church. Active membership and policy are verified server-side under RLS. */
                 "X-Church-Id": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path?: never;
             cookie?: never;
@@ -2210,6 +2479,8 @@ export interface operations {
             /** @description Success */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2219,6 +2490,8 @@ export interface operations {
             /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2233,6 +2506,8 @@ export interface operations {
             header: {
                 /** @description Requested church. Active membership and policy are verified server-side under RLS. */
                 "X-Church-Id": string;
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
             };
             path: {
                 id: string;
@@ -2244,6 +2519,8 @@ export interface operations {
             /** @description Success */
             200: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -2253,6 +2530,87 @@ export interface operations {
             /** @description Safe error envelope; no account existence or submitted secrets are disclosed. */
             default: {
                 headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    churchAuditEvents: {
+        parameters: {
+            query?: {
+                page?: number;
+                per_page?: number;
+            };
+            header: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sanitized audit page */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditPage"];
+                };
+            };
+            /** @description Safe API error */
+            default: {
+                headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    platformAuditEvents: {
+        parameters: {
+            query?: {
+                page?: number;
+                per_page?: number;
+            };
+            header?: {
+                /** @description A valid client UUID is accepted; other values are replaced. */
+                "X-Correlation-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sanitized audit page */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditPage"];
+                };
+            };
+            /** @description Safe API error */
+            default: {
+                headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
                     [name: string]: unknown;
                 };
                 content: {

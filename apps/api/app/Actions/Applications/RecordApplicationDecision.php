@@ -2,12 +2,13 @@
 
 namespace App\Actions\Applications;
 
+use App\Domain\Audit\AuditEntry;
+use App\Domain\Audit\AuditWriter;
 use App\Mail\ChurchApplicationDecisionMail;
 use App\Models\ChurchApplication;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 
 class RecordApplicationDecision
 {
@@ -17,11 +18,11 @@ class RecordApplicationDecision
             || (config('queue.connections.database.connection') ?? config('database.default')) !== DB::getDefaultConnection()) {
             throw new \LogicException('Application decisions require the primary database queue.');
         }
-        DB::table('platform_application_audits')->insert([
-            'id' => (string) Str::uuid(), 'application_id' => $application->id, 'applicant_id' => $application->user_id,
-            'actor_id' => $application->decided_by, 'action' => 'application.'.$application->status->value,
-            'category' => $application->category, 'correlation_id' => $application->correlation_id, 'occurred_at' => $application->decided_at,
-        ]);
+        app(AuditWriter::class)->record(new AuditEntry(
+            'platform', 'application.'.$application->status->value, 'platform_admin', $application->decided_by,
+            'application', $application->id, correlationId: $application->correlation_id,
+            metadata: array_filter(['applicant_id' => (int) $application->user_id, 'decision_category' => $application->category], fn ($value) => $value !== null),
+        ));
         // Database queue insertion participates in the decision transaction. The queued mail is encrypted.
         Mail::to(User::findOrFail($application->user_id)->email)->queue(new ChurchApplicationDecisionMail($application->status->value));
     }

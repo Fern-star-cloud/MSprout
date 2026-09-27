@@ -728,13 +728,99 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AssignedMinistry"
+    AuditEvent:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - category
+        - action
+        - result
+        - actor_type
+        - actor_id
+        - target_type
+        - target_id
+        - correlation_id
+        - occurred_at
+      properties:
+        id: &a9
+          type: string
+          format: uuid
+        category:
+          type: string
+          enum:
+            - church
+            - platform
+        action:
+          type: string
+          maxLength: 64
+        result:
+          type: string
+          enum:
+            - success
+            - failure
+            - denied
+        actor_type:
+          type: string
+          enum:
+            - user
+            - platform_admin
+            - system
+            - anonymous
+        actor_id:
+          type:
+            - string
+            - "null"
+          maxLength: 36
+        target_type:
+          type: string
+          maxLength: 32
+        target_id:
+          type:
+            - string
+            - "null"
+          maxLength: 36
+        correlation_id: *a9
+        occurred_at:
+          type: string
+          format: date-time
+    AuditPage:
+      type: object
+      additionalProperties: false
+      required:
+        - data
+        - page
+        - per_page
+        - has_more
+        - scope
+      properties:
+        data:
+          type: array
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/AuditEvent"
+        page:
+          type: integer
+          minimum: 1
+          maximum: 10000
+        per_page:
+          type: integer
+          minimum: 1
+          maximum: 100
+        has_more:
+          type: boolean
+        scope:
+          type: string
+          enum:
+            - church
+            - own
+            - platform
   securitySchemes:
     ChurchSession:
       type: apiKey
       in: cookie
       name: ministrysprout_session
-      description: Sanctum same-origin SPA session; cookie name configurable via
-        SESSION_COOKIE. No bearer tokens.
+      description: Sanctum same-origin SPA session; cookie name configurable via SESSION_COOKIE. No bearer tokens.
     PlatformSession:
       type: apiKey
       in: cookie
@@ -742,9 +828,7 @@ components:
       description: Distinct platform session scoped to /platform; mandatory confirmed MFA.
   responses:
     AuthError:
-      description: Safe error envelope. 401 unauthenticated; 403 access or
-        recent-password confirmation required; 410 expired setup; 419 CSRF
-        mismatch; 422 invalid input; 429 rate limit. Responses are no-store.
+      description: Safe error envelope. 401 unauthenticated; 403 access or recent-password confirmation required; 410 expired setup; 419 CSRF mismatch; 422 invalid input; 429 rate limit. Responses are no-store.
       content:
         application/json:
           schema:
@@ -769,12 +853,31 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Health"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           description: Safe API error
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /sanctum/csrf-cookie:
     servers:
       - url: /
@@ -785,15 +888,33 @@ paths:
       responses:
         "204":
           $ref: "#/components/responses/NoContent"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /login:
     servers:
       - url: /
     post:
       operationId: churchLogin
-      description: Rate limited. two_factor=true requires /two-factor-challenge before
-        authentication completes.
+      description: Rate limited. two_factor=true requires /two-factor-challenge before authentication completes.
       security: []
       responses:
         "200":
@@ -802,8 +923,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LoginResult"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       requestBody:
         required: true
         content:
@@ -814,8 +947,15 @@ paths:
         - in: header
           name: X-XSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /logout:
     servers:
       - url: /
@@ -827,21 +967,39 @@ paths:
       responses:
         "204":
           $ref: "#/components/responses/NoContent"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       parameters:
         - in: header
           name: X-XSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /auth/session:
     servers:
       - url: /
     get:
       operationId: getAccountSession
-      description: Safe enrollment state, available before verification/MFA or tenant
-        selection.
+      description: Safe enrollment state, available before verification/MFA or tenant selection.
       security:
         - ChurchSession: []
       responses:
@@ -851,14 +1009,31 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AccountSession"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /me:
     get:
       operationId: getChurchAccount
-      description: Requires verified email, active trusted church membership, and
-        confirmed Owner MFA. Teacher MFA is optional. Assignments are empty
-        until assignment features are implemented.
+      description: Requires verified email, active trusted church membership, and confirmed Owner MFA. Teacher MFA is optional. Assignments are empty until assignment features are implemented.
       security:
         - ChurchSession: []
       responses:
@@ -868,22 +1043,40 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ChurchAccount"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       parameters:
         - in: header
           name: X-Church-Id
           required: true
-          schema: *a2
-          description: Requested church; server validates active membership under
-            PostgreSQL RLS.
+          schema:
+            type: string
+            format: uuid
+          description: Requested church; server validates active membership under PostgreSQL RLS.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /forgot-password:
     servers:
       - url: /
     post:
       operationId: requestPasswordReset
-      description: Same generic response for known, unknown and broker-throttled
-        accounts; IP rate limit is independent of account existence.
+      description: Same generic response for known, unknown and broker-throttled accounts; IP rate limit is independent of account existence.
       security: []
       responses:
         "200":
@@ -892,8 +1085,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Message"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       requestBody:
         required: true
         content:
@@ -911,8 +1116,15 @@ paths:
         - in: header
           name: X-XSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /reset-password:
     servers:
       - url: /
@@ -927,8 +1139,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Message"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       requestBody:
         required: true
         content:
@@ -939,8 +1163,15 @@ paths:
         - in: header
           name: X-XSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /email/verification-notification:
     servers:
       - url: /
@@ -952,16 +1183,41 @@ paths:
       responses:
         "202":
           $ref: "#/components/responses/FortifySuccess"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         "204":
           $ref: "#/components/responses/NoContent"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       parameters:
         - in: header
           name: X-XSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /email/verify/{id}/{hash}:
     servers:
       - url: /
@@ -973,8 +1229,27 @@ paths:
       responses:
         "204":
           $ref: "#/components/responses/NoContent"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
     parameters:
       - in: path
         name: id
@@ -1005,8 +1280,20 @@ paths:
       responses:
         "201":
           $ref: "#/components/responses/FortifySuccess"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       requestBody:
         required: true
         content:
@@ -1017,8 +1304,15 @@ paths:
         - in: header
           name: X-XSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /user/confirmed-password-status:
     servers:
       - url: /
@@ -1034,8 +1328,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PasswordStatus"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /two-factor-challenge:
     servers:
       - url: /
@@ -1046,8 +1359,20 @@ paths:
       responses:
         "204":
           $ref: "#/components/responses/NoContent"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       requestBody:
         required: true
         content:
@@ -1058,8 +1383,15 @@ paths:
         - in: header
           name: X-XSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /user/two-factor-authentication:
     servers:
       - url: /
@@ -1071,31 +1403,68 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/FortifySuccess"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       parameters:
         - in: header
           name: X-XSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
     delete:
       operationId: disableChurchMfa
-      description: Requires recent password confirmation. Owner tenant access is
-        blocked again immediately.
+      description: Requires recent password confirmation. Owner tenant access is blocked again immediately.
       security:
         - ChurchSession: []
       responses:
         "200":
           $ref: "#/components/responses/FortifySuccess"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       parameters:
         - in: header
           name: X-XSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /user/confirmed-two-factor-authentication:
     servers:
       - url: /
@@ -1107,8 +1476,20 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/FortifySuccess"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       requestBody:
         required: true
         content:
@@ -1119,15 +1500,21 @@ paths:
         - in: header
           name: X-XSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /user/two-factor-secret-key:
     servers:
       - url: /
     get:
       operationId: getChurchMfaSecret
-      description: Requires recent password confirmation. Sensitive enrollment
-        material; do not persist.
+      description: Requires recent password confirmation. Sensitive enrollment material; do not persist.
       security:
         - ChurchSession: []
       responses:
@@ -1137,15 +1524,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SecretKey"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /user/two-factor-qr-code:
     servers:
       - url: /
     get:
       operationId: getChurchMfaQrCode
-      description: Requires recent password confirmation. Sensitive enrollment
-        material; no-store.
+      description: Requires recent password confirmation. Sensitive enrollment material; no-store.
       security:
         - ChurchSession: []
       responses:
@@ -1155,15 +1560,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/QrCode"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /user/two-factor-recovery-codes:
     servers:
       - url: /
     get:
       operationId: getChurchRecoveryCodes
-      description: Requires recent password confirmation. Sensitive one-time recovery
-        codes; do not persist in app storage.
+      description: Requires recent password confirmation. Sensitive one-time recovery codes; do not persist in app storage.
       security:
         - ChurchSession: []
       responses:
@@ -1173,8 +1596,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RecoveryCodes"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
     post:
       operationId: regenerateChurchRecoveryCodes
       description: Requires recent password confirmation. Replaces prior codes.
@@ -1183,14 +1625,33 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/FortifySuccess"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       parameters:
         - in: header
           name: X-XSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /user/profile-information:
     servers:
       - url: /
@@ -1202,8 +1663,20 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/FortifySuccess"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       requestBody:
         required: true
         content:
@@ -1214,8 +1687,15 @@ paths:
         - in: header
           name: X-XSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /user/password:
     servers:
       - url: /
@@ -1227,8 +1707,20 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/FortifySuccess"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       requestBody:
         required: true
         content:
@@ -1239,15 +1731,21 @@ paths:
         - in: header
           name: X-XSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: URL-decoded XSRF-TOKEN cookie initialized by /sanctum/csrf-cookie.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /platform/csrf-token:
     servers:
       - url: /
     get:
       operationId: getPlatformCsrf
-      description: Initialize isolated platform session and return CSRF token; never
-        persist outside memory.
+      description: Initialize isolated platform session and return CSRF token; never persist outside memory.
       security: []
       responses:
         "200":
@@ -1256,15 +1754,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CsrfToken"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /platform/login:
     servers:
       - url: /
     post:
       operationId: platformLogin
-      description: Only fully active admins; creates a short-lived pending MFA
-        challenge, not an authenticated session.
+      description: Only fully active admins; creates a short-lived pending MFA challenge, not an authenticated session.
       security: []
       responses:
         "200":
@@ -1273,8 +1789,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LoginResult"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       requestBody:
         required: true
         content:
@@ -1285,21 +1813,39 @@ paths:
         - in: header
           name: X-CSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: Obtain from /platform/csrf-token before each mutation.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /platform/two-factor-challenge:
     servers:
       - url: /
     post:
       operationId: platformMfaChallenge
-      description: Requires pending platform login; rotates session on success.
-        Recovery codes are consumed atomically.
+      description: Requires pending platform login; rotates session on success. Recovery codes are consumed atomically.
       security: []
       responses:
         "204":
           $ref: "#/components/responses/NoContent"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       requestBody:
         required: true
         content:
@@ -1310,8 +1856,15 @@ paths:
         - in: header
           name: X-CSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: Obtain from /platform/csrf-token before each mutation.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /platform/logout:
     servers:
       - url: /
@@ -1322,21 +1875,39 @@ paths:
       responses:
         "204":
           $ref: "#/components/responses/NoContent"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       parameters:
         - in: header
           name: X-CSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: Obtain from /platform/csrf-token before each mutation.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /platform/me:
     servers:
       - url: /
     get:
       operationId: getPlatformSession
-      description: Online-only. Rechecks active status, verified email, confirmed MFA
-        and recovery acknowledgement. No tenant data.
+      description: Online-only. Rechecks active status, verified email, confirmed MFA and recovery acknowledgement. No tenant data.
       security:
         - PlatformSession: []
       responses:
@@ -1346,8 +1917,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PlatformSession"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /platform/setup/{platformAdmin}:
     servers:
       - url: /
@@ -1362,13 +1952,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PlatformSetupStatus"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
     post:
       operationId: beginPlatformSetup
-      description: Signed invitation proves recovery-email possession. Set password
-        and return enrollment material once; session-bound confirmation is
-        required.
+      description: Signed invitation proves recovery-email possession. Set password and return enrollment material once; session-bound confirmation is required.
       security: []
       responses:
         "200":
@@ -1377,8 +1984,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PlatformEnrollment"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       requestBody:
         required: true
         content:
@@ -1389,8 +2008,15 @@ paths:
         - in: header
           name: X-CSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: Obtain from /platform/csrf-token before each mutation.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
     parameters:
       - in: path
         name: platformAdmin
@@ -1411,15 +2037,25 @@ paths:
       - url: /
     post:
       operationId: confirmPlatformSetup
-      description: Requires the same setup session, unexpired invitation, valid TOTP
-        and explicit recovery-code acknowledgement. Activates admin and
-        invalidates setup invitation.
+      description: Requires the same setup session, unexpired invitation, valid TOTP and explicit recovery-code acknowledgement. Activates admin and invalidates setup invitation.
       security: []
       responses:
         "204":
           $ref: "#/components/responses/NoContent"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
           $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       requestBody:
         required: true
         content:
@@ -1430,8 +2066,15 @@ paths:
         - in: header
           name: X-CSRF-TOKEN
           required: true
-          schema: *a3
+          schema:
+            type: string
           description: Obtain from /platform/csrf-token before each mutation.
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
     parameters:
       - in: path
         name: platformAdmin
@@ -1440,14 +2083,13 @@ paths:
   /church-applications:
     post:
       operationId: submitChurchApplication
-      description: Requires a verified church web session and CSRF protection. Accepts
-        no uploads or unknown fields. Limited to five attempts per user and ten
-        per IP per minute; active duplicates return 409.
+      description: Requires a verified church web session and CSRF protection. Accepts no uploads or unknown fields. Limited to five attempts per user and ten per IP per minute; active duplicates return 409.
       responses:
         "201":
           description: Successful response
           headers:
             X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
               schema:
                 type: string
                 format: uuid
@@ -1456,29 +2098,40 @@ paths:
               schema:
                 $ref: "#/components/schemas/ChurchApplication"
         default:
-          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate
-            or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500
-            server error."
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/SubmitChurchApplication"
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /church-applications/current:
     get:
       operationId: currentChurchApplication
-      description: Requires a verified church web session. Returns only the current
-        applicant's latest unpurged application, or null.
+      description: Requires a verified church web session. Returns only the current applicant's latest unpurged application, or null.
       responses:
         "200":
           description: Successful response
           headers:
             X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
               schema:
                 type: string
                 format: uuid
@@ -1487,26 +2140,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/CurrentChurchApplication"
         default:
-          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate
-            or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500
-            server error."
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /platform/applications:
     servers:
       - url: /
     get:
       operationId: listChurchApplications
-      description: Requires the isolated active sage.dev platform session with
-        confirmed MFA and current-session MFA assurance. Returns 20 unpurged
-        applications per page, filtered by status.
+      description: Requires the isolated active sage.dev platform session with confirmed MFA and current-session MFA assurance. Returns 20 unpurged applications per page, filtered by status.
       responses:
         "200":
           description: Successful response
           headers:
             X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
               schema:
                 type: string
                 format: uuid
@@ -1515,13 +2178,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApplicationReviewPage"
         default:
-          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate
-            or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500
-            server error."
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       parameters:
         - name: page
           in: query
@@ -1539,6 +2206,12 @@ paths:
               - approved
               - rejected
             default: pending
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /platform/applications/{id}:
     servers:
       - url: /
@@ -1551,14 +2224,13 @@ paths:
           format: uuid
     get:
       operationId: showChurchApplication
-      description: Requires the isolated active sage.dev platform session with
-        confirmed MFA and current-session MFA assurance. Unknown or purged
-        application IDs return 404.
+      description: Requires the isolated active sage.dev platform session with confirmed MFA and current-session MFA assurance. Unknown or purged application IDs return 404.
       responses:
         "200":
           description: Successful response
           headers:
             X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
               schema:
                 type: string
                 format: uuid
@@ -1567,13 +2239,24 @@ paths:
               schema:
                 $ref: "#/components/schemas/ChurchApplication"
         default:
-          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate
-            or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500
-            server error."
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /platform/applications/{id}/approve:
     servers:
       - url: /
@@ -1586,15 +2269,13 @@ paths:
           format: uuid
     post:
       operationId: approveChurchApplication
-      description: Requires the isolated active sage.dev platform session with
-        current-session MFA assurance and platform CSRF protection. Accepts no
-        request fields. Approval is atomic; replay returns the original result
-        and an opposing decision returns 409.
+      description: Requires the isolated active sage.dev platform session with current-session MFA assurance and platform CSRF protection. Accepts no request fields. Approval is atomic; replay returns the original result and an opposing decision returns 409.
       responses:
         "200":
           description: Successful response
           headers:
             X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
               schema:
                 type: string
                 format: uuid
@@ -1603,13 +2284,24 @@ paths:
               schema:
                 $ref: "#/components/schemas/ChurchApplication"
         default:
-          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate
-            or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500
-            server error."
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /platform/applications/{id}/reject:
     servers:
       - url: /
@@ -1622,16 +2314,13 @@ paths:
           format: uuid
     post:
       operationId: rejectChurchApplication
-      description: Requires the isolated active sage.dev platform session with
-        current-session MFA assurance and platform CSRF protection. Rejects
-        unknown fields. Same-decision replay returns the original result; an
-        opposing decision returns 409. Retention removes personal fields after
-        30 days.
+      description: Requires the isolated active sage.dev platform session with current-session MFA assurance and platform CSRF protection. Rejects unknown fields. Same-decision replay returns the original result; an opposing decision returns 409. Retention removes personal fields after 30 days.
       responses:
         "200":
           description: Successful response
           headers:
             X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
               schema:
                 type: string
                 format: uuid
@@ -1640,19 +2329,30 @@ paths:
               schema:
                 $ref: "#/components/schemas/ChurchApplication"
         default:
-          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate
-            or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500
-            server error."
+          description: "Safe error: 401 authentication, 403 authorization, 409 duplicate or opposing decision, 419 CSRF, 422 validation, 429 rate limit, 500 server error."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/RejectChurchApplication"
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /teachers:
     parameters:
       - name: X-Church-Id
@@ -1661,8 +2361,7 @@ paths:
         schema:
           type: string
           format: uuid
-        description: Requested church. Active membership and policy are verified
-          server-side under RLS.
+        description: Requested church. Active membership and policy are verified server-side under RLS.
       - name: page
         in: query
         required: false
@@ -1672,9 +2371,7 @@ paths:
           default: 1
     get:
       operationId: listTeachers
-      description: Requires a verified active Owner with MFA assurance in the current
-        church session. Online only; cookie authentication and CSRF protect
-        mutations.
+      description: Requires a verified active Owner with MFA assurance in the current church session. Online only; cookie authentication and CSRF protect mutations.
       responses:
         "200":
           description: Success
@@ -1682,13 +2379,31 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TeacherList"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
-          description: Safe error envelope; no account existence or submitted secrets are
-            disclosed.
+          description: Safe error envelope; no account existence or submitted secrets are disclosed.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /teachers/{id}:
     parameters:
       - name: X-Church-Id
@@ -1697,27 +2412,42 @@ paths:
         schema: &a8
           type: string
           format: uuid
-        description: Requested church. Active membership and policy are verified
-          server-side under RLS.
+        description: Requested church. Active membership and policy are verified server-side under RLS.
       - name: id
         in: path
         required: true
         schema: *a8
     delete:
       operationId: revokeTeacher
-      description: Requires a verified active Owner with MFA assurance in the current
-        church session. Online only; cookie authentication and CSRF protect
-        mutations.
+      description: Requires a verified active Owner with MFA assurance in the current church session. Online only; cookie authentication and CSRF protect mutations.
       responses:
         "204":
           description: Completed
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
-          description: Safe error envelope; no account existence or submitted secrets are
-            disclosed.
+          description: Safe error envelope; no account existence or submitted secrets are disclosed.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /teachers/{id}/assignments:
     parameters:
       - name: X-Church-Id
@@ -1726,17 +2456,14 @@ paths:
         schema: &a8
           type: string
           format: uuid
-        description: Requested church. Active membership and policy are verified
-          server-side under RLS.
+        description: Requested church. Active membership and policy are verified server-side under RLS.
       - name: id
         in: path
         required: true
         schema: *a8
     put:
       operationId: assignTeacher
-      description: Requires a verified active Owner with MFA assurance in the current
-        church session. Online only; cookie authentication and CSRF protect
-        mutations.
+      description: Requires a verified active Owner with MFA assurance in the current church session. Online only; cookie authentication and CSRF protect mutations.
       requestBody:
         required: true
         content:
@@ -1750,13 +2477,31 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TeacherAssignments"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
-          description: Safe error envelope; no account existence or submitted secrets are
-            disclosed.
+          description: Safe error envelope; no account existence or submitted secrets are disclosed.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /teacher-invitations:
     parameters:
       - name: X-Church-Id
@@ -1765,13 +2510,10 @@ paths:
         schema:
           type: string
           format: uuid
-        description: Requested church. Active membership and policy are verified
-          server-side under RLS.
+        description: Requested church. Active membership and policy are verified server-side under RLS.
     get:
       operationId: listTeacherInvitations
-      description: Requires a verified active Owner with MFA assurance in the current
-        church session. Online only; cookie authentication and CSRF protect
-        mutations.
+      description: Requires a verified active Owner with MFA assurance in the current church session. Online only; cookie authentication and CSRF protect mutations.
       responses:
         "200":
           description: Success
@@ -1779,13 +2521,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TeacherInvitationList"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default: &a8
-          description: Safe error envelope; no account existence or submitted secrets are
-            disclosed.
+          description: Safe error envelope; no account existence or submitted secrets are disclosed.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
       parameters:
         - name: page
           in: query
@@ -1794,11 +2547,15 @@ paths:
             type: integer
             minimum: 1
             default: 1
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
     post:
       operationId: inviteTeacher
-      description: Requires a verified active Owner with MFA assurance in the current
-        church session. Online only; cookie authentication and CSRF protect
-        mutations.
+      description: Requires a verified active Owner with MFA assurance in the current church session. Online only; cookie authentication and CSRF protect mutations.
       requestBody:
         required: true
         content:
@@ -1812,7 +2569,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TeacherInvitation"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default: *a8
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /teacher-invitations/{id}:
     parameters:
       - name: X-Church-Id
@@ -1821,37 +2591,46 @@ paths:
         schema: &a8
           type: string
           format: uuid
-        description: Requested church. Active membership and policy are verified
-          server-side under RLS.
+        description: Requested church. Active membership and policy are verified server-side under RLS.
       - name: id
         in: path
         required: true
         schema: *a8
     delete:
       operationId: revokeTeacherInvitation
-      description: Requires a verified active Owner with MFA assurance in the current
-        church session. Online only; cookie authentication and CSRF protect
-        mutations.
+      description: Requires a verified active Owner with MFA assurance in the current church session. Online only; cookie authentication and CSRF protect mutations.
       responses:
         "204":
           description: Completed
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
-          description: Safe error envelope; no account existence or submitted secrets are
-            disclosed.
+          description: Safe error envelope; no account existence or submitted secrets are disclosed.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /teacher-invitations/accept:
     post:
       operationId: acceptTeacherInvitation
-      description: Public, rate-limited, CSRF-protected POST of the signed proof from
-        the email URL fragment. Proof expires after seven days and is single
-        use. Exact normalized email required. Existing accounts must sign in and
-        verify their email. New invitees supply name and a password (12+
-        characters with upper/lowercase, number and symbol); the emailed proof
-        verifies their address. No raw proof is persisted. No account session is
-        created by acceptance; sign in afterward.
+      description: Public, rate-limited, CSRF-protected POST of the signed proof from the email URL fragment. Proof expires after seven days and is single use. Exact normalized email required. Existing accounts must sign in and verify their email. New invitees supply name and a password (12+ characters with upper/lowercase, number and symbol); the emailed proof verifies their address. No raw proof is persisted. No account session is created by acceptance; sign in afterward.
       requestBody:
         required: true
         content:
@@ -1865,13 +2644,31 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InvitationAccepted"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
-          description: Safe error envelope; no account existence or submitted secrets are
-            disclosed.
+          description: Safe error envelope; no account existence or submitted secrets are disclosed.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /ownership-transfer:
     parameters:
       - name: X-Church-Id
@@ -1880,16 +2677,10 @@ paths:
         schema:
           type: string
           format: uuid
-        description: Requested church. Active membership and policy are verified
-          server-side under RLS.
+        description: Requested church. Active membership and policy are verified server-side under RLS.
     post:
       operationId: transferOwnership
-      description: Active Owner only. Requires current password and a fresh, unused
-        TOTP challenge in this request, not previous session MFA alone.
-        Serializes on church and membership rows; atomically demotes/promotes
-        and appends one high-risk audit. Both memberships lose existing
-        sessions, offline leases and push authorization. New Owner must
-        enroll/confirm MFA before access.
+      description: Active Owner only. Requires current password and a fresh, unused TOTP challenge in this request, not previous session MFA alone. Serializes on church and membership rows; atomically demotes/promotes and appends one high-risk audit. Both memberships lose existing sessions, offline leases and push authorization. New Owner must enroll/confirm MFA before access.
       requestBody:
         required: true
         content:
@@ -1899,13 +2690,31 @@ paths:
       responses:
         "204":
           description: Completed
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
-          description: Safe error envelope; no account existence or submitted secrets are
-            disclosed.
+          description: Safe error envelope; no account existence or submitted secrets are disclosed.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /assigned-ministries:
     parameters:
       - name: X-Church-Id
@@ -1914,13 +2723,10 @@ paths:
         schema:
           type: string
           format: uuid
-        description: Requested church. Active membership and policy are verified
-          server-side under RLS.
+        description: Requested church. Active membership and policy are verified server-side under RLS.
     get:
       operationId: listAssignedMinistries
-      description: Verified active membership required. Owner with session MFA sees
-        active church ministries. Teachers see only actively assigned
-        ministries. No roster data.
+      description: Verified active membership required. Owner with session MFA sees active church ministries. Teachers see only actively assigned ministries. No roster data.
       responses:
         "200":
           description: Success
@@ -1928,13 +2734,31 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AssignedMinistries"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
-          description: Safe error envelope; no account existence or submitted secrets are
-            disclosed.
+          description: Safe error envelope; no account existence or submitted secrets are disclosed.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
   /assigned-ministries/{id}:
     parameters:
       - name: X-Church-Id
@@ -1943,16 +2767,14 @@ paths:
         schema: &a8
           type: string
           format: uuid
-        description: Requested church. Active membership and policy are verified
-          server-side under RLS.
+        description: Requested church. Active membership and policy are verified server-side under RLS.
       - name: id
         in: path
         required: true
         schema: *a8
     get:
       operationId: getAssignedMinistry
-      description: Same policy as listAssignedMinistries. Unassigned, archived or
-        cross-church ministries return 404.
+      description: Same policy as listAssignedMinistries. Unassigned, archived or cross-church ministries return 404.
       responses:
         "200":
           description: Success
@@ -1960,10 +2782,128 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AssignedMinistry"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
         default:
-          description: Safe error envelope; no account existence or submitted secrets are
-            disclosed.
+          description: Safe error envelope; no account existence or submitted secrets are disclosed.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: A valid client UUID is accepted; other values are replaced.
+          schema:
+            type: string
+  /audit-events:
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10000
+          default: 1
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+      - name: X-Correlation-Id
+        in: header
+        required: false
+        description: A valid client UUID is accepted; other values are replaced.
+        schema:
+          type: string
+      - name: X-Church-Id
+        in: header
+        required: true
+        schema: &a10
+          type: string
+          format: uuid
+    get:
+      operationId: churchAuditEvents
+      summary: View active-church audit or own permitted activity
+      description: Online only. Authorization and active membership are rechecked server-side. Ordered by occurred_at descending then UUID descending. Only page and per_page query parameters are accepted. No raw metadata or security records are returned.
+      responses:
+        "200":
+          description: Sanitized audit page
+          headers:
+            X-Correlation-Id: &a11
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema: *a10
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditPage"
+        default:
+          description: Safe API error
+          headers:
+            X-Correlation-Id: *a11
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /platform/audit-events:
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10000
+          default: 1
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+      - name: X-Correlation-Id
+        in: header
+        required: false
+        description: A valid client UUID is accepted; other values are replaced.
+        schema:
+          type: string
+    get:
+      operationId: platformAuditEvents
+      summary: View permitted platform audit events
+      description: Online only. Authorization and active membership are rechecked server-side. Ordered by occurred_at descending then UUID descending. Only page and per_page query parameters are accepted. No raw metadata or security records are returned.
+      responses:
+        "200":
+          description: Sanitized audit page
+          headers:
+            X-Correlation-Id: &a12
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditPage"
+        default:
+          description: Safe API error
+          headers:
+            X-Correlation-Id: *a12
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    servers:
+      - url: /

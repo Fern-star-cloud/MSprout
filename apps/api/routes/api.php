@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditController;
 use App\Http\Controllers\Auth\ChurchAccountController;
 use App\Http\Controllers\ChurchApplicationController;
 use App\Http\Controllers\TeacherManagementController;
@@ -31,6 +32,9 @@ Route::get('/me', ChurchAccountController::class)
         'tenant.transaction',
         'owner.mfa',
     ]);
+
+Route::get('/audit-events', [AuditController::class, 'church'])
+    ->middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction', 'owner.mfa']);
 
 Route::post('/teacher-invitations/accept', [TeacherManagementController::class, 'accept'])
     ->middleware([ApplicationRequest::class, 'throttle:teacher-invitation']);

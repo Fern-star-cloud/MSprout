@@ -2,19 +2,18 @@
 
 namespace App\Actions\Memberships;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use App\Domain\Audit\AuditEntry;
+use App\Domain\Audit\AuditWriter;
 
 class RecordMembershipAudit
 {
     public function handle(string $churchId, int $actorId, string $action, string $targetId, ?string $previousOwnerId = null): void
     {
-        $correlation = request()->header('X-Correlation-Id');
-        DB::table('membership_audits')->insert([
-            'id' => (string) Str::uuid(), 'church_id' => $churchId, 'actor_id' => $actorId,
-            'action' => $action, 'target_id' => $targetId, 'previous_owner_id' => $previousOwnerId,
-            'risk' => $action === 'ownership.transferred' ? 'high' : 'normal', 'result' => 'success',
-            'correlation_id' => Str::isUuid($correlation) ? $correlation : (string) Str::uuid(), 'occurred_at' => now(),
-        ]);
+        app(AuditWriter::class)->record(new AuditEntry(
+            'church', $action, 'user', (string) $actorId,
+            in_array($action, ['teacher.invited', 'invitation.accepted', 'invitation.revoked'], true) ? 'invitation' : 'membership',
+            $targetId, churchId: $churchId,
+            metadata: array_filter(['risk' => $action === 'ownership.transferred' ? 'high' : 'normal', 'previous_owner_id' => $previousOwnerId], fn ($value) => $value !== null),
+        ));
     }
 }
