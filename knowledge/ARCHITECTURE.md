@@ -27,7 +27,7 @@ Authoritative entry points:
 
 The React client uses typed definitions generated from OpenAPI and sends credentials with same-origin requests. Browser state and components are not authorization boundaries. API or schema changes must update the contract and regenerated TypeScript in the same task.
 
-Offline/PWA, IndexedDB, synchronization, attendance, and roster features are planned for later roadmap tasks and do not yet exist. API responses must not be cached by a future service worker.
+Offline/PWA, IndexedDB, synchronization, and attendance features are planned for later roadmap tasks and do not yet exist. The current uncommitted Task 8 worktree implements online ministry and student roster management. API responses must not be cached by a future service worker.
 
 ## Authentication and authorization
 
@@ -43,7 +43,7 @@ See `docs/security/task-4-authentication.md`, `docs/security/task-5-applications
 
 PostgreSQL is authoritative. Tenant tables use UUIDs, trusted `church_id`, forced RLS, and policies comparing against transaction-local `app.current_church_id`. The restricted runtime role must not own tables or bypass RLS; migrations use a separate connection and role.
 
-Committed schema through Task 6 covers users/platform administrators, churches and memberships, applications, invitations, ministry assignment support, sessions/queues, offline-authorization and push-revocation placeholders, and legacy audit stores. The existing `ministries` table supports Task 6 assignment authorization; ministry CRUD, students, enrollments, birthdates, and avatars remain Task 8.
+The committed foundation includes users/platform administrators, churches and memberships, applications, invitations, ministry assignment support, sessions/queues, offline-authorization and push-revocation placeholders, and canonical audit stores. The implemented and validated Task 8 worktree adds ministry tombstones/versioning, tenant-owned students and enrollments, optional date-only birthdates, server-derived display name/age, Owner-only roster writes, assignment-limited Teacher reads, and bundled gender avatars. Task 8 remains uncommitted pending explicit approval; see [CURRENT_STATE.md](CURRENT_STATE.md).
 
 ## Application and membership transactions
 

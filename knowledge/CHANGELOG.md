@@ -12,5 +12,6 @@ Meaningful completed milestones only. This is a concise index, not a replacement
 | 2026-09-21 | Task 5 — approval-gated church registration | Applicant lifecycle, CAPTCHA/limits, platform approval/rejection, transactional notification/audit, 30-day cleanup | `763bc93610ca44167a1800bd810edd643358620c` |
 | 2026-09-22 | Task 6 — teacher membership management | Invitations, assignments, revocation, ownership transfer, session/device invalidation, UI and verification report | `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f` |
 | 2026-09-27 | Task 7 — append-only audit, security, and correlation logging | Canonical immutable evidence, legacy preservation, transactional high-risk/auth auditing, denial telemetry, redaction, scoped viewers, frontend/contract, and complete validation | `32fad0a1735c0e2a677832252f72197252c8cd05` |
+| 2026-09-28 | Task 8 — ministries, students, birthdates, avatars | Implementation and all required backend, frontend, contract, formatting, structure, and security gates validated; remains uncommitted pending explicit approval | Uncommitted worktree |
 
-Task 7 passed its complete validation gate before commit. Its handoff state is in [CURRENT_STATE.md](CURRENT_STATE.md) and [the verification report](../docs/qa/task-7-verification.md).
+Tasks 7 and 8 have passed their required validation gates. Task 8 remains uncommitted. Its handoff state is in [CURRENT_STATE.md](CURRENT_STATE.md); Task 7 evidence is in [the verification report](../docs/qa/task-7-verification.md).

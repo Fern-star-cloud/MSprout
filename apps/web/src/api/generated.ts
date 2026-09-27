@@ -4,6 +4,128 @@
  */
 
 export interface paths {
+    "/ministries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Active verified member required. Teachers see only actively assigned ministries. Owners may request include_archived=true. */
+        get: operations["listMinistries"];
+        put?: never;
+        /** @description Owner only; audited. Online cookie session and CSRF required. */
+        post: operations["createMinistry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ministries/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** @description Owner only; audited. Ministry ID must belong to the active church. */
+        put: operations["updateMinistry"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ministries/{id}/{status}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Owner only; archive or restore ministry and audit the change. */
+        post: operations["changeMinistryStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/students": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Owners see their church roster and full birthdates. Teachers see only students enrolled in assigned ministries and receive month/day only. */
+        get: operations["listStudents"];
+        put?: never;
+        /** @description Owner only; names and date are normalized server-side. Audited without child PII. */
+        post: operations["createStudent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/students/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Owner may read a church student. Teachers may read only students enrolled in active assigned ministries; their response contains month/day without full birthdate. */
+        get: operations["getStudent"];
+        /** @description Owner only; version is incremented and the change is audited. */
+        put: operations["updateStudent"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/students/{id}/{status}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Owner only; archive or restore student with audit. */
+        post: operations["changeStudentStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/students/{id}/enrollments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** @description Owner only; replaces ministry enrollment links and audits the change. */
+        put: operations["updateStudentEnrollments"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -1098,6 +1220,56 @@ export interface components {
         AssignedMinistries: {
             data: components["schemas"]["AssignedMinistry"][];
         };
+        Ministry: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            status: "active" | "archived";
+            version: number;
+        };
+        MinistryList: {
+            data: components["schemas"]["Ministry"][];
+        };
+        StudentInput: {
+            first_name: string;
+            middle_name?: string | null;
+            last_name: string;
+            preferred_name?: string | null;
+            suffix?: string | null;
+            /** Format: date */
+            date_of_birth?: string | null;
+            /** @description Accepted values include male/m/boy */
+            gender?: string | null;
+            external_reference?: string | null;
+            ministry_ids?: string[];
+        };
+        Student: {
+            /** Format: uuid */
+            id: string;
+            first_name: string;
+            middle_name?: string | null;
+            last_name: string;
+            preferred_name?: string | null;
+            suffix?: string | null;
+            display_name: string;
+            /** @enum {string} */
+            gender: "male" | "female" | "unspecified";
+            /** @enum {string} */
+            status: "active" | "archived";
+            version: number;
+            ministry_ids: string[];
+            /** Format: date */
+            date_of_birth?: string | null;
+            birth_month_day?: string | null;
+            age?: number | null;
+            external_reference?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        StudentList: {
+            data: components["schemas"]["Student"][];
+        };
         AuditEvent: {
             /** Format: uuid */
             id: string;
@@ -1159,6 +1331,291 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    listMinistries: {
+        parameters: {
+            query?: {
+                include_archived?: boolean;
+            };
+            header: {
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Ministry list */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MinistryList"];
+                };
+            };
+        };
+    };
+    createMinistry: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ministry"];
+                };
+            };
+        };
+    };
+    updateMinistry: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Updated ministry */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ministry"];
+                };
+            };
+        };
+    };
+    changeMinistryStatus: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+            };
+            path: {
+                id: string;
+                status: "archive" | "restore";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Updated ministry */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ministry"];
+                };
+            };
+        };
+    };
+    listStudents: {
+        parameters: {
+            query?: {
+                ministry_id?: string;
+                include_archived?: boolean;
+            };
+            header: {
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized roster projection */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentList"];
+                };
+            };
+        };
+    };
+    createStudent: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentInput"];
+            };
+        };
+        responses: {
+            /** @description Created student */
+            201: {
+                headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Student"];
+                };
+            };
+        };
+    };
+    getStudent: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized student projection */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Student"];
+                };
+            };
+        };
+    };
+    updateStudent: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentInput"];
+            };
+        };
+        responses: {
+            /** @description Updated student */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Student"];
+                };
+            };
+        };
+    };
+    changeStudentStatus: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+            };
+            path: {
+                id: string;
+                status: "archive" | "restore";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Updated student */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Student"];
+                };
+            };
+        };
+    };
+    updateStudentEnrollments: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ministry_ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Student with updated enrollments */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. Invalid or missing client values are replaced. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Student"];
+                };
+            };
+        };
+    };
     getHealth: {
         parameters: {
             query?: never;

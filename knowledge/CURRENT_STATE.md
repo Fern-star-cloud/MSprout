@@ -1,10 +1,11 @@
 # Current State
 
-Verified: 2026-09-27. This is the primary development handoff.
+Verified: 2026-09-28. This is the primary development handoff.
 
 ## Git state
 
 - Branch: `feat/mvp-foundation`
+- Task 8 work is currently uncommitted on top of base `97dbfc169e540dacab2212317d9088ea43659236`; do not stage or commit without explicit user authorization.
 - Last verified implementation/product milestone: `32fad0a1735c0e2a677832252f72197252c8cd05` — `feat: add immutable audit and security logging`.
 - The knowledge system is committed separately after that implementation milestone; its documentation commit does not replace the product-milestone identifier above.
 - At the end of the approved two-commit handoff, the working tree is expected to be clean. Always run `git status`, `git rev-parse HEAD`, and a recent `git log` when starting work; this document deliberately does not treat a stored literal HEAD as authoritative for the live checkout.
@@ -14,8 +15,9 @@ Verified: 2026-09-27. This is the primary development handoff.
 
 - Tasks 1–6: **COMPLETE / COMMITTED**.
 - Task 7: **COMPLETE / COMMITTED** at `32fad0a1735c0e2a677832252f72197252c8cd05`.
-- Tasks 8–18: **NOT STARTED**.
-- The Tasks 1–7 foundation slice is complete. Do not begin Task 8 without an explicit new user instruction.
+- Task 8: **VALIDATED / UNCOMMITTED**; all recorded implementation and security gates passed on 2026-09-28. Awaiting explicit commit approval.
+- Tasks 9–18: **NOT STARTED**.
+- Preserve the committed Tasks 1–7 foundation. Do not begin Task 9.
 
 See [ROADMAP_STATUS.md](ROADMAP_STATUS.md) for every task and commit.
 
@@ -46,6 +48,24 @@ Final validation on 2026-09-27:
 
 See [the Task 7 verification report](../docs/qa/task-7-verification.md) for acceptance evidence, exact commands, and results.
 
+## Task 8 worktree state
+
+The approved Task 8 implementation is in the working tree and remains uncommitted. It adds ministry, student, and enrollment management, birthdate normalization, Owner and assignment-limited Teacher roster behavior, default SVG avatars, and Task 7 audit integration. It does not include Task 9 import work.
+
+Validation performed on 2026-09-28:
+
+- Focused Task 8 backend: **13 tests / 83 assertions passed**.
+- Full backend suite: **145 tests / 793 assertions passed**.
+- Focused frontend Task 8 avatar test passed; full frontend suite: **66 tests in 15 files passed**. Typecheck, lint, production build, and OpenAPI generated-type drift check passed.
+- Pint and Composer validation passed. Composer and pnpm dependency audits reported no known vulnerabilities.
+- Gitleaks reported no findings on application source, tests, migrations, routes, frontend source, and contracts.
+- `git diff --check` and repository structure check passed.
+- Semgrep `p/owasp-top-ten` completed successfully with **0 findings**: the full-app scan ran 103 rules on 195 tracked files (99.9% of lines parsed), and a supplemental explicit-target scan ran 98 rules on all 15 new Task 8 source/test files (100% parsed). Both used the cached Semgrep Docker image and the repository-approved configuration.
+
+Tasks 1–7 remain complete and committed. Task 9 remains untouched.
+
+Task 8 final review fixes preserve existing enrollments when an Owner updates unrelated student fields without supplying `ministry_ids`, including enrollments whose ministry was later archived. Explicit enrollment replacements still validate the requested active, same-church ministries. Feature coverage now verifies this behavior, Teacher denial for students enrolled only outside assigned ministries, and tenant-scoped ministry archive/restore.
+
 ## Final validation changes
 
 - Added focused failing regressions for authenticated denial attribution and duplicate generic/auth denial evidence.
@@ -54,11 +74,10 @@ See [the Task 7 verification report](../docs/qa/task-7-verification.md) for acce
 - `CorrelationId` skips a marked duplicate and otherwise attributes the church or platform actor from the authenticated guard.
 - Applied Pint's repository formatting to the existing Task 7 PHP files and reran focused and full suites.
 
-## Next work when explicitly authorized
+## Next work
 
-1. Reconstruct the live Git state from Git, then read this file and the task-relevant knowledge routed by [README.md](README.md).
-2. Treat Task 8 as not started until the user explicitly selects it.
-3. Preserve the committed Tasks 1–7 foundation and its verification evidence.
+1. Review the validated Task 8 diff and wait for explicit commit approval; keep all changes unstaged and uncommitted until then.
+2. Preserve the committed Tasks 1–7 foundation and do not start Task 9.
 
 ## Known environment and repository issues
 

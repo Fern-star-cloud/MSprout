@@ -1,6 +1,6 @@
 # Testing Environment
 
-Verified on 2026-09-27 unless a historical milestone is explicitly identified.
+Verified on 2026-09-28 unless a historical milestone is explicitly identified.
 
 ## Canonical architecture
 
@@ -46,6 +46,7 @@ Task-specific commands and deployment boundaries are in `docs/security/task-4-au
 - Final `pnpm run verify` passed **65 frontend tests in 14 files**, frontend typecheck/build, and **132 backend tests / 710 assertions**.
 - Frontend lint, `api:check`, Pint, Composer validation, structure, and `git diff --check` passed. Composer and pnpm audits reported no known vulnerabilities. Gitleaks reported no leaks. Semgrep ran 103 OWASP rules on 169 targets with zero findings.
 - Full evidence is recorded in `docs/qa/task-7-verification.md`.
+- Task 8 worktree validation (2026-09-28): focused backend **13 tests / 83 assertions** and full backend **145 tests / 793 assertions** passed. Focused frontend avatar test and full frontend **66 tests in 15 files**, typecheck, lint, production build, OpenAPI drift check, Pint, Composer validation/audit, pnpm audit, scoped Gitleaks, repository structure, and `git diff --check` passed. The approved Semgrep configuration, `p/owasp-top-ten`, completed successfully with **0 findings**: the full-app scan ran 103 rules on 195 tracked files (99.9% of lines parsed), and a supplemental explicit-target scan ran 98 rules on all 15 new Task 8 source/test files (100% parsed). Full scan command: `docker run --rm --mount "type=bind,source=<repository-root>,target=/src,readonly" semgrep/semgrep:latest semgrep scan --debug --config p/owasp-top-ten /src/apps`. The supplemental scan used the same command and config with the 15 new file paths as explicit targets. This is current worktree evidence, not a committed milestone.
 
 ## Current Windows host details
 

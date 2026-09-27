@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\Auth\ChurchAccountController;
 use App\Http\Controllers\ChurchApplicationController;
+use App\Http\Controllers\RosterController;
 use App\Http\Controllers\TeacherManagementController;
 use App\Http\Middleware\ApplicationRequest;
 use Illuminate\Http\JsonResponse;
@@ -49,4 +50,17 @@ Route::middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction
     Route::post('/ownership-transfer', [TeacherManagementController::class, 'transfer'])->middleware('throttle:ownership-transfer');
     Route::get('/assigned-ministries', [TeacherManagementController::class, 'ministries']);
     Route::get('/assigned-ministries/{id}', [TeacherManagementController::class, 'ministries'])->whereUuid('id');
+});
+
+Route::middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction', 'owner.mfa', ApplicationRequest::class])->group(function () {
+    Route::get('/ministries', [RosterController::class, 'ministries']);
+    Route::post('/ministries', [RosterController::class, 'createMinistry']);
+    Route::put('/ministries/{id}', [RosterController::class, 'updateMinistry'])->whereUuid('id');
+    Route::post('/ministries/{id}/{status}', [RosterController::class, 'ministryStatus'])->whereUuid('id')->whereIn('status', ['archive', 'restore']);
+    Route::get('/students', [RosterController::class, 'students']);
+    Route::get('/students/{id}', [RosterController::class, 'showStudent'])->whereUuid('id');
+    Route::post('/students', [RosterController::class, 'createStudent']);
+    Route::put('/students/{id}', [RosterController::class, 'updateStudent'])->whereUuid('id');
+    Route::post('/students/{id}/{status}', [RosterController::class, 'studentStatus'])->whereUuid('id')->whereIn('status', ['archive', 'restore']);
+    Route::put('/students/{id}/enrollments', [RosterController::class, 'enroll'])->whereUuid('id');
 });

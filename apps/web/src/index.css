@@ -56,3 +56,19 @@ button:focus-visible {
 
 button:disabled { opacity: .6; cursor: wait; }
 * { box-sizing: border-box; }
+
+.roster-card { max-width: 760px; }
+.roster-form { display: grid; gap: .8rem; margin: 1.5rem 0; }
+.roster-form input, .roster-form select, #student-church, #ministry-church { display: block; width: 100%; min-height: 44px; margin-top: .25rem; padding: .55rem; border: 1px solid #9aa99d; border-radius: 6px; font: inherit; }
+.student-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.student-form h3, .student-form fieldset, .student-form button { grid-column: 1 / -1; }
+.student-form fieldset { display: flex; flex-wrap: wrap; gap: .5rem 1rem; border: 1px solid #c3cec5; border-radius: 8px; }
+.student-form .roster-check { display: inline-flex; align-items: center; gap: .35rem; }
+.roster-check input { width: 1.1rem; min-height: 1.1rem; }
+.roster-list { list-style: none; padding: 0; margin: 1rem 0; }
+.roster-list li { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px solid #d6dfd8; padding: .85rem 0; }
+.student-list li { justify-content: flex-start; }
+.student-list li > div { flex: 1; display: grid; }
+.student-list small { color: #52645a; }
+.student-avatar { width: 52px; height: 52px; border-radius: 50%; }
+@media (max-width: 520px) { .student-form { grid-template-columns: 1fr; } .student-form h3, .student-form fieldset, .student-form button { grid-column: auto; } .roster-list li { align-items: flex-start; } }

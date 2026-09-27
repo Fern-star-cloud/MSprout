@@ -21,7 +21,7 @@ class AuditWriter
             || ! in_array($event->actorType, ['user', 'platform_admin', 'system', 'anonymous'], true)
             || ! in_array($event->result, ['success', 'failure', 'denied'], true)
             || ! preg_match('/\A[a-z][a-z0-9_.]{1,63}\z/', $event->action)
-            || ! in_array($event->targetType, ['application', 'membership', 'invitation', 'user', 'platform_admin', 'session', 'submission', 'sync_batch', 'system'], true)) {
+            || ! in_array($event->targetType, ['application', 'membership', 'invitation', 'user', 'platform_admin', 'session', 'submission', 'sync_batch', 'ministry', 'student', 'enrollment', 'system'], true)) {
             throw new InvalidArgumentException('Invalid audit classification.');
         }
         foreach ([$event->actorId, $event->targetId] as $id) {
