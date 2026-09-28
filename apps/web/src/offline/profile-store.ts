@@ -1,7 +1,7 @@
 import { createProfileKeyMaterial, decryptPayload, encryptPayload, unwrapDataKey } from './crypto'
 import { offlineDatabase, type OfflineDatabase } from './db'
 import { assertLeaseMatchesProfile, isLeaseValid as leaseIsValid } from './lease'
-import { PROFILE_IDLE_TIMEOUT_MS, type OfflineBootstrap, type ProfileKeyMaterial, type ProfileRecord } from './schema'
+import { PROFILE_IDLE_TIMEOUT_MS, type EncryptedEnvelope, type OfflineBootstrap, type ProfileKeyMaterial, type ProfileRecord } from './schema'
 
 interface StoreOptions {
   now?: () => Date
@@ -98,6 +98,12 @@ export class LocalProfileStore {
     return this.active?.profileId === profileId
   }
 
+  async activeProfile(): Promise<Pick<ProfileRecord, 'id' | 'churchId'> | null> {
+    if (!this.active) return null
+    const profile = await this.db.profiles.get(this.active.profileId)
+    return profile ? { id: profile.id, churchId: profile.churchId } : null
+  }
+
   recordActivity(): void {
     if (this.active) this.scheduleAutoLock()
   }
@@ -174,6 +180,18 @@ export class LocalProfileStore {
   async isLeaseValid(profileId: string): Promise<boolean> {
     const profile = await this.db.profiles.get(profileId)
     return profile ? leaseIsValid(profile, this.now()) : false
+  }
+
+  async encryptLocalPayload(profileId: string, purpose: string, payload: unknown): Promise<EncryptedEnvelope> {
+    const profile = await this.db.profiles.get(profileId)
+    if (!profile || !leaseIsValid(profile, this.now())) throw new Error('The offline authorization lease has expired.')
+    return encryptPayload(profileId, purpose, this.keyFor(profileId), payload)
+  }
+
+  async decryptLocalPayload<T>(profileId: string, purpose: string, envelope: EncryptedEnvelope): Promise<T> {
+    const profile = await this.db.profiles.get(profileId)
+    if (!profile || !leaseIsValid(profile, this.now())) throw new Error('The offline authorization lease has expired.')
+    return decryptPayload<T>(profileId, purpose, this.keyFor(profileId), envelope)
   }
 
   async hasUnsafeLocalWork(): Promise<boolean> {

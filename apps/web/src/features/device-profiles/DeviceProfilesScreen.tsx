@@ -5,9 +5,10 @@ import type { OfflineBootstrap, ProfileRecord } from '../../offline/schema'
 
 interface DeviceProfilesScreenProps {
   store?: Pick<LocalProfileStore, 'listProfiles' | 'unlockProfile' | 'switchProfile' | 'createProfile' | 'saveBootstrap' | 'purgeProfile'>
+  onUnlocked?: () => void
 }
 
-export function DeviceProfilesScreen({ store = profileStore }: DeviceProfilesScreenProps) {
+export function DeviceProfilesScreen({ store = profileStore, onUnlocked }: DeviceProfilesScreenProps) {
   const [profiles, setProfiles] = useState<ProfileRecord[]>([])
   const [selected, setSelected] = useState('')
   const [pin, setPin] = useState('')
@@ -41,6 +42,7 @@ export function DeviceProfilesScreen({ store = profileStore }: DeviceProfilesScr
       })
       setPin('')
       setMessage(navigator.onLine ? 'Profile unlocked. Sign in as this teacher before synchronizing.' : 'Profile unlocked offline. Sign in before synchronizing.')
+      onUnlocked?.()
     } catch {
       setMessage('This profile could not be unlocked. Check the PIN or wait before trying again.')
     }
@@ -60,6 +62,7 @@ export function DeviceProfilesScreen({ store = profileStore }: DeviceProfilesScr
       await refresh()
       setSelected(profile.id)
       setMessage('Encrypted device profile created and ready offline.')
+      onUnlocked?.()
     } catch {
       setMessage('Connect, sign in to this church, and check the profile details before trying again.')
     }

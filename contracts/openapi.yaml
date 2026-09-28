@@ -781,6 +781,38 @@ components:
       required: [data]
       properties:
         data: { type: array, items: { $ref: "#/components/schemas/Student" } }
+    AttendanceState:
+      type: string
+      enum: [unmarked, present, absent]
+    AttendanceSessionStatus:
+      type: string
+      enum: [draft, finalized_pending, finalized, needs_review, revised]
+    AttendanceRecord:
+      type: object
+      additionalProperties: false
+      required: [id, student_id, state, version]
+      properties:
+        id: { type: string, format: uuid }
+        student_id: { type: string, format: uuid }
+        state: { $ref: "#/components/schemas/AttendanceState" }
+        version: { type: integer, minimum: 1 }
+    AttendanceSession:
+      type: object
+      additionalProperties: false
+      required: [id, church_id, ministry_id, attendance_date, status, version, records]
+      properties:
+        id: { type: string, format: uuid }
+        church_id: { type: string, format: uuid }
+        ministry_id: { type: string, format: uuid }
+        attendance_date: { type: string, format: date }
+        status: { $ref: "#/components/schemas/AttendanceSessionStatus" }
+        version: { type: integer, minimum: 1 }
+        finalized_by: { type: [integer, "null"] }
+        finalized_at: { type: [string, "null"], format: date-time }
+        deleted_at: { type: [string, "null"], format: date-time }
+        records:
+          type: array
+          items: { $ref: "#/components/schemas/AttendanceRecord" }
     ImportStudentData:
       type: object
       additionalProperties: false

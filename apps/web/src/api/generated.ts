@@ -1355,6 +1355,36 @@ export interface components {
         StudentList: {
             data: components["schemas"]["Student"][];
         };
+        /** @enum {string} */
+        AttendanceState: "unmarked" | "present" | "absent";
+        /** @enum {string} */
+        AttendanceSessionStatus: "draft" | "finalized_pending" | "finalized" | "needs_review" | "revised";
+        AttendanceRecord: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            student_id: string;
+            state: components["schemas"]["AttendanceState"];
+            version: number;
+        };
+        AttendanceSession: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            church_id: string;
+            /** Format: uuid */
+            ministry_id: string;
+            /** Format: date */
+            attendance_date: string;
+            status: components["schemas"]["AttendanceSessionStatus"];
+            version: number;
+            finalized_by?: number | null;
+            /** Format: date-time */
+            finalized_at?: string | null;
+            /** Format: date-time */
+            deleted_at?: string | null;
+            records: components["schemas"]["AttendanceRecord"][];
+        };
         ImportStudentData: {
             first_name?: string;
             middle_name?: string | null;

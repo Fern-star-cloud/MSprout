@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ApplicationScreen } from '../features/applications/ApplicationScreen'
 import { AuditScreen } from '../features/audit/AuditScreen'
+import { AttendanceScreen } from '../features/attendance/AttendanceScreen'
 import { AuthScreen, type AuthPage } from '../features/auth/AuthScreen'
 import { ImportScreen } from '../features/imports/ImportScreen'
 import { DeviceProfilesScreen } from '../features/device-profiles/DeviceProfilesScreen'
@@ -18,18 +19,19 @@ import { WideLayout } from './layouts/WideLayout'
 export interface NavigationItem {
   label: string
   href: string
-  icon: 'home' | 'ministries' | 'students' | 'teachers' | 'import'
+  icon: 'home' | 'attendance' | 'ministries' | 'students' | 'teachers' | 'import'
 }
 
 const navigationItems: NavigationItem[] = [
   { label: 'Home', href: '/account/dashboard', icon: 'home' },
+  { label: 'Attendance', href: '/account/attendance', icon: 'attendance' },
   { label: 'Ministries', href: '/account/ministries', icon: 'ministries' },
   { label: 'Students', href: '/account/students', icon: 'students' },
   { label: 'Teachers', href: '/account/teachers', icon: 'teachers' },
   { label: 'Import', href: '/account/imports', icon: 'import' },
 ]
 
-const shellPages = new Set(['dashboard', 'ministries', 'students', 'teachers', 'imports', 'audit'])
+const shellPages = new Set(['dashboard', 'attendance', 'ministries', 'students', 'teachers', 'imports', 'audit'])
 const authPages: AuthPage[] = ['login', 'verify-email', 'forgot-password', 'reset-password', 'mfa']
 
 function Dashboard() {
@@ -47,9 +49,10 @@ function UpdateNotice() {
   )
 }
 
-function screenFor(page: string, fragment: string) {
-  if (page === 'profiles') return <DeviceProfilesScreen />
+function screenFor(page: string, fragment: string, navigate: (path: string) => void) {
+  if (page === 'profiles') return <DeviceProfilesScreen onUnlocked={() => navigate('/account/attendance')} />
   if (page === 'dashboard') return <Dashboard />
+  if (page === 'attendance') return <AttendanceScreen />
   if (page === 'audit') return <AuditScreen />
   if (page === 'teachers') return <TeacherManagementScreen />
   if (page === 'ministries') return <MinistriesScreen />
@@ -64,12 +67,21 @@ function screenFor(page: string, fragment: string) {
 }
 
 export function AppRouter() {
-  const [entry] = useState(() => ({
+  const [entry, setEntry] = useState(() => ({
     path: globalThis.location?.pathname ?? '/',
     fragment: globalThis.location?.hash.slice(1) ?? '',
   }))
+  useEffect(() => {
+    const update = () => setEntry({ path: globalThis.location.pathname, fragment: globalThis.location.hash.slice(1) })
+    globalThis.addEventListener('popstate', update)
+    return () => globalThis.removeEventListener('popstate', update)
+  }, [])
+  const navigate = (path: string) => {
+    globalThis.history.pushState(null, '', path)
+    setEntry({ path, fragment: '' })
+  }
   const page = entry.path.split('/').filter(Boolean).pop() ?? 'profiles'
-  const screen = screenFor(page, entry.fragment)
+  const screen = screenFor(page, entry.fragment, navigate)
 
   if (!shellPages.has(page)) {
     return (

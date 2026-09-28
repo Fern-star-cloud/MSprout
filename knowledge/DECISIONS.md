@@ -49,3 +49,7 @@ Only decisions established by the approved design, roadmap, committed implementa
 
 23. **Encrypt payloads; namespace all local state.** Every IndexedDB primary key carries the local profile identifier. Cached roster, ministry, and authorization payloads use a random profile data key protected by the local PIN; identifiers and lease-control metadata remain minimal. Only one data key may be live in memory. Source: approved Task 11 and `apps/web/src/offline/`.
 24. **Server authorization remains authoritative.** Local lease expiry gates cached access, but active membership, tenant, assignment, and device authorization are rechecked server-side. A successful authenticated bootstrap atomically renews the 14-day authorization and required audit evidence; revocation remains immediately authoritative online. Source: approved design section 8.4, Task 6 revocation, and Task 11 bootstrap implementation.
+
+## Attendance
+
+25. **One stable local draft and atomic event per attendance mutation.** A church/ministry/date deterministically identifies the local attendance session so concurrent creation reuses one encrypted draft. Every create, individual mark, bulk mark, and finalize transition persists the encrypted draft and one minimal outbox event in the same IndexedDB transaction. Server finalization independently locks and validates the exact active roster, assignment, state completeness, and required audit before acknowledging the session. Source: approved Task 12 and validated attendance repository/finalization tests.

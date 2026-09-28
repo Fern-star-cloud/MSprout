@@ -29,7 +29,7 @@ The React client uses typed definitions generated from OpenAPI and sends credent
 
 Task 10 adds the installable responsive PWA boundary. Vite builds a custom Workbox service worker in `injectManifest` mode; it precaches only `index.html` and hashed application JS/CSS, serves the application shell for offline navigations, and routes same-origin `/api/**` through `NetworkOnly`. Authentication and other non-navigation requests have no runtime cache route and therefore remain network-only by default. A waiting worker exposes an update signal, but activation and reload are deferred whenever the registered unsafe-local-work check reports an open draft or pending write.
 
-The shell keeps one content tree and changes navigation presentation by viewport: phone bottom navigation below 48rem and a persistent two-pane sidebar/content layout for tablet and desktop. Connectivity uses text and icon state. Task 11 adds IndexedDB profiles and authorization leases without adding service-worker API caching. Attendance domain behavior and push/pull synchronization remain unimplemented until Tasks 12–14.
+The shell keeps one content tree and changes navigation presentation by viewport: phone bottom navigation below 48rem and a persistent two-pane sidebar/content layout for tablet and desktop. Connectivity uses text and icon state. Task 11 adds IndexedDB profiles and authorization leases without adding service-worker API caching. Task 12 adds encrypted attendance drafts and marking behavior; push/pull synchronization and conflict handling remain deferred to Tasks 13–14.
 
 ## Protected offline profile boundary
 
@@ -38,6 +38,12 @@ Dexie stores local profiles plus encrypted blob, attendance-draft, outbox-event,
 Only one non-exportable unwrapped key exists in application memory. Explicit lock, switching, five minutes of inactivity, and page backgrounding clear it. Persistent failed-PIN counters introduce exponential delay. Profile purge deletes only the selected profile's records. Expired leases or reauthentication-required state block roster/ministry/authorization access; server actor, church, and device mismatches are rejected before bootstrap persistence.
 
 `GET /api/offline/bootstrap` runs inside verified active membership and forced tenant scope. Teachers receive only active assigned ministries and enrolled students; Owners receive the active church roster but still only the minimal offline projection. The response omits full birthdates and names split into source fields, retaining only display name, gender, version, assigned ministry IDs, next birthday month/day, and turning age. Device authorization upsert, signed 14-day lease creation, and canonical audit evidence are atomic. Existing membership revocation paths invalidate authorization and push records.
+
+## Attendance domain and local draft boundary
+
+PostgreSQL attendance sessions are unique per church, ministry, and date. Their records are tenant-safe children unique per session/student; both tables use restricted runtime grants and forced RLS. Owners and Teachers with an active assignment may work with a draft. Finalization locks the session and records, compares the complete active enrollment roster, rejects missing, extra, duplicate, or unmarked entries, and atomically persists final status, actor/time, version, and the canonical `attendance.finalized` audit event.
+
+The web repository stores each draft and its minimal outbox events as profile-scoped AES-GCM envelopes. Session identifiers are stable for church/ministry/date, so development remounts and concurrent local creation reuse one draft and one creation event. Mark, bulk-mark, and finalize mutations write the encrypted draft and matching event in one IndexedDB transaction with optimistic local version checks. Only unsynchronized local work is authoritative locally; PostgreSQL remains authoritative after acknowledgment. Task 13 will implement transport, replay receipts, cursors, and server acknowledgment and is not present yet.
 
 ## Authentication and authorization
 
@@ -53,7 +59,7 @@ See `docs/security/task-4-authentication.md`, `docs/security/task-5-applications
 
 PostgreSQL is authoritative. Tenant tables use UUIDs, trusted `church_id`, forced RLS, and policies comparing against transaction-local `app.current_church_id`. The restricted runtime role must not own tables or bypass RLS; migrations use a separate connection and role.
 
-The committed foundation includes users/platform administrators, churches and memberships, applications, invitations, ministry assignment support, sessions/queues, offline-authorization and push-revocation placeholders, canonical audit stores, ministry tombstones/versioning, tenant-owned students and enrollments, optional date-only birthdates, server-derived display name/age, Owner-only roster writes, assignment-limited Teacher reads, and bundled gender avatars. Task 8 is committed at `dc3c13c6cd5e4909c644b0abe37d18875cbe248f`.
+The committed foundation includes users/platform administrators, churches and memberships, applications, invitations, ministry assignment support, sessions/queues, offline authorization and push-revocation placeholders, canonical audit stores, ministry tombstones/versioning, tenant-owned students and enrollments, optional date-only birthdates, server-derived display name/age, Owner-only roster writes, assignment-limited Teacher reads, bundled gender avatars, and tenant-owned attendance sessions/records.
 
 ## Student import architecture
 

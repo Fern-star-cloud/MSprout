@@ -5,15 +5,15 @@ Verified: 2026-09-28. This is the primary development handoff.
 ## Git state
 
 - Branch: `feat/mvp-foundation`.
-- Task 11 started from clean, synchronized checkpoint `9131617ac349704c12c3c5dcd1be10f37e8fb221` — `chore: optimize agent validation workflow`.
-- The current Task 11 milestone is the commit containing this handoff, with subject `feat: add protected offline teacher profiles`.
+- Task 12 started from clean, synchronized checkpoint `8cc055703198cc85d63f821762732dd542884d35` — `feat: add protected offline teacher profiles`.
+- The current Task 12 milestone is the commit containing this handoff, with subject `feat: add offline-ready attendance workflow`.
 - Repository remotes remain `origin = https://github.com/Fern-star-cloud/MSprout.git` and `upstream = https://github.com/Frierend/ministry-sprout.git`. This differs from the roadmap preflight's original one-remote expectation; do not change remotes without explicit direction.
 
 ## Roadmap position
 
-- Tasks 1–11: **COMPLETE / COMMITTED / PUSHED** on `feat/mvp-foundation`.
-- Tasks 12–18: **NOT STARTED**.
-- Preserve Tasks 1–11 and do not begin Task 12 automatically.
+- Tasks 1–12: **COMPLETE / COMMITTED / PUSHED** on `feat/mvp-foundation`.
+- Tasks 13–18: **NOT STARTED**.
+- Preserve Tasks 1–12 and do not begin Task 13 automatically.
 
 See [ROADMAP_STATUS.md](ROADMAP_STATUS.md) for every task and commit.
 
@@ -60,14 +60,30 @@ Final Task 11 validation on 2026-09-28:
 
 See [the Task 11 verification report](../docs/qa/task-11-verification.md) for gate evidence and reviewed boundaries.
 
+Task 12 adds the offline-ready attendance domain and marking workflow:
+
+- Tenant-owned attendance sessions and records use trusted church/ministry/date identity, versioning, constrained states/statuses, tenant-safe foreign keys, restricted runtime grants, and forced RLS.
+- Owner or actively assigned Teacher authorization protects drafts. Finalization locks the session and roster, requires an exact active enrollment roster with every regular student marked, preserves the actor/time, increments version, and writes required audit evidence in the same transaction.
+- Encrypted profile-local drafts use stable session identifiers and atomically append one minimal outbox event for create, mark, bulk mark, and finalize operations. Concurrent draft creation is idempotent, local mutations use optimistic concurrency, and finalized-pending drafts become read-only.
+- The responsive attendance screen loads only the unlocked profile's protected roster, supports ministry/date selection, search, individual and bulk marking, counts, avatars, live connection/pending state, local-save confirmation, and safe fixed-bar finalization.
+- Task 13 synchronization endpoints, replay processing, pull cursors, and network synchronization remain unimplemented.
+
+Final Task 12 validation on 2026-09-28:
+
+- Focused Task 12: **9 frontend tests in 3 files** and **8 backend tests / 23 assertions passed**.
+- Aggregate verification: **97 frontend tests in 24 files**, frontend typecheck/lint/build, and **172 backend tests / 940 assertions passed**. The backend aggregate remained valid after the isolated frontend-only final-review remediation.
+- Chrome Playwright: **3 tests passed**. OpenAPI drift, frozen pnpm install, Pint, Composer strict validation/audit, pnpm audit, structure, Gitleaks, Semgrep, and `git diff --check` passed.
+
+See [the Task 12 verification report](../docs/qa/task-12-verification.md) for gate evidence and reviewed boundaries.
+
 ## Next work
 
-1. Preserve the committed Tasks 1–11 foundation.
-2. Task 12 — attendance domain, drafts, and responsive marking UI — is next, but must not begin automatically.
+1. Preserve the committed Tasks 1–12 foundation.
+2. Task 13 — idempotent push/pull synchronization — is next, but must not begin automatically.
 
 ## Known environment and repository issues
 
-- The default Windows `node` is 22.22.3, below the approved Node 24 baseline. Task 11 used the Codex-bundled Node 24.19.0 and pre-existing temporary pnpm 10.34.5 launcher without installing or purging host runtimes.
+- The default Windows `node` is 22.22.3, below the approved Node 24 baseline. Tasks 11–12 used the Codex-bundled Node 24.19.0 and pre-existing temporary pnpm 10.34.5 launcher without installing or purging host runtimes.
 - No PHP executable is on the default PATH. A pre-existing temporary Windows PHP 8.3.33 runtime and process-scoped extension scan files supply `pdo_pgsql`, GD, and ZIP outside the repository.
 - Composer/pnpm audits and Semgrep used process-scoped temporary trust configuration to retain TLS verification behind the host certificate interceptor. No global trust or machine configuration changed.
 - The two-remote configuration conflicts with the approved roadmap's original repository preflight and remains unresolved.
