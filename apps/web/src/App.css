@@ -35,3 +35,5 @@ dt { font-weight: 600; }
 .teacher-confirmation { border: 2px solid #789784; border-radius: 8px; padding: 1rem; margin-top: 1.5rem; }
 .teacher-confirmation button { margin-top: .75rem; }
 fieldset { min-width: 0; border: 1px solid #cedbcf; margin: 1rem 0; border-radius: 8px; }
+.device-profiles form button + button { margin-top: .75rem; }
+.device-profiles > button { width: 100%; }

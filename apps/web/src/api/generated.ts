@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/offline/bootstrap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Active verified Teacher or Owner session required. Returns only active assigned ministries and a minimal roster projection, then atomically issues or renews a signed 14-day authorization lease for this device. Owners require confirmed MFA. Response is no-store. */
+        get: operations["getOfflineBootstrap"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ministries": {
         parameters: {
             query?: never;
@@ -1428,6 +1445,47 @@ export interface components {
             /** @enum {string} */
             scope: "church" | "own" | "platform";
         };
+        OfflineMinistry: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            version: number;
+        };
+        OfflineRosterStudent: {
+            /** Format: uuid */
+            id: string;
+            display_name: string;
+            /** @enum {string} */
+            gender: "male" | "female" | "unspecified";
+            version: number;
+            ministry_ids: string[];
+            next_birthday_month_day: string | null;
+            turning_age: number | null;
+        };
+        OfflineLease: {
+            actor_id: string;
+            /** Format: uuid */
+            church_id: string;
+            /** Format: uuid */
+            membership_id: string;
+            /** Format: uuid */
+            device_id: string;
+            /** Format: date-time */
+            issued_at: string;
+            /** Format: date-time */
+            expires_at: string;
+            signature: string;
+        };
+        OfflineBootstrap: {
+            actor: {
+                id: string;
+            };
+            ministries: components["schemas"]["OfflineMinistry"][];
+            roster: components["schemas"]["OfflineRosterStudent"][];
+            lease: components["schemas"]["OfflineLease"];
+            /** Format: date-time */
+            server_cursor: string;
+        };
     };
     responses: {
         /** @description Safe error envelope. 401 unauthenticated; 403 access or recent-password confirmation required; 410 expired setup; 419 CSRF mismatch; 422 invalid input; 429 rate limit. Responses are no-store. */
@@ -1463,6 +1521,36 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getOfflineBootstrap: {
+        parameters: {
+            query: {
+                device_id: string;
+            };
+            header: {
+                "X-Church-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Assignment-scoped encrypted-profile bootstrap source and signed lease. */
+            200: {
+                headers: {
+                    /** @description Browser and intermediary storage is forbidden. */
+                    "Cache-Control"?: "no-store, private";
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfflineBootstrap"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
     listMinistries: {
         parameters: {
             query?: {

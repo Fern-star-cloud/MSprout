@@ -941,6 +941,61 @@ components:
             - church
             - own
             - platform
+    OfflineMinistry:
+      type: object
+      additionalProperties: false
+      required: [id, name, version]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string, maxLength: 120 }
+        version: { type: integer, minimum: 1 }
+    OfflineRosterStudent:
+      type: object
+      additionalProperties: false
+      required: [id, display_name, gender, version, ministry_ids, next_birthday_month_day, turning_age]
+      properties:
+        id: { type: string, format: uuid }
+        display_name: { type: string, maxLength: 400 }
+        gender: { type: string, enum: [male, female, unspecified] }
+        version: { type: integer, minimum: 1 }
+        ministry_ids:
+          type: array
+          items: { type: string, format: uuid }
+        next_birthday_month_day:
+          type: [string, "null"]
+          pattern: "^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$"
+        turning_age: { type: [integer, "null"], minimum: 0 }
+    OfflineLease:
+      type: object
+      additionalProperties: false
+      required: [actor_id, church_id, membership_id, device_id, issued_at, expires_at, signature]
+      properties:
+        actor_id: { type: string, pattern: "^[0-9]{1,20}$" }
+        church_id: { type: string, format: uuid }
+        membership_id: { type: string, format: uuid }
+        device_id: { type: string, format: uuid }
+        issued_at: { type: string, format: date-time }
+        expires_at: { type: string, format: date-time }
+        signature: { type: string, pattern: "^[a-f0-9]{64}$" }
+    OfflineBootstrap:
+      type: object
+      additionalProperties: false
+      required: [actor, ministries, roster, lease, server_cursor]
+      properties:
+        actor:
+          type: object
+          additionalProperties: false
+          required: [id]
+          properties:
+            id: { type: string, pattern: "^[0-9]{1,20}$" }
+        ministries:
+          type: array
+          items: { $ref: "#/components/schemas/OfflineMinistry" }
+        roster:
+          type: array
+          items: { $ref: "#/components/schemas/OfflineRosterStudent" }
+        lease: { $ref: "#/components/schemas/OfflineLease" }
+        server_cursor: { type: string, format: date-time }
   securitySchemes:
     ChurchSession:
       type: apiKey
@@ -969,6 +1024,29 @@ components:
             type: string
             const: ""
 paths:
+  /offline/bootstrap:
+    get:
+      operationId: getOfflineBootstrap
+      description: Active verified Teacher or Owner session required. Returns only active assigned ministries and a minimal roster projection, then atomically issues or renews a signed 14-day authorization lease for this device. Owners require confirmed MFA. Response is no-store.
+      security:
+        - ChurchSession: []
+      parameters:
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: device_id, in: query, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Assignment-scoped encrypted-profile bootstrap source and signed lease.
+          headers:
+            Cache-Control: { description: Browser and intermediary storage is forbidden., schema: { type: string, const: "no-store, private" } }
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OfflineBootstrap" }
+        default:
+          $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
   /ministries:
     get:
       operationId: listMinistries

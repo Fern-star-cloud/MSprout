@@ -29,7 +29,15 @@ The React client uses typed definitions generated from OpenAPI and sends credent
 
 Task 10 adds the installable responsive PWA boundary. Vite builds a custom Workbox service worker in `injectManifest` mode; it precaches only `index.html` and hashed application JS/CSS, serves the application shell for offline navigations, and routes same-origin `/api/**` through `NetworkOnly`. Authentication and other non-navigation requests have no runtime cache route and therefore remain network-only by default. A waiting worker exposes an update signal, but activation and reload are deferred whenever the registered unsafe-local-work check reports an open draft or pending write.
 
-The shell keeps one content tree and changes navigation presentation by viewport: phone bottom navigation below 48rem and a persistent two-pane sidebar/content layout for tablet and desktop. Connectivity uses text and icon state. IndexedDB, encrypted profiles, authorization leases, synchronization, and attendance drafts remain unimplemented until Tasks 11–14; Task 10 does not cache roster or API data.
+The shell keeps one content tree and changes navigation presentation by viewport: phone bottom navigation below 48rem and a persistent two-pane sidebar/content layout for tablet and desktop. Connectivity uses text and icon state. Task 11 adds IndexedDB profiles and authorization leases without adding service-worker API caching. Attendance domain behavior and push/pull synchronization remain unimplemented until Tasks 12–14.
+
+## Protected offline profile boundary
+
+Dexie stores local profiles plus encrypted blob, attendance-draft, outbox-event, cursor, conflict, and metadata stores. Every primary key contains `profileId`; child/assignment payloads and signed authorization records are AES-256-GCM encrypted. A random per-profile data key is wrapped by a PBKDF2-HMAC-SHA-256 key derived from a 6–12 digit PIN, random 16-byte salt, and 600,000 iterations. Authenticated data binds ciphertext to profile, schema version, and purpose.
+
+Only one non-exportable unwrapped key exists in application memory. Explicit lock, switching, five minutes of inactivity, and page backgrounding clear it. Persistent failed-PIN counters introduce exponential delay. Profile purge deletes only the selected profile's records. Expired leases or reauthentication-required state block roster/ministry/authorization access; server actor, church, and device mismatches are rejected before bootstrap persistence.
+
+`GET /api/offline/bootstrap` runs inside verified active membership and forced tenant scope. Teachers receive only active assigned ministries and enrolled students; Owners receive the active church roster but still only the minimal offline projection. The response omits full birthdates and names split into source fields, retaining only display name, gender, version, assigned ministry IDs, next birthday month/day, and turning age. Device authorization upsert, signed 14-day lease creation, and canonical audit evidence are atomic. Existing membership revocation paths invalidate authorization and push records.
 
 ## Authentication and authorization
 

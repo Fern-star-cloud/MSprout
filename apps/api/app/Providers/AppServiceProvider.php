@@ -44,6 +44,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('teacher-invitation', fn (Request $request) => Limit::perMinute(10)->by('invitation:'.($request->user('web')?->id ?? $request->ip())));
         RateLimiter::for('ownership-transfer', fn (Request $request) => Limit::perMinute(5)->by('transfer:'.$request->user('web')?->id));
         RateLimiter::for('student-imports', fn (Request $request) => Limit::perMinute(10)->by('imports:'.$request->user('web')?->id));
+        RateLimiter::for('offline-bootstrap', fn (Request $request) => Limit::perMinute(10)->by('offline-bootstrap:'.$request->user('web')?->id));
         RateLimiter::for('church-applications', fn (Request $request) => [
             Limit::perMinute(5)->by('applicant:'.$request->user('web')->id),
             Limit::perMinute(10)->by('application-ip:'.$request->ip()),

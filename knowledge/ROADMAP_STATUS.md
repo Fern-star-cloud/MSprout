@@ -14,7 +14,7 @@ Source of truth: [approved implementation roadmap](../docs/superpowers/plans/202
 | 8. Ministries, students, birthdates, avatars | COMPLETE / COMMITTED | `dc3c13c6cd5e4909c644b0abe37d18875cbe248f` |
 | 9. Safe XLSX/CSV import | COMPLETE / COMMITTED | `fbe338f433c7432cc26c98ad8c2e258cf9502a79`; all required implementation, test, contract, formatting, dependency, structure, and security gates passed; `docs/qa/task-9-verification.md` |
 | 10. Responsive installable PWA shell | COMPLETE / COMMITTED | Installable manifest/icons, injectManifest service worker, NetworkOnly API boundary, deferred updates, responsive/accessibility shell, unit/Playwright coverage, and `docs/qa/task-10-verification.md` |
-| 11. Isolated local profiles, encryption, offline lease | NOT STARTED | No implementation evidence; Task 6 has server-side revocation placeholders only |
+| 11. Isolated local profiles, encryption, offline lease | COMPLETE / COMMITTED | Profile-scoped Dexie schema, PBKDF2/AES-GCM key protection, locking/switching/purge, signed assignment-scoped 14-day bootstrap lease, contract/UI/tests, and `docs/qa/task-11-verification.md` |
 | 12. Attendance domain, drafts, marking UI | NOT STARTED | No implementation evidence |
 | 13. Idempotent push/pull synchronization | NOT STARTED | No implementation evidence |
 | 14. Conflicts, revisions, temporary guests | NOT STARTED | No implementation evidence |
@@ -23,4 +23,4 @@ Source of truth: [approved implementation roadmap](../docs/superpowers/plans/202
 | 17. Operations, retention, deployment, hardening | NOT STARTED | No implementation evidence; earlier tasks contain only their own scoped retention/security work |
 | 18. MVP qualification and one-church pilot | NOT STARTED | No implementation evidence |
 
-Tasks 1–10 are complete, committed, and pushed on `feat/mvp-foundation`. Task 11 has not started.
+Tasks 1–11 are complete, committed, and pushed on `feat/mvp-foundation`. Task 12 has not started.

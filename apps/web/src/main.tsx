@@ -5,7 +5,9 @@ import './styles/tokens.css'
 import './styles/global.css'
 import App from './App.tsx'
 import { pwaUpdateController } from './pwa/update-controller'
+import { profileStore } from './offline/profile-store'
 
+pwaUpdateController.setUnsafeLocalWorkChecker(() => profileStore.hasUnsafeLocalWork())
 pwaUpdateController.start(registerSW)
 
 createRoot(document.getElementById('root')!).render(

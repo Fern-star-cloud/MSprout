@@ -44,3 +44,8 @@ Only decisions established by the approved design, roadmap, committed implementa
 
 21. **Prompted, safety-gated PWA updates.** The service worker uses `injectManifest` with a minimal shell precache and explicit same-origin `/api/**` NetworkOnly handling. Waiting workers do not activate until the application-level unsafe-local-work checker says reload is safe; future attendance work must register its draft/outbox check with this controller. Source: approved Task 10 and `apps/web/src/pwa/`.
 22. **Prefer patched, provenance-backed build dependencies.** Workbox's build-only dependency graph is pinned to provenance-backed compatible releases where pnpm's no-downgrade policy rejected weaker historical attestations. The forced semver release is patched and the resulting graph passes frozen install, production build, audit, and browser tests. Source: Task 10 dependency validation and `pnpm-workspace.yaml`.
+
+## Offline profiles and leases
+
+23. **Encrypt payloads; namespace all local state.** Every IndexedDB primary key carries the local profile identifier. Cached roster, ministry, and authorization payloads use a random profile data key protected by the local PIN; identifiers and lease-control metadata remain minimal. Only one data key may be live in memory. Source: approved Task 11 and `apps/web/src/offline/`.
+24. **Server authorization remains authoritative.** Local lease expiry gates cached access, but active membership, tenant, assignment, and device authorization are rechecked server-side. A successful authenticated bootstrap atomically renews the 14-day authorization and required audit evidence; revocation remains immediately authoritative online. Source: approved design section 8.4, Task 6 revocation, and Task 11 bootstrap implementation.

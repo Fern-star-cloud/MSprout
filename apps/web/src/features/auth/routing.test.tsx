@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
+import 'fake-indexeddb/auto'
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, expect, it } from 'vitest'
 import App from '../../App'
 
 afterEach(() => { cleanup(); history.replaceState(null, '', '/') })
 it.each([
+  ['/', 'Choose a device profile'],
   ['/account/login', 'Welcome back'],
   ['/account/forgot-password', 'Reset your password'],
   ['/account/verify-email', 'Verify your email'],

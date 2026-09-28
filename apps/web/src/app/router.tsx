@@ -3,6 +3,7 @@ import { ApplicationScreen } from '../features/applications/ApplicationScreen'
 import { AuditScreen } from '../features/audit/AuditScreen'
 import { AuthScreen, type AuthPage } from '../features/auth/AuthScreen'
 import { ImportScreen } from '../features/imports/ImportScreen'
+import { DeviceProfilesScreen } from '../features/device-profiles/DeviceProfilesScreen'
 import { MinistriesScreen } from '../features/ministries/MinistriesScreen'
 import { PlatformAuthScreen } from '../features/platform-auth/PlatformAuthScreen'
 import { ApplicationReviewScreen } from '../features/platform/applications/ApplicationReviewScreen'
@@ -47,6 +48,7 @@ function UpdateNotice() {
 }
 
 function screenFor(page: string, fragment: string) {
+  if (page === 'profiles') return <DeviceProfilesScreen />
   if (page === 'dashboard') return <Dashboard />
   if (page === 'audit') return <AuditScreen />
   if (page === 'teachers') return <TeacherManagementScreen />
@@ -66,7 +68,7 @@ export function AppRouter() {
     path: globalThis.location?.pathname ?? '/',
     fragment: globalThis.location?.hash.slice(1) ?? '',
   }))
-  const page = entry.path.split('/').filter(Boolean).pop() ?? 'login'
+  const page = entry.path.split('/').filter(Boolean).pop() ?? 'profiles'
   const screen = screenFor(page, entry.fragment)
 
   if (!shellPages.has(page)) {
