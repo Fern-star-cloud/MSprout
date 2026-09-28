@@ -27,7 +27,9 @@ Authoritative entry points:
 
 The React client uses typed definitions generated from OpenAPI and sends credentials with same-origin requests. Browser state and components are not authorization boundaries. API or schema changes must update the contract and regenerated TypeScript in the same task.
 
-Offline/PWA, IndexedDB, synchronization, and attendance features are planned for later roadmap tasks and do not yet exist. The committed Task 8 foundation implements online ministry and student roster management; committed Task 9 adds online-only student spreadsheet import. API responses must not be cached by a future service worker.
+Task 10 adds the installable responsive PWA boundary. Vite builds a custom Workbox service worker in `injectManifest` mode; it precaches only `index.html` and hashed application JS/CSS, serves the application shell for offline navigations, and routes same-origin `/api/**` through `NetworkOnly`. Authentication and other non-navigation requests have no runtime cache route and therefore remain network-only by default. A waiting worker exposes an update signal, but activation and reload are deferred whenever the registered unsafe-local-work check reports an open draft or pending write.
+
+The shell keeps one content tree and changes navigation presentation by viewport: phone bottom navigation below 48rem and a persistent two-pane sidebar/content layout for tablet and desktop. Connectivity uses text and icon state. IndexedDB, encrypted profiles, authorization leases, synchronization, and attendance drafts remain unimplemented until Tasks 11–14; Task 10 does not cache roster or API data.
 
 ## Authentication and authorization
 

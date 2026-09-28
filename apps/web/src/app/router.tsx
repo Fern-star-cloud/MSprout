@@ -1,0 +1,94 @@
+import { useState } from 'react'
+import { ApplicationScreen } from '../features/applications/ApplicationScreen'
+import { AuditScreen } from '../features/audit/AuditScreen'
+import { AuthScreen, type AuthPage } from '../features/auth/AuthScreen'
+import { ImportScreen } from '../features/imports/ImportScreen'
+import { MinistriesScreen } from '../features/ministries/MinistriesScreen'
+import { PlatformAuthScreen } from '../features/platform-auth/PlatformAuthScreen'
+import { ApplicationReviewScreen } from '../features/platform/applications/ApplicationReviewScreen'
+import { StudentsScreen } from '../features/students/StudentsScreen'
+import { TeacherInvitationScreen } from '../features/teachers/TeacherInvitationScreen'
+import { TeacherManagementScreen } from '../features/teachers/TeacherManagementScreen'
+import { ConnectivityStatus } from '../components/ConnectivityStatus'
+import { pwaUpdateController, usePwaUpdate } from '../pwa/update-controller'
+import { PhoneLayout } from './layouts/PhoneLayout'
+import { WideLayout } from './layouts/WideLayout'
+
+export interface NavigationItem {
+  label: string
+  href: string
+  icon: 'home' | 'ministries' | 'students' | 'teachers' | 'import'
+}
+
+const navigationItems: NavigationItem[] = [
+  { label: 'Home', href: '/account/dashboard', icon: 'home' },
+  { label: 'Ministries', href: '/account/ministries', icon: 'ministries' },
+  { label: 'Students', href: '/account/students', icon: 'students' },
+  { label: 'Teachers', href: '/account/teachers', icon: 'teachers' },
+  { label: 'Import', href: '/account/imports', icon: 'import' },
+]
+
+const shellPages = new Set(['dashboard', 'ministries', 'students', 'teachers', 'imports', 'audit'])
+const authPages: AuthPage[] = ['login', 'verify-email', 'forgot-password', 'reset-password', 'mfa']
+
+function Dashboard() {
+  return <section className="dashboard-card"><p className="eyebrow">Church workspace</p><h1>Welcome to MinistrySprout</h1><p>Choose a ministry task from the navigation.</p></section>
+}
+
+function UpdateNotice() {
+  const update = usePwaUpdate()
+  if (!update.updateAvailable) return null
+  return (
+    <section className="update-notice" role="status" aria-live="polite">
+      <div><strong>Update available</strong><span>{update.updateBlocked ? 'Finish or safely save local work before updating.' : 'A new version of Sprout is ready.'}</span></div>
+      <button type="button" onClick={() => void pwaUpdateController.applyUpdate()}>Update when safe</button>
+    </section>
+  )
+}
+
+function screenFor(page: string, fragment: string) {
+  if (page === 'dashboard') return <Dashboard />
+  if (page === 'audit') return <AuditScreen />
+  if (page === 'teachers') return <TeacherManagementScreen />
+  if (page === 'ministries') return <MinistriesScreen />
+  if (page === 'students') return <StudentsScreen />
+  if (page === 'imports') return <ImportScreen />
+  if (page === 'teacher-invitation') return <TeacherInvitationScreen fragment={fragment} />
+  if (page === 'application') return <ApplicationScreen />
+  if (page === 'platform-applications') return <ApplicationReviewScreen />
+  if (page === 'platform-audit') return <AuditScreen platform />
+  if (page === 'platform-login' || page === 'platform-setup') return <PlatformAuthScreen setup={page === 'platform-setup'} fragment={fragment} />
+  return <AuthScreen initialPage={authPages.includes(page as AuthPage) ? page as AuthPage : 'login'} fragment={fragment} />
+}
+
+export function AppRouter() {
+  const [entry] = useState(() => ({
+    path: globalThis.location?.pathname ?? '/',
+    fragment: globalThis.location?.hash.slice(1) ?? '',
+  }))
+  const page = entry.path.split('/').filter(Boolean).pop() ?? 'login'
+  const screen = screenFor(page, entry.fragment)
+
+  if (!shellPages.has(page)) {
+    return (
+      <div className="public-layout">
+        <header className="brand"><h1>MinistrySprout</h1><p>Children&apos;s ministry, ready anywhere.</p></header>
+        <main id="main-content">{screen}</main>
+        <footer><ConnectivityStatus /><a href="/account/platform-login">Platform administration</a></footer>
+      </div>
+    )
+  }
+
+  return (
+    <div className="application-layout">
+      <a className="skip-link" href="#main-content">Skip to content</a>
+      <PhoneLayout items={navigationItems} activePath={entry.path} />
+      <WideLayout items={navigationItems} activePath={entry.path} />
+      <div className="application-content">
+        <div className="phone-status"><ConnectivityStatus /></div>
+        <UpdateNotice />
+        <main id="main-content" tabIndex={-1}>{screen}</main>
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="MinistrySprout">
+  <rect width="192" height="192" rx="42" fill="#1f5b43"/>
+  <path d="M96 146V78c0-28 18-45 49-45-1 30-17 48-49 49M96 103C87 72 68 57 43 57c1 30 18 48 53 50" fill="none" stroke="#fff" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M67 151h58" stroke="#b8dfc5" stroke-width="13" stroke-linecap="round"/>
+</svg>

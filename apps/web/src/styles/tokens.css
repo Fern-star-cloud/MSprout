@@ -1,0 +1,18 @@
+:root {
+  --color-ink: #17382d;
+  --color-muted: #52645a;
+  --color-canvas: #f3f6f1;
+  --color-surface: #ffffff;
+  --color-brand: #1f5b43;
+  --color-brand-strong: #153d2c;
+  --color-brand-soft: #e4efe8;
+  --color-border: #c3cec5;
+  --color-focus: #bb741b;
+  --color-danger: #802424;
+  --color-danger-soft: #fff0ed;
+  --shadow-card: 0 10px 35px rgb(25 62 43 / 8%);
+  --radius-small: 0.5rem;
+  --radius-medium: 0.875rem;
+  --touch-target: 44px;
+  --sidebar-width: 17rem;
+}

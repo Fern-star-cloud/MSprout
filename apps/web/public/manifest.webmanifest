@@ -1,0 +1,25 @@
+{
+  "name": "MinistrySprout",
+  "short_name": "Sprout",
+  "description": "Children's ministry, ready anywhere.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3f6f1",
+  "theme_color": "#1f5b43",
+  "icons": [
+    {
+      "src": "/icons/sprout-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/sprout-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -14,5 +14,6 @@ Meaningful completed milestones only. This is a concise index, not a replacement
 | 2026-09-27 | Task 7 — append-only audit, security, and correlation logging | Canonical immutable evidence, legacy preservation, transactional high-risk/auth auditing, denial telemetry, redaction, scoped viewers, frontend/contract, and complete validation | `32fad0a1735c0e2a677832252f72197252c8cd05` |
 | 2026-09-28 | Task 8 — ministries, students, birthdates, avatars | Ministry/student/enrollment domain, canonical normalization, assignment-scoped roster, avatars, contract/UI, and complete validation | `dc3c13c6cd5e4909c644b0abe37d18875cbe248f` |
 | 2026-09-28 | Task 9 — safe XLSX/CSV import | Strict workbook inspection, preview/mapping, locked idempotent commit, tenant RLS, audit integration, contract/UI, and complete validation | `fbe338f433c7432cc26c98ad8c2e258cf9502a79` |
+| 2026-09-28 | Task 10 — responsive installable PWA shell | Manifest/icons, minimal offline shell precache, NetworkOnly API boundary, safety-gated updates, responsive accessible navigation, and browser coverage | current Task 10 commit |
 
-Tasks 1–9 are committed. Task 9 validation evidence is in [the Task 9 verification report](../docs/qa/task-9-verification.md); current handoff state is in [CURRENT_STATE.md](CURRENT_STATE.md).
+Tasks 1–10 are committed. Task 10 validation evidence is in [the Task 10 verification report](../docs/qa/task-10-verification.md); current handoff state is in [CURRENT_STATE.md](CURRENT_STATE.md).

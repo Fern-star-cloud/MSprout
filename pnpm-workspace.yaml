@@ -2,6 +2,8 @@ packages:
   - apps/web
 overrides:
   js-yaml@4.3.1: 4.3.2
+  semver@6.3.1: 7.7.3
+  workbox-build>@trickfilm400/rollup-plugin-off-main-thread: 4.0.0-pre2
 blockExoticSubdeps: true
 minimumReleaseAge: 10080
 trustPolicy: no-downgrade

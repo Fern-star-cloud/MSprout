@@ -1,7 +1,5 @@
 #root {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: clamp(1rem, 5vw, 3rem);
+  min-height: 100vh;
 }
 
 .brand, footer { text-align: center; margin-bottom: 2rem; }
