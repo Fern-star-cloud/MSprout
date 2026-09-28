@@ -126,6 +126,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/imports/students/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Owner-only online preview. Accepts one verified CSV or XLSX up to 5 MiB and 500 data rows; no students are written. */
+        post: operations["previewStudentImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/imports/template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Owner-only CSV template containing only approved import headers. */
+        get: operations["downloadStudentImportTemplate"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/imports/{batch}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Owner-only church-scoped import preview or result. */
+        get: operations["getStudentImport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/imports/{batch}/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Owner-only idempotent commit. Existing students are never updated or merged. */
+        post: operations["commitStudentImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -1270,6 +1338,70 @@ export interface components {
         StudentList: {
             data: components["schemas"]["Student"][];
         };
+        ImportStudentData: {
+            first_name?: string;
+            middle_name?: string | null;
+            last_name?: string;
+            preferred_name?: string | null;
+            suffix?: string | null;
+            /** Format: date */
+            date_of_birth?: string | null;
+            /** @enum {string} */
+            gender?: "male" | "female" | "unspecified";
+            external_reference?: string | null;
+        };
+        ImportRow: {
+            /** Format: uuid */
+            id: string;
+            row_number: number;
+            /** @enum {string} */
+            status: "valid" | "invalid" | "duplicate" | "needs_mapping";
+            source: {
+                first_name?: string | null;
+                last_name?: string | null;
+                middle_name?: string | null;
+                preferred_name?: string | null;
+                suffix?: string | null;
+                birthdate?: string | null;
+                gender?: string | null;
+                ministries?: string | null;
+                external_reference?: string | null;
+            };
+            data: components["schemas"]["ImportStudentData"];
+            ministry_names: string[];
+            ministry_ids: string[];
+            unknown_ministries: string[];
+            errors: string[];
+            /** @enum {string|null} */
+            outcome: "committed" | "excluded" | "duplicate" | null;
+        };
+        ImportCounts: {
+            valid: number;
+            invalid: number;
+            duplicate: number;
+            needs_mapping: number;
+        };
+        ImportPreview: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            state: "uploaded" | "previewed" | "committing" | "completed" | "failed" | "expired";
+            /** Format: date-time */
+            expires_at: string;
+            counts: components["schemas"]["ImportCounts"];
+            rows: components["schemas"]["ImportRow"][];
+        };
+        ImportCommitResult: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            state: "completed" | "expired";
+            counts: {
+                committed: number;
+                excluded: number;
+                duplicate?: number;
+            };
+        };
         AuditEvent: {
             /** Format: uuid */
             id: string;
@@ -1614,6 +1746,139 @@ export interface operations {
                     "application/json": components["schemas"]["Student"];
                 };
             };
+        };
+    };
+    previewStudentImport: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Normalized preview */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportPreview"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    downloadStudentImportTemplate: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description CSV import template */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    getStudentImport: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+            };
+            path: {
+                batch: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Import batch */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportPreview"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    commitStudentImport: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+            };
+            path: {
+                batch: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    commit_key: string;
+                    row_ids: string[];
+                    ministry_mappings: {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description Stable commit result */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportCommitResult"];
+                };
+            };
+            /** @description Import preview expired */
+            410: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportCommitResult"];
+                };
+            };
+            default: components["responses"]["AuthError"];
         };
     };
     getHealth: {

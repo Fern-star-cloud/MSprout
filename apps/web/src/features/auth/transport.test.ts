@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it, vi } from 'vitest'
-import { authRequest, safeAuthMessage, signedInvitation } from './transport'
+import { authRequest, authUpload, safeAuthMessage, signedInvitation } from './transport'
 
 afterEach(() => { vi.unstubAllGlobals(); document.cookie = 'XSRF-TOKEN=; Max-Age=0' })
 
@@ -56,4 +56,16 @@ it('sends a validated church header with CSRF protected membership mutations', a
   expect(fetcher.mock.calls[1][1]).toMatchObject({ method: 'DELETE', cache: 'no-store', headers: { 'X-Church-Id': church, 'X-XSRF-TOKEN': 'csrf-value' } })
   await expect(authRequest('/api/teachers', 'GET', undefined, 'invalid')).rejects.toThrow('Invalid workspace')
   expect(fetcher).toHaveBeenCalledTimes(2)
+})
+
+it('uploads an import as browser-bounded multipart data without forcing a content type', async () => {
+  const church = crypto.randomUUID()
+  document.cookie = 'XSRF-TOKEN=csrf-value'
+  const fetcher = vi.fn().mockResolvedValueOnce(new Response(null, { status: 204 })).mockResolvedValueOnce(Response.json({ id: crypto.randomUUID() }))
+  vi.stubGlobal('fetch', fetcher)
+  const file = new File(['first_name,last_name\nAri,Sprout'], 'students.csv', { type: 'text/csv' })
+  await authUpload('/api/imports/students/preview', file, church)
+  expect(fetcher.mock.calls[1][1].body).toBeInstanceOf(FormData)
+  expect(fetcher.mock.calls[1][1].headers).toMatchObject({ 'X-Church-Id': church, 'X-XSRF-TOKEN': 'csrf-value' })
+  expect(fetcher.mock.calls[1][1].headers['Content-Type']).toBeUndefined()
 })

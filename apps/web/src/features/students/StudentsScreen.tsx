@@ -86,6 +86,6 @@ export function StudentsScreen() {
         <fieldset><legend>Ministries</legend>{ministries.map(item => <label className="roster-check" key={item.id}><input type="checkbox" name="ministry_ids" value={item.id} defaultChecked={student.ministry_ids.includes(item.id)} />{item.name}</label>)}</fieldset><button>Save student</button>
       </form></details><button className="secondary" onClick={() => void change(student, student.status === 'active' ? 'archive' : 'restore')}>{student.status === 'active' ? 'Archive' : 'Restore'}</button></>}
     </li>)}</ul>
-    <a href={`/ministries${church ? `?church=${encodeURIComponent(church)}` : ''}`}>Manage ministries</a>
+    <a href={`/ministries${church ? `?church=${encodeURIComponent(church)}` : ''}`}>Manage ministries</a>{owner && <> · <a href={`/imports${church ? `?church=${encodeURIComponent(church)}` : ''}`}>Import students</a></>}
   </section>
 }

@@ -72,3 +72,17 @@ button:disabled { opacity: .6; cursor: wait; }
 .student-list small { color: #52645a; }
 .student-avatar { width: 52px; height: 52px; border-radius: 50%; }
 @media (max-width: 520px) { .student-form { grid-template-columns: 1fr; } .student-form h3, .student-form fieldset, .student-form button { grid-column: auto; } .roster-list li { align-items: flex-start; } }
+.import-card { max-width: 900px; }
+.import-upload { display: grid; gap: .75rem; }
+.import-upload small { color: #52645a; }
+.import-counts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .6rem; margin: 1rem 0; }
+.import-counts strong { border: 1px solid #c3cec5; border-radius: 8px; padding: .75rem; text-align: center; }
+.import-table-wrap { overflow-x: auto; }
+.import-table { width: 100%; border-collapse: collapse; min-width: 640px; }
+.import-table th, .import-table td { text-align: left; vertical-align: top; border-bottom: 1px solid #d6dfd8; padding: .7rem; }
+.import-table input { width: 24px; min-height: 24px; }
+.import-status { display: inline-block; border-radius: 999px; padding: .15rem .55rem; background: #e7eee8; }
+.import-status.invalid, .import-status.duplicate { background: #fff0ed; color: #802424; }
+.import-status.needs_mapping { background: #fff7df; color: #6b4b00; }
+.import-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1rem 0; }
+@media (max-width: 620px) { .import-counts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .import-actions button { width: 100%; } }

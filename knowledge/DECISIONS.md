@@ -1,6 +1,6 @@
 # Technical Decisions
 
-Only decisions established by the approved design, roadmap, committed implementation, or current reviewed Task 7 direction belong here.
+Only decisions established by the approved design, roadmap, committed implementation, or a validated current worktree belong here.
 
 ## Repository and delivery
 
@@ -33,3 +33,9 @@ Only decisions established by the approved design, roadmap, committed implementa
 
 16. **Database-backed transactional queue first.** Approval mail must use the primary database queue so the queue record participates in the decision transaction. Redis is not required for the pilot. Source: approved design and Task 5.
 17. **Privacy-safe birthday delivery.** Future push notifications contain a count, not child names or birthdates; authorized details appear only after opening the app. Source: approved design section 10.
+
+## Student import
+
+18. **Inspect before interpreting.** Student imports accept only CSV/XLSX, at most 5 MiB and 500 data rows. Server-side MIME/ZIP inspection rejects formulas, macros, external links, embedded or hidden executable content, unexpected sheets, ambiguous numeric dates, unsafe CSV prefixes, and excessive expansion before any preview is trusted. Source: approved Task 9 and validated `InspectWorkbook` tests.
+19. **Preview is non-authoritative; commit is locked and idempotent.** Preview creates import evidence but no students. Owner-approved rows are committed under a batch lock with a stable commit key, current duplicate/ministry checks, row outcomes, and one transactional batch audit. Existing students are never merged or updated automatically. Source: approved Task 9 and validated import flow/concurrency tests.
+20. **Reuse canonical student normalization.** Imported names, dates, gender, suffixes, and external references pass through Task 8's `NormalizeStudentInput`; the import layer does not create a second normalization contract. Source: approved Tasks 8–9 and `MapStudentRow`.

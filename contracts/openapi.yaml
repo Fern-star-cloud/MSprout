@@ -781,6 +781,79 @@ components:
       required: [data]
       properties:
         data: { type: array, items: { $ref: "#/components/schemas/Student" } }
+    ImportStudentData:
+      type: object
+      additionalProperties: false
+      properties:
+        first_name: { type: string }
+        middle_name: { type: [string, "null"] }
+        last_name: { type: string }
+        preferred_name: { type: [string, "null"] }
+        suffix: { type: [string, "null"] }
+        date_of_birth: { type: [string, "null"], format: date }
+        gender: { type: string, enum: [male, female, unspecified] }
+        external_reference: { type: [string, "null"] }
+    ImportRow:
+      type: object
+      additionalProperties: false
+      required: [id, row_number, status, source, data, ministry_names, ministry_ids, unknown_ministries, errors, outcome]
+      properties:
+        id: { type: string, format: uuid }
+        row_number: { type: integer, minimum: 2, maximum: 501 }
+        status: { type: string, enum: [valid, invalid, duplicate, needs_mapping] }
+        source:
+          type: object
+          additionalProperties: false
+          properties:
+            first_name: { type: [string, "null"] }
+            last_name: { type: [string, "null"] }
+            middle_name: { type: [string, "null"] }
+            preferred_name: { type: [string, "null"] }
+            suffix: { type: [string, "null"] }
+            birthdate: { type: [string, "null"] }
+            gender: { type: [string, "null"] }
+            ministries: { type: [string, "null"] }
+            external_reference: { type: [string, "null"] }
+        data: { $ref: "#/components/schemas/ImportStudentData" }
+        ministry_names: { type: array, items: { type: string } }
+        ministry_ids: { type: array, items: { type: string, format: uuid } }
+        unknown_ministries: { type: array, items: { type: string } }
+        errors: { type: array, items: { type: string } }
+        outcome: { type: [string, "null"], enum: [committed, excluded, duplicate, null] }
+    ImportCounts:
+      type: object
+      additionalProperties: false
+      required: [valid, invalid, duplicate, needs_mapping]
+      properties:
+        valid: { type: integer, minimum: 0, maximum: 500 }
+        invalid: { type: integer, minimum: 0, maximum: 500 }
+        duplicate: { type: integer, minimum: 0, maximum: 500 }
+        needs_mapping: { type: integer, minimum: 0, maximum: 500 }
+    ImportPreview:
+      type: object
+      additionalProperties: false
+      required: [id, state, expires_at, counts, rows]
+      properties:
+        id: { type: string, format: uuid }
+        state: { type: string, enum: [uploaded, previewed, committing, completed, failed, expired] }
+        expires_at: { type: string, format: date-time }
+        counts: { $ref: "#/components/schemas/ImportCounts" }
+        rows: { type: array, maxItems: 500, items: { $ref: "#/components/schemas/ImportRow" } }
+    ImportCommitResult:
+      type: object
+      additionalProperties: false
+      required: [id, state, counts]
+      properties:
+        id: { type: string, format: uuid }
+        state: { type: string, enum: [completed, expired] }
+        counts:
+          type: object
+          additionalProperties: false
+          required: [committed, excluded]
+          properties:
+            committed: { type: integer, minimum: 0, maximum: 500 }
+            excluded: { type: integer, minimum: 0, maximum: 500 }
+            duplicate: { type: integer, minimum: 0, maximum: 500 }
     AuditEvent:
       type: object
       additionalProperties: false
@@ -997,6 +1070,71 @@ paths:
         content: { application/json: { schema: { type: object, additionalProperties: false, required: [ministry_ids], properties: { ministry_ids: { type: array, maxItems: 100, items: { type: string, format: uuid } } } } } }
       responses:
         "200": { description: Student with updated enrollments, headers: { X-Correlation-Id: { description: Request correlation UUID. Invalid or missing client values are replaced., schema: { type: string, format: uuid } } }, content: { application/json: { schema: { $ref: "#/components/schemas/Student" } } } }
+  /imports/students/preview:
+    post:
+      operationId: previewStudentImport
+      description: Owner-only online preview. Accepts one verified CSV or XLSX up to 5 MiB and 500 data rows; no students are written.
+      parameters: [{ name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "200": { description: Normalized preview, headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } }, content: { application/json: { schema: { $ref: "#/components/schemas/ImportPreview" } } } }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
+  /imports/template:
+    get:
+      operationId: downloadStudentImportTemplate
+      description: Owner-only CSV template containing only approved import headers.
+      parameters: [{ name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200":
+          description: CSV import template
+          headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } }
+          content: { text/csv: { schema: { type: string } } }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
+  /imports/{batch}:
+    get:
+      operationId: getStudentImport
+      description: Owner-only church-scoped import preview or result.
+      parameters:
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: batch, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200": { description: Import batch, headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } }, content: { application/json: { schema: { $ref: "#/components/schemas/ImportPreview" } } } }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
+  /imports/{batch}/commit:
+    post:
+      operationId: commitStudentImport
+      description: Owner-only idempotent commit. Existing students are never updated or merged.
+      parameters:
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: batch, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [commit_key, row_ids, ministry_mappings]
+              properties:
+                commit_key: { type: string, format: uuid }
+                row_ids: { type: array, maxItems: 500, items: { type: string, format: uuid } }
+                ministry_mappings:
+                  type: object
+                  maxProperties: 500
+                  additionalProperties: { type: string, format: uuid }
+      responses:
+        "200": { description: Stable commit result, headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } }, content: { application/json: { schema: { $ref: "#/components/schemas/ImportCommitResult" } } } }
+        "410": { description: Import preview expired, headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } }, content: { application/json: { schema: { $ref: "#/components/schemas/ImportCommitResult" } } } }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
   /health:
     get:
       operationId: getHealth

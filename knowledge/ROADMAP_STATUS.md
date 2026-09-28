@@ -7,12 +7,12 @@ Source of truth: [approved implementation roadmap](../docs/superpowers/plans/202
 | 1. Independent monorepo and quality baseline | COMPLETE / COMMITTED | `e351988d0cd309d91a2e555f7d344704ed8366f2` |
 | 2. API contract and typed client | COMPLETE / COMMITTED | `6642be93019019d8623d7f8fd9225d885d74cbe7` |
 | 3. Tenant schema and PostgreSQL RLS | COMPLETE / COMMITTED | `2807089e6d4f9b1b399770c67cf679d75d030682`; PostgreSQL 18 follow-up `aeb40ad78cf044112109db71e22f0433482ce1ba` |
-| 4. Church authentication, MFA, and `sage.dev` | COMPLETE / COMMITTED | `fe52346d5740d5edd1aa95e73c799101a078b246`; security guide and committed tests |
+| 4. Church authentication, MFA, and `sage.dev` | COMPLETE / COMMITTED | `fe52346d5740d5edd1aa95e73c799101a078b246` |
 | 5. Church application and `sage.dev` approval | COMPLETE / COMMITTED | `763bc93610ca44167a1800bd810edd643358620c`; `docs/qa/task-5-verification.md` |
 | 6. Teacher invitations, assignments, ownership transfer | COMPLETE / COMMITTED | `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f`; `docs/qa/task-6-verification.md` |
-| 7. Append-only audit, security, correlation logging | COMPLETE / COMMITTED | `32fad0a1735c0e2a677832252f72197252c8cd05`; `docs/qa/task-7-verification.md`; full Task 7 and Tasks 1–7 gates passed |
-| 8. Ministries, students, birthdates, avatars | VALIDATED / UNCOMMITTED | Implementation and required validation gates passed in the current worktree; awaiting explicit commit approval. See [CURRENT_STATE.md](CURRENT_STATE.md). |
-| 9. Safe XLSX/CSV import | NOT STARTED | No implementation evidence |
+| 7. Append-only audit, security, correlation logging | COMPLETE / COMMITTED | `32fad0a1735c0e2a677832252f72197252c8cd05`; `docs/qa/task-7-verification.md` |
+| 8. Ministries, students, birthdates, avatars | COMPLETE / COMMITTED | `dc3c13c6cd5e4909c644b0abe37d18875cbe248f` |
+| 9. Safe XLSX/CSV import | VALIDATED / UNCOMMITTED | Current worktree; all required implementation, test, contract, formatting, dependency, structure, and security gates passed; `docs/qa/task-9-verification.md` |
 | 10. Responsive installable PWA shell | NOT STARTED | No implementation evidence |
 | 11. Isolated local profiles, encryption, offline lease | NOT STARTED | No implementation evidence; Task 6 has server-side revocation placeholders only |
 | 12. Attendance domain, drafts, marking UI | NOT STARTED | No implementation evidence |
@@ -23,4 +23,4 @@ Source of truth: [approved implementation roadmap](../docs/superpowers/plans/202
 | 17. Operations, retention, deployment, hardening | NOT STARTED | No implementation evidence; earlier tasks contain only their own scoped retention/security work |
 | 18. MVP qualification and one-church pilot | NOT STARTED | No implementation evidence |
 
-The roadmap's first execution slice, Tasks 1–7, is complete and committed. Task 8 is validated but remains uncommitted pending explicit approval; Task 9 has not started.
+Tasks 1–8 are complete and committed. Task 9 is validated in the unstaged working tree and awaits explicit commit approval. Task 10 has not started.

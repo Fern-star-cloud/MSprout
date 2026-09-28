@@ -4,6 +4,7 @@ use App\Http\Controllers\AuditController;
 use App\Http\Controllers\Auth\ChurchAccountController;
 use App\Http\Controllers\ChurchApplicationController;
 use App\Http\Controllers\RosterController;
+use App\Http\Controllers\StudentImportController;
 use App\Http\Controllers\TeacherManagementController;
 use App\Http\Middleware\ApplicationRequest;
 use Illuminate\Http\JsonResponse;
@@ -63,4 +64,11 @@ Route::middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction
     Route::put('/students/{id}', [RosterController::class, 'updateStudent'])->whereUuid('id');
     Route::post('/students/{id}/{status}', [RosterController::class, 'studentStatus'])->whereUuid('id')->whereIn('status', ['archive', 'restore']);
     Route::put('/students/{id}/enrollments', [RosterController::class, 'enroll'])->whereUuid('id');
+});
+
+Route::middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction', 'owner.mfa', 'throttle:student-imports'])->group(function () {
+    Route::post('/imports/students/preview', [StudentImportController::class, 'preview']);
+    Route::post('/imports/{batch}/commit', [StudentImportController::class, 'commit'])->whereUuid('batch');
+    Route::get('/imports/{batch}', [StudentImportController::class, 'show'])->whereUuid('batch');
+    Route::get('/imports/template', [StudentImportController::class, 'template']);
 });

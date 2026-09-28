@@ -54,6 +54,38 @@ export async function authRequest<T = Record<string, unknown>>(
   return await readResponse(await fetch(path, { ...options, method, headers, body: body ? JSON.stringify(body) : undefined })) as T
 }
 
+export async function authUpload<T>(path: string, file: File, churchId: string): Promise<T> {
+  if (globalThis.navigator?.onLine === false) throw new Error('Connect to the internet and try again.')
+  if (!/^\/api\/imports\/students\/preview$/.test(path) || !/^[a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12}$/i.test(churchId)) throw new Error('Invalid import request')
+  const headers: Record<string, string> = {
+    Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-Correlation-Id': crypto.randomUUID(), 'X-Church-Id': churchId,
+  }
+  const options = { credentials: 'same-origin', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer' } as const
+  await readResponse(await fetch('/sanctum/csrf-cookie', { ...options, headers }))
+  const cookie = document.cookie.split('; ').find((value) => value.startsWith('XSRF-TOKEN='))
+  if (!cookie) throw new Error('CSRF initialization failed')
+  headers['X-XSRF-TOKEN'] = decodeURIComponent(cookie.slice('XSRF-TOKEN='.length))
+  const body = new FormData()
+  body.set('file', file)
+
+  return await readResponse(await fetch(path, { ...options, method: 'POST', headers, body })) as T
+}
+
+export async function authDownload(path: '/api/imports/template', churchId: string): Promise<Blob> {
+  if (globalThis.navigator?.onLine === false) throw new Error('Connect to the internet and try again.')
+  if (!/^[a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12}$/i.test(churchId)) throw new Error('Invalid workspace')
+  const response = await fetch(path, {
+    method: 'GET', credentials: 'same-origin', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer',
+    headers: { Accept: 'text/csv', 'X-Requested-With': 'XMLHttpRequest', 'X-Correlation-Id': crypto.randomUUID(), 'X-Church-Id': churchId },
+  })
+  if (!response.ok) {
+    await readResponse(response)
+    throw new Error('Import template download failed')
+  }
+
+  return await response.blob()
+}
+
 export function signedInvitation(fragment: string, kind: 'platform' | 'church'): string | null {
   try {
     const url = new URL(decodeURIComponent(fragment), location.origin)
