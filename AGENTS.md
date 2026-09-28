@@ -52,7 +52,19 @@ Use this default lifecycle:
 
 Do not repeatedly reread unchanged context, narrate routine commands, run the full suite after every small edit, repeat identical security scans, perform multiple nominally final diff reviews, or rerun an expensive still-valid green gate for reassurance. Once repository evidence establishes the direction, avoid speculative exploration.
 
-If a later change can affect a prior result, rerun the focused proof and only the broader gates it invalidated, unless CI or repository policy requires the complete gate. Documentation-only changes do not require unrelated application tests merely for ceremony, but they still require applicable repository, formatting, and security checks. Usage efficiency never justifies reduced correctness or security.
+The task still requires one complete initial final validation phase appropriate to its scope. After a required comprehensive gate has passed, assess every later correction by the inputs it changes and the guarantees it can materially affect. Rerun the focused tests or checks that directly prove the correction, then only the broader gates whose guarantees were invalidated. Record enough reasoning to support preserving any prior green result; do not rerun an expensive still-valid gate merely for reassurance. If repository policy or CI requires a complete gate, follow that requirement.
+
+Apply invalidation by effect, not file extension alone:
+
+- A CSS or presentation-only correction normally invalidates the relevant UI and accessibility proof plus build or lint when affected, not unrelated backend suites or dependency audits.
+- A TypeScript implementation or type correction normally invalidates the relevant frontend tests and affected typecheck, lint, or build guarantees, not unrelated backend gates.
+- A PHP or backend-logic correction invalidates focused backend proof and the affected backend or security gates, not unrelated PWA build or browser behavior.
+- Authorization, RLS, audit, authentication, migration, or schema changes invalidate the relevant backend, tenant/data-integrity, and security guarantees.
+- Dependency, lockfile, or runtime-configuration changes invalidate the applicable install, audit, build, and security guarantees.
+- Documentation or knowledge-only corrections do not invalidate application tests or builds unless the changed material is consumed by validation, generation, or runtime behavior.
+- CI or security-workflow corrections invalidate the checks whose execution, inputs, coverage, or enforcement semantics changed.
+
+A previously green aggregate regression suite remains valid after a late change only when repository evidence establishes that the change cannot materially affect the suite's guarantees. Rerun the applicable aggregate suite when a correction can affect shared behavior, contracts, application bootstrap, authorization, persistence, cross-cutting infrastructure, dependencies, or another broad surface. Prefer focused proof for genuinely isolated corrections. When uncertain whether a security-critical guarantee was invalidated, prefer safety and rerun the relevant gate. Usage efficiency never justifies reduced correctness or security.
 
 ## 4. Implementation and test policy
 
@@ -88,7 +100,11 @@ gitleaks detect --no-banner
 semgrep scan --config p/owasp-top-ten apps
 ```
 
-Use task-specific focused tests first. Before GREEN, run all applicable full gates: backend and frontend tests, typecheck, lint, production build, Pint, contract drift, structure, Composer validation and audit, pnpm audit, Gitleaks, Semgrep, and `git diff --check`. Ensure secret scanning covers tracked and newly created source while excluding ignored credentials, dependencies, runtime data, and build output. Review scanner exclusions or parse failures rather than assuming coverage. Do not claim a pass unless the command passed in the current run or an immediately preceding result remains valid after all later changes.
+Use task-specific focused tests first. Before GREEN, run all applicable full gates once in the task's initial comprehensive validation: backend and frontend tests, typecheck, lint, production build, Pint, contract drift, structure, Composer validation and audit, pnpm audit, Gitleaks, Semgrep, and `git diff --check`. A late correction does not waive that initial phase and follows the invalidation policy in Section 3. Ensure secret scanning covers tracked and newly created source while excluding ignored credentials, dependencies, runtime data, and build output. Review scanner exclusions or parse failures rather than assuming coverage. Do not claim a pass unless the command passed in the current run or an immediately preceding result remains valid after all later changes under the invalidation policy.
+
+The task's required comprehensive security scan must occur. After it passes, rescan the changed and relevant inputs when repository tooling can establish the affected security guarantee reliably. Rerun the complete applicable scan when the correction materially affects security-sensitive behavior, dependencies, scanner configuration or coverage, CI/security workflows, or when tool limitations or repository policy prevent reliable partial coverage. Never exclude relevant new or untracked source to reduce scanning, suppress a legitimate finding, or treat efficiency as a reason to weaken security coverage.
+
+Keep disposable test and tool output ignored and uncommitted. Distinguish generated evidence that repository policy intentionally tracks from runner artifacts such as screenshots, traces, temporary databases, caches, coverage output, browser reports, and runner state. Do not stage or commit those artifacts unless the task or repository explicitly requires them as reviewed evidence; preserve existing ignore rules when they already cover the output.
 
 ## 5. Durable architecture and security invariants
 
@@ -181,9 +197,11 @@ GREEN requires all applicable conditions:
 - previous tasks remain intact; and
 - Git branch, checkpoint, staging, remote, and worktree state are understood and safe.
 
-After implementation stabilizes, perform one complete final diff review. Verify scope, no Task N+1 leakage, no unrelated refactor, no debug/temp/generated junk, no secrets or weakened tests, safe migrations/data changes, correct tenant/RLS/authorization/audit/privacy behavior, synchronized backend/contract/frontend, justified workflow/dependency changes, accurate knowledge, and preservation of prior work.
+After implementation stabilizes, perform one complete final diff and source review. Verify scope, no Task N+1 leakage, no unrelated refactor, no debug/temp/generated junk, no secrets or weakened tests, safe migrations/data changes, correct tenant/RLS/authorization/audit/privacy behavior, synchronized backend/contract/frontend, justified workflow/dependency changes, accurate knowledge, and preservation of prior work.
 
-Classify findings as BLOCKING, SHOULD FIX, or INFORMATIONAL/ACCEPTABLE. Remediate BLOCKING and SHOULD FIX autonomously when a clear safe in-scope correction exists, run the invalidated checks, then update knowledge as needed. Do not call the result GREEN while either category remains.
+Classify all findings as BLOCKING, SHOULD FIX, or INFORMATIONAL/ACCEPTABLE and record BLOCKING and SHOULD FIX findings in one remediation queue. Remediate that queue autonomously when a clear safe in-scope correction exists, verify each correction, rerun the focused and broader gates actually invalidated under Section 3, and inspect the corrected portions plus their direct interactions. Add any defect introduced or exposed by remediation to the same queue. Do not call the result GREEN while a BLOCKING or SHOULD FIX item remains.
+
+Do not automatically restart the complete final review after each correction. Closing the remediation queue, completing invalidation-based validation, and reviewing corrected portions and direct interactions is sufficient unless remediation materially changes task scope, architecture, security boundaries, the data model or migrations, dependencies, authorization or tenant behavior, or a sufficiently broad part of the implementation that the original review is no longer reliable. In those cases, perform a second complete final review.
 
 Only GREEN permits automatic commit and push.
 
