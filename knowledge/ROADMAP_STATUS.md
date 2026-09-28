@@ -12,7 +12,7 @@ Source of truth: [approved implementation roadmap](../docs/superpowers/plans/202
 | 6. Teacher invitations, assignments, ownership transfer | COMPLETE / COMMITTED | `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f`; `docs/qa/task-6-verification.md` |
 | 7. Append-only audit, security, correlation logging | COMPLETE / COMMITTED | `32fad0a1735c0e2a677832252f72197252c8cd05`; `docs/qa/task-7-verification.md` |
 | 8. Ministries, students, birthdates, avatars | COMPLETE / COMMITTED | `dc3c13c6cd5e4909c644b0abe37d18875cbe248f` |
-| 9. Safe XLSX/CSV import | VALIDATED / UNCOMMITTED | Current worktree; all required implementation, test, contract, formatting, dependency, structure, and security gates passed; `docs/qa/task-9-verification.md` |
+| 9. Safe XLSX/CSV import | COMPLETE / COMMITTED | `fbe338f433c7432cc26c98ad8c2e258cf9502a79`; all required implementation, test, contract, formatting, dependency, structure, and security gates passed; `docs/qa/task-9-verification.md` |
 | 10. Responsive installable PWA shell | NOT STARTED | No implementation evidence |
 | 11. Isolated local profiles, encryption, offline lease | NOT STARTED | No implementation evidence; Task 6 has server-side revocation placeholders only |
 | 12. Attendance domain, drafts, marking UI | NOT STARTED | No implementation evidence |
@@ -23,4 +23,4 @@ Source of truth: [approved implementation roadmap](../docs/superpowers/plans/202
 | 17. Operations, retention, deployment, hardening | NOT STARTED | No implementation evidence; earlier tasks contain only their own scoped retention/security work |
 | 18. MVP qualification and one-church pilot | NOT STARTED | No implementation evidence |
 
-Tasks 1–8 are complete and committed. Task 9 is validated in the unstaged working tree and awaits explicit commit approval. Task 10 has not started.
+Tasks 1–9 are complete, committed, and pushed on `feat/mvp-foundation`. Task 10 has not started.

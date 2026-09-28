@@ -1,6 +1,6 @@
 # Task 9 Verification — Safe XLSX/CSV Import
 
-Verified 2026-09-28 against committed Task 8 base `dc3c13c6cd5e4909c644b0abe37d18875cbe248f`. Task 9 remains unstaged and uncommitted.
+Verified 2026-09-28 against committed Task 8 base `dc3c13c6cd5e4909c644b0abe37d18875cbe248f`, then committed and pushed as `fbe338f433c7432cc26c98ad8c2e258cf9502a79`.
 
 ## Acceptance evidence
 

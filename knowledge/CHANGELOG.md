@@ -13,6 +13,6 @@ Meaningful completed milestones only. This is a concise index, not a replacement
 | 2026-09-22 | Task 6 — teacher membership management | Invitations, assignments, revocation, ownership transfer, session/device invalidation, UI and verification report | `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f` |
 | 2026-09-27 | Task 7 — append-only audit, security, and correlation logging | Canonical immutable evidence, legacy preservation, transactional high-risk/auth auditing, denial telemetry, redaction, scoped viewers, frontend/contract, and complete validation | `32fad0a1735c0e2a677832252f72197252c8cd05` |
 | 2026-09-28 | Task 8 — ministries, students, birthdates, avatars | Ministry/student/enrollment domain, canonical normalization, assignment-scoped roster, avatars, contract/UI, and complete validation | `dc3c13c6cd5e4909c644b0abe37d18875cbe248f` |
-| 2026-09-28 | Task 9 — safe XLSX/CSV import | Strict workbook inspection, preview/mapping, locked idempotent commit, tenant RLS, audit integration, contract/UI, and complete validation; remains uncommitted | Uncommitted worktree |
+| 2026-09-28 | Task 9 — safe XLSX/CSV import | Strict workbook inspection, preview/mapping, locked idempotent commit, tenant RLS, audit integration, contract/UI, and complete validation | `fbe338f433c7432cc26c98ad8c2e258cf9502a79` |
 
-Tasks 1–8 are committed. Task 9 has passed its required validation gates and remains uncommitted. Its handoff state is in [CURRENT_STATE.md](CURRENT_STATE.md) and evidence is in [the Task 9 verification report](../docs/qa/task-9-verification.md).
+Tasks 1–9 are committed. Task 9 validation evidence is in [the Task 9 verification report](../docs/qa/task-9-verification.md); current handoff state is in [CURRENT_STATE.md](CURRENT_STATE.md).

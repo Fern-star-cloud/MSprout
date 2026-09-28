@@ -27,7 +27,7 @@ Authoritative entry points:
 
 The React client uses typed definitions generated from OpenAPI and sends credentials with same-origin requests. Browser state and components are not authorization boundaries. API or schema changes must update the contract and regenerated TypeScript in the same task.
 
-Offline/PWA, IndexedDB, synchronization, and attendance features are planned for later roadmap tasks and do not yet exist. The committed Task 8 foundation implements online ministry and student roster management; the current uncommitted Task 9 worktree adds online-only student spreadsheet import. API responses must not be cached by a future service worker.
+Offline/PWA, IndexedDB, synchronization, and attendance features are planned for later roadmap tasks and do not yet exist. The committed Task 8 foundation implements online ministry and student roster management; committed Task 9 adds online-only student spreadsheet import. API responses must not be cached by a future service worker.
 
 ## Authentication and authorization
 
@@ -47,7 +47,7 @@ The committed foundation includes users/platform administrators, churches and me
 
 ## Student import architecture
 
-The validated, uncommitted Task 9 worktree adds tenant-owned `import_batches` and `import_rows` with forced RLS and restricted runtime grants. Uploads are inspected in memory from temporary request files and are not retained as repository or application artifacts. `InspectWorkbook` bounds size, row count, ZIP expansion, structure, sheet count, and scalar content before PhpSpreadsheet parsing. It rejects formulas, macros, external links, embedded content, hidden sheets, ambiguous dates, and spreadsheet-executable prefixes.
+Committed Task 9 adds tenant-owned `import_batches` and `import_rows` with forced RLS and restricted runtime grants. Uploads are inspected in memory from temporary request files and are not retained as repository or application artifacts. `InspectWorkbook` bounds size, row count, ZIP expansion, structure, sheet count, and scalar content before PhpSpreadsheet parsing. It rejects formulas, macros, external links, embedded content, hidden sheets, ambiguous dates, and spreadsheet-executable prefixes.
 
 Preview persists bounded source/normalized row projections but creates no students. `MapStudentRow` delegates child fields to Task 8's canonical `NormalizeStudentInput`. Commit locks one preview batch in a transaction, validates selected rows and same-church ministry mappings, rechecks duplicates, creates students/enrollments, stores stable results for commit-key replay, and writes one allowlisted Task 7 batch audit event. The API policy permits only the church Owner with confirmed MFA; forced RLS independently enforces church isolation.
 

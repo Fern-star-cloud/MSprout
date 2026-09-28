@@ -5,26 +5,23 @@ Verified: 2026-09-28. This is the primary development handoff.
 ## Git state
 
 - Branch: `feat/mvp-foundation`.
-- HEAD and `origin/feat/mvp-foundation`: `dc3c13c6cd5e4909c644b0abe37d18875cbe248f` — the committed Task 8 milestone.
-- Task 9 is validated but remains unstaged and uncommitted in the working tree. Do not stage, commit, or push it without explicit user authorization.
+- HEAD and `origin/feat/mvp-foundation`: `fbe338f433c7432cc26c98ad8c2e258cf9502a79` — the committed and pushed Task 9 milestone.
+- The repository-governance upgrade after Task 9 is intentionally unstaged and uncommitted pending deliberate review; it must not self-authorize a commit or push.
 - Repository remotes remain `origin = https://github.com/Fern-star-cloud/MSprout.git` and `upstream = https://github.com/Frierend/ministry-sprout.git`. This differs from the roadmap preflight's original one-remote expectation; do not change remotes without explicit direction.
 
 ## Roadmap position
 
-- Tasks 1–8: **COMPLETE / COMMITTED**.
-- Task 9: **VALIDATED / UNCOMMITTED**.
+- Tasks 1–9: **COMPLETE / COMMITTED / PUSHED** on `feat/mvp-foundation`.
 - Tasks 10–18: **NOT STARTED**.
-- Preserve Tasks 1–8 and do not begin Task 10.
+- Preserve Tasks 1–9 and do not begin Task 10.
 
 See [ROADMAP_STATUS.md](ROADMAP_STATUS.md) for every task and commit.
 
-## Committed Task 8 foundation
+## Committed Tasks 8–9 foundation
 
 Task 8 is committed at `dc3c13c6cd5e4909c644b0abe37d18875cbe248f`. It provides ministries, students, enrollments, canonical student input normalization, date-only birthdates, server-derived display name/age, Owner roster writes, assignment-limited Teacher reads, bundled gender avatars, forced tenant RLS, and Task 7 audit integration.
 
-## Task 9 worktree state
-
-The current worktree implements the approved safe student spreadsheet import:
+Task 9 is committed and pushed at `fbe338f433c7432cc26c98ad8c2e258cf9502a79`. It implements the approved safe student spreadsheet import:
 
 - Owner-only CSV/XLSX upload, preview, inspection, correction, mapping, row exclusion, idempotent commit, status retrieval, and template download.
 - Strict 5 MiB/500-row boundaries; verified MIME and XLSX ZIP structure; formula, macro, external-link, embedded-content, hidden/multiple-sheet, malformed-package, and decompression-bomb rejection.
@@ -47,8 +44,8 @@ See [the Task 9 verification report](../docs/qa/task-9-verification.md) for the 
 
 ## Next work
 
-1. Review the validated Task 9 diff and wait for explicit commit approval; keep all changes unstaged and uncommitted until then.
-2. Preserve the committed Tasks 1–8 foundation and do not start Task 10.
+1. Review the unstaged repository-governance upgrade; it requires separate deliberate authorization before any commit or push.
+2. Preserve the committed Tasks 1–9 foundation and do not start Task 10.
 
 ## Known environment and repository issues
 
