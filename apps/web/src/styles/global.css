@@ -82,6 +82,30 @@ button:hover { background: var(--color-brand-strong); }
 .guest-review-list { display: grid; gap: 1rem; }
 .guest-review .conflict-card form { padding-top: .75rem; border-top: 1px solid var(--color-border); }
 .guest-review .conflict-card h4 { margin-bottom: .75rem; }
+.report-screen { display: grid; gap: 1rem; }
+.report-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.report-heading h1, .attendance-history h2 { margin: .2rem 0; }
+.report-filters { display: grid; gap: .75rem; margin: 0; padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-medium); background: var(--color-surface); }
+.report-filters label { margin: 0; }
+.report-filters select { margin: 0; }
+.report-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.report-summary article { display: grid; gap: .25rem; padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-small); background: var(--color-surface); }
+.report-summary span, .report-boundary, .attendance-history header p { color: var(--color-muted); }
+.report-summary strong { font-size: 1.65rem; }
+.report-status-links { display: flex; flex-wrap: wrap; gap: .6rem; }
+.report-status-links > * { padding: .45rem .7rem; border-radius: 999px; background: var(--color-brand-soft); }
+.attendance-history { padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-medium); background: var(--color-surface); box-shadow: var(--shadow-card); }
+.attendance-history header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.attendance-history header > p { max-width: 34rem; margin-top: .25rem; }
+.history-table-wrap { display: none; overflow-x: auto; }
+.history-table { width: 100%; min-width: 48rem; border-collapse: collapse; }
+.history-table th, .history-table td { padding: .75rem; border-bottom: 1px solid var(--color-border); text-align: left; }
+.history-cards { display: grid; gap: .75rem; }
+.history-cards article { padding: .9rem; border: 1px solid var(--color-border); border-radius: var(--radius-small); }
+.history-cards article > div { display: flex; justify-content: space-between; gap: .75rem; }
+.history-cards dl { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; }
+.history-cards dl div { display: flex; justify-content: space-between; gap: .5rem; }
+.history-cards dd { margin: 0; }
 
 @media (min-width: 48rem) {
   .application-layout { min-height: 100vh; display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); }
@@ -101,11 +125,16 @@ button:hover { background: var(--color-brand-strong); }
   .attendance-state-controls { grid-column: auto; grid-template-columns: repeat(2, minmax(7rem, 1fr)); }
   .attendance-roster li { grid-template-columns: 3rem minmax(8rem, 1fr) minmax(15rem, auto); }
   .conflict-comparison { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .report-filters { grid-template-columns: repeat(3, minmax(10rem, 1fr)) auto; align-items: end; }
+  .report-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .history-table-wrap { display: block; }
+  .history-cards { display: none; }
 }
 
 @media (max-width: 35rem) {
   .update-notice { align-items: stretch; flex-direction: column; }
   .attendance-heading, .attendance-finalize-bar { align-items: stretch; flex-direction: column; }
+  .report-heading, .attendance-history header { align-items: stretch; flex-direction: column; }
   .attendance-heading .attendance-connection { align-self: flex-start; }
 }
 

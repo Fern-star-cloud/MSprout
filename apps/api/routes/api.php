@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttendanceReportController;
 use App\Http\Controllers\AttendanceReviewController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\Auth\ChurchAccountController;
@@ -47,6 +48,11 @@ Route::get('/offline/bootstrap', OfflineBootstrapController::class)
 Route::middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction', 'owner.mfa', 'throttle:sync'])->group(function () {
     Route::post('/sync/push', [SyncController::class, 'push']);
     Route::get('/sync/pull', [SyncController::class, 'pull']);
+});
+
+Route::middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction', 'owner.mfa'])->group(function () {
+    Route::get('/attendance-reports', [AttendanceReportController::class, 'index']);
+    Route::get('/attendance-reports/export', [AttendanceReportController::class, 'export']);
 });
 
 Route::middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction', 'owner.mfa', 'throttle:sync'])->group(function () {

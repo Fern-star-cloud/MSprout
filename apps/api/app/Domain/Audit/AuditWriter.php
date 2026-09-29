@@ -49,7 +49,10 @@ class AuditWriter
                 'risk' => in_array($value, ['normal', 'high'], true),
                 'decision_category' => in_array($value, ['duplicate', 'ineligible', 'incomplete', 'other'], true),
                 'previous_owner_id' => is_string($value) && Str::isUuid($value),
-                'applicant_id', 'count' => is_int($value) && $value >= 0,
+                'applicant_id', 'count', 'result_count' => is_int($value) && $value >= 0,
+                'date_from', 'date_to' => is_string($value)
+                    && preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $value) === 1,
+                'ministry_id' => $value === null || (is_string($value) && Str::isUuid($value)),
                 default => false,
             };
             if (! $valid) {

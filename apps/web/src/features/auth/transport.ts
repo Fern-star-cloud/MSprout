@@ -71,16 +71,23 @@ export async function authUpload<T>(path: string, file: File, churchId: string):
   return await readResponse(await fetch(path, { ...options, method: 'POST', headers, body })) as T
 }
 
-export async function authDownload(path: '/api/imports/template', churchId: string): Promise<Blob> {
+export async function authDownload(path: string, churchId: string): Promise<Blob> {
   if (globalThis.navigator?.onLine === false) throw new Error('Connect to the internet and try again.')
   if (!/^[a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12}$/i.test(churchId)) throw new Error('Invalid workspace')
+  const parsed = new URL(path, globalThis.location?.origin ?? 'http://localhost')
+  const reportExport = parsed.pathname === '/api/attendance-reports/export'
+    && [...parsed.searchParams.keys()].every((key) => ['date_from', 'date_to', 'ministry_id'].includes(key))
+    && /^\d{4}-\d{2}-\d{2}$/.test(parsed.searchParams.get('date_from') ?? '')
+    && /^\d{4}-\d{2}-\d{2}$/.test(parsed.searchParams.get('date_to') ?? '')
+    && (!parsed.searchParams.has('ministry_id') || /^[a-f\d-]{36}$/i.test(parsed.searchParams.get('ministry_id') ?? ''))
+  if (parsed.origin !== (globalThis.location?.origin ?? 'http://localhost') || (path !== '/api/imports/template' && !reportExport)) throw new Error('Invalid download request')
   const response = await fetch(path, {
     method: 'GET', credentials: 'same-origin', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer',
     headers: { Accept: 'text/csv', 'X-Requested-With': 'XMLHttpRequest', 'X-Correlation-Id': crypto.randomUUID(), 'X-Church-Id': churchId },
   })
   if (!response.ok) {
     await readResponse(response)
-    throw new Error('Import template download failed')
+    throw new Error('Download failed')
   }
 
   return await response.blob()

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it, vi } from 'vitest'
-import { authRequest, authUpload, safeAuthMessage, signedInvitation } from './transport'
+import { authDownload, authRequest, authUpload, safeAuthMessage, signedInvitation } from './transport'
 
 afterEach(() => { vi.unstubAllGlobals(); document.cookie = 'XSRF-TOKEN=; Max-Age=0' })
 
@@ -68,4 +68,17 @@ it('uploads an import as browser-bounded multipart data without forcing a conten
   expect(fetcher.mock.calls[1][1].body).toBeInstanceOf(FormData)
   expect(fetcher.mock.calls[1][1].headers).toMatchObject({ 'X-Church-Id': church, 'X-XSRF-TOKEN': 'csrf-value' })
   expect(fetcher.mock.calls[1][1].headers['Content-Type']).toBeUndefined()
+})
+
+it('downloads only allowlisted same-origin attendance report filters', async () => {
+  const church = crypto.randomUUID()
+  const ministry = crypto.randomUUID()
+  const fetcher = vi.fn().mockResolvedValue(new Response('csv', { status: 200, headers: { 'Content-Type': 'text/csv' } }))
+  vi.stubGlobal('fetch', fetcher)
+  const path = `/api/attendance-reports/export?date_from=2026-09-01&date_to=2026-09-30&ministry_id=${ministry}`
+
+  await expect(authDownload(path, church)).resolves.toBeInstanceOf(Blob)
+  expect(fetcher).toHaveBeenCalledWith(path, expect.objectContaining({ cache: 'no-store', headers: expect.objectContaining({ 'X-Church-Id': church }) }))
+  await expect(authDownload('/api/attendance-reports/export?date_from=2026-09-01&date_to=2026-09-30&child_name=private', church)).rejects.toThrow('Invalid download request')
+  expect(fetcher).toHaveBeenCalledTimes(1)
 })

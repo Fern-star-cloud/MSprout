@@ -5,19 +5,19 @@ Verified: 2026-09-29. This is the primary development handoff.
 ## Git state
 
 - Branch: `feat/mvp-foundation`.
-- Task 14 started from clean, synchronized checkpoint `eaddc9d034b7696387bb56ad6aa33bdf2dd63bf2` — `feat: add idempotent attendance synchronization`.
-- The current Task 14 milestone is the commit containing this handoff, with subject `feat: preserve attendance conflicts and revisions`.
+- Task 15 started from clean, synchronized checkpoint `11abcc6bc9d3ac6a9e0081863e2168478d471ac3` — `feat: preserve attendance conflicts and revisions`.
+- The current Task 15 milestone is the commit containing this handoff, with subject `feat: add basic attendance reports`.
 - Repository remotes remain `origin = https://github.com/Fern-star-cloud/MSprout.git` and `upstream = https://github.com/Frierend/ministry-sprout.git`. This differs from the roadmap preflight's original one-remote expectation; do not change remotes without explicit direction.
 
 ## Roadmap position
 
-- Tasks 1–14: **COMPLETE / COMMITTED / PUSHED** on `feat/mvp-foundation`.
-- Tasks 15–18: **NOT STARTED**.
-- Preserve Tasks 1–14 and do not begin Task 15 automatically.
+- Tasks 1–15: **COMPLETE / COMMITTED / PUSHED** on `feat/mvp-foundation`.
+- Tasks 16–18: **NOT STARTED**.
+- Preserve Tasks 1–15 and do not begin Task 16 automatically.
 
 See [ROADMAP_STATUS.md](ROADMAP_STATUS.md) for every task and commit.
 
-## Committed Tasks 8–14 foundation
+## Committed Tasks 8–15 foundation
 
 Task 8 is committed at `dc3c13c6cd5e4909c644b0abe37d18875cbe248f`. It provides ministries, students, enrollments, canonical student input normalization, date-only birthdates, server-derived display name/age, Owner roster writes, assignment-limited Teacher reads, bundled gender avatars, forced tenant RLS, and Task 7 audit integration.
 
@@ -108,14 +108,31 @@ Final Task 14 validation on 2026-09-29:
 
 See [the Task 14 verification report](../docs/qa/task-14-verification.md) for gate evidence and reviewed boundaries.
 
+Task 15 adds online attendance history, basic reports, and safe CSV export:
+
+- Date/ministry-filtered PostgreSQL queries return revision-effective Present/Absent counts, a decimal rate, server-pending sessions, open conflicts, corrections, and up to 100 recent finalized sessions. Pending device events are displayed separately and never count as finalized attendance.
+- Current active assignment scope restricts Teachers to their ministries and recent sessions. Owners receive tenant-wide permitted results and the only export capability; application checks and existing forced RLS both remain active.
+- Owner CSV export uses explicit UTF-8 headers, ISO dates/timestamps, correct quoting, and apostrophe protection for text beginning with spreadsheet formula prefixes. Birthdates, unresolved work, pending work, and advanced analytics are excluded.
+- Each successful export records canonical tenant audit evidence with actor, filters, result count, and correlation ID without copying report rows or child data into audit metadata or logs.
+- The online responsive report UI provides filters, summary cards, pending/conflict/correction links, finalized-history table/cards, and a constrained same-origin download path without changing service-worker API caching.
+
+Final Task 15 validation on 2026-09-29:
+
+- Focused proof: **5 backend tests / 43 assertions** and **25 frontend tests in 5 files** passed.
+- Aggregate verification: **119 frontend tests in 30 files**, frontend typecheck/build, and **194 backend tests / 1,179 assertions passed**.
+- Chrome Playwright: **4 tests passed**. Frontend lint, OpenAPI drift, Pint, Composer strict validation/audit, pnpm audit, structure, Gitleaks, Semgrep, and `git diff --check` passed.
+- Full Semgrep found zero issues from 103 OWASP rules over 281 targets with approximately 99.9% parsing.
+
+See [the Task 15 verification report](../docs/qa/task-15-verification.md) for gate evidence and reviewed boundaries.
+
 ## Next work
 
-1. Preserve the committed Tasks 1–14 foundation.
-2. Task 15 — attendance history, reports, and safe CSV export — is next, but must not begin automatically.
+1. Preserve the committed Tasks 1–15 foundation.
+2. Task 16 — privacy-safe birthday notifications — is next, but must not begin automatically.
 
 ## Known environment and repository issues
 
-- The default Windows `node` is 22.22.3, below the approved Node 24 baseline. Tasks 11–14 used the Codex-bundled Node 24.19.0 and pre-existing temporary pnpm 10.34.5 launcher without installing or purging host runtimes.
+- The default Windows `node` is 22.22.3, below the approved Node 24 baseline. Task 15 used the Codex-bundled Node 24.21.0 and pre-existing temporary pnpm 10.34.5 launcher without installing or purging host runtimes.
 - No PHP executable is on the default PATH. A pre-existing temporary Windows PHP 8.3.33 runtime and process-scoped extension scan files supply `pdo_pgsql`, GD, and ZIP outside the repository.
 - Composer/pnpm audits and Semgrep used process-scoped temporary trust configuration to retain TLS verification behind the host certificate interceptor. No global trust or machine configuration changed.
 - The two-remote configuration conflicts with the approved roadmap's original repository preflight and remains unresolved.

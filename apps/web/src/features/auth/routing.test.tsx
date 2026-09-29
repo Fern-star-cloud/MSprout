@@ -17,6 +17,7 @@ it.each([
   ['/account/application', 'Your church, ready to grow'],
   ['/account/platform-applications', 'Church applications'],
   ['/account/teachers', 'Teachers'],
+  ['/account/reports', 'Attendance reports'],
   ['/account/teacher-invitation', 'Teacher invitation'],
 ])('opens %s from a direct browser visit', (path, heading) => {
   history.replaceState(null, '', path)

@@ -5,6 +5,7 @@ import { AttendanceScreen } from '../features/attendance/AttendanceScreen'
 import { ConflictReviewScreen } from '../features/conflicts/ConflictReviewScreen'
 import { AuthScreen, type AuthPage } from '../features/auth/AuthScreen'
 import { ImportScreen } from '../features/imports/ImportScreen'
+import { ReportScreen } from '../features/reports/ReportScreen'
 import { DeviceProfilesScreen } from '../features/device-profiles/DeviceProfilesScreen'
 import { MinistriesScreen } from '../features/ministries/MinistriesScreen'
 import { PlatformAuthScreen } from '../features/platform-auth/PlatformAuthScreen'
@@ -27,13 +28,14 @@ const navigationItems: NavigationItem[] = [
   { label: 'Home', href: '/account/dashboard', icon: 'home' },
   { label: 'Attendance', href: '/account/attendance', icon: 'attendance' },
   { label: 'Review', href: '/account/conflicts', icon: 'attendance' },
+  { label: 'Reports', href: '/account/reports', icon: 'attendance' },
   { label: 'Ministries', href: '/account/ministries', icon: 'ministries' },
   { label: 'Students', href: '/account/students', icon: 'students' },
   { label: 'Teachers', href: '/account/teachers', icon: 'teachers' },
   { label: 'Import', href: '/account/imports', icon: 'import' },
 ]
 
-const shellPages = new Set(['dashboard', 'attendance', 'conflicts', 'ministries', 'students', 'teachers', 'imports', 'audit'])
+const shellPages = new Set(['dashboard', 'attendance', 'conflicts', 'reports', 'ministries', 'students', 'teachers', 'imports', 'audit'])
 const authPages: AuthPage[] = ['login', 'verify-email', 'forgot-password', 'reset-password', 'mfa']
 
 function Dashboard() {
@@ -56,6 +58,7 @@ function screenFor(page: string, fragment: string, navigate: (path: string) => v
   if (page === 'dashboard') return <Dashboard />
   if (page === 'attendance') return <AttendanceScreen />
   if (page === 'conflicts') return <ConflictReviewScreen />
+  if (page === 'reports') return <ReportScreen />
   if (page === 'audit') return <AuditScreen />
   if (page === 'teachers') return <TeacherManagementScreen />
   if (page === 'ministries') return <MinistriesScreen />

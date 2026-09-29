@@ -38,6 +38,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/attendance-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Online-only date/ministry-filtered attendance totals and up to 100 recent finalized sessions. Owners see tenant-wide results; Teachers are restricted to currently assigned ministries. Unresolved attendance and server or device-pending work do not contribute to finalized totals. */
+        get: operations["getAttendanceReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance-reports/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Owner-only audited UTF-8 CSV export of revision-effective finalized attendance. Text cells beginning with spreadsheet formula prefixes are escaped. Birthdates and unresolved or pending attendance are excluded. */
+        get: operations["exportAttendanceReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sync-conflicts": {
         parameters: {
             query?: never;
@@ -1642,6 +1676,52 @@ export interface components {
             records: components["schemas"]["AttendanceRecord"][];
             guests: components["schemas"]["AttendanceGuest"][];
         };
+        AttendanceReportFilters: {
+            /** Format: date */
+            date_from: string;
+            /** Format: date */
+            date_to: string;
+            /** Format: uuid */
+            ministry_id: string | null;
+        };
+        AttendanceReportSummary: {
+            present_count: number;
+            absent_count: number;
+            finalized_record_count: number;
+            attendance_rate: number;
+            /** @description Server-acknowledged draft or finalized-pending sessions; unsynchronized device events are reported separately by the client. */
+            pending_count: number;
+            conflict_count: number;
+            correction_count: number;
+        };
+        AttendanceReportSession: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            ministry_id: string;
+            ministry_name: string;
+            /** Format: date */
+            attendance_date: string;
+            /** @enum {string} */
+            status: "finalized" | "revised";
+            /** Format: date-time */
+            finalized_at: string;
+            present_count: number;
+            absent_count: number;
+            attendance_rate: number;
+            correction_count: number;
+        };
+        AttendanceReport: {
+            /** @enum {string} */
+            role: "owner" | "teacher";
+            can_export: boolean;
+            filters: components["schemas"]["AttendanceReportFilters"];
+            summary: components["schemas"]["AttendanceReportSummary"];
+            sessions: components["schemas"]["AttendanceReportSession"][];
+        };
+        AttendanceReportResponse: {
+            data: components["schemas"]["AttendanceReport"];
+        };
         ConflictEvidence: {
             value: {
                 /** @enum {string} */
@@ -1961,6 +2041,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SyncPullResponse"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    getAttendanceReport: {
+        parameters: {
+            query?: {
+                date_from?: string;
+                date_to?: string;
+                ministry_id?: string;
+            };
+            header: {
+                "X-Church-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Role-scoped finalized attendance report. */
+            200: {
+                headers: {
+                    /** @description Browser and intermediary storage is forbidden. */
+                    "Cache-Control"?: "no-store, private";
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceReportResponse"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    exportAttendanceReport: {
+        parameters: {
+            query?: {
+                date_from?: string;
+                date_to?: string;
+                ministry_id?: string;
+            };
+            header: {
+                "X-Church-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Spreadsheet-safe attendance export. */
+            200: {
+                headers: {
+                    /** @description Browser and intermediary storage is forbidden. */
+                    "Cache-Control"?: "no-store, private";
+                    /** @description Attachment filename. */
+                    "Content-Disposition"?: string;
+                    /** @description MIME sniffing is disabled. */
+                    "X-Content-Type-Options"?: "nosniff";
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
                 };
             };
             default: components["responses"]["AuthError"];
