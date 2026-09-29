@@ -50,6 +50,7 @@ final class PullChanges
             ->where('device_id', $deviceId)
             ->lockForUpdate()
             ->first();
+        abort_if($deviceCursor?->full_resync_required === true, 409, 'A full device bootstrap is required.');
         if ($deviceCursor === null) {
             DeviceCursor::create([
                 'church_id' => $membership->church_id,

@@ -14,7 +14,7 @@ Laravel API, queue worker, scheduler
 PostgreSQL 18 (authoritative data, tenant RLS, audit evidence)
 ```
 
-The monorepo contains `apps/web`, `apps/api`, `contracts`, and project documentation. Vite serves the current frontend locally. The approved deployment target is Vercel for the web client and Railway initially for the API, worker, scheduler, and PostgreSQL; production deployment is not yet implemented.
+The monorepo contains `apps/web`, `apps/api`, `contracts`, and project documentation. Vite serves the frontend locally. Task 17 adds the production topology: Vercel serves the web client with same-origin API rewrites, while Railway runs the API, worker, scheduler, migrations, and PostgreSQL. One immutable API image selects its service mode at startup, honors the injected `PORT`, and runs as unprivileged `www-data`.
 
 Authoritative entry points:
 
@@ -64,6 +64,16 @@ Task 15 report queries are read-only over the established tenant tables and tran
 `change_feed.sequence` is globally increasing and therefore monotonically increasing within each church. Pull pages raw church rows in sequence order, filters Teachers to current assignments while retaining targeted assignment tombstones, and advances `device_cursors` across filtered rows so pagination cannot stall. Successful pull renews the signed device lease.
 
 The client sends at most 100 locally ordered events per stable request body, retries only network/429/server failures with bounded exponential backoff and jitter, validates acknowledgement identity, and deletes outbox events only after accepted/duplicate acknowledgement or encrypted conflict/rejection quarantine. It pulls to `has_more = false`; each page applies attendance and guest projections, cumulative assignment tombstones, cursor, and renewed lease in one Dexie transaction. Reauthenticated bootstrap performs the same revoked-assignment reconciliation before advancing its cursor. Task 14 classifies stale marks by field/value/finalization state, preserves contradictions for Owner review, and publishes revision-effective attendance without mutating the original record.
+
+## Operations and production boundary
+
+Task 17 splits health disclosure by audience. `/health/live` is a minimal public process check. `/health/ready` requires a dedicated secret and returns only coarse dependency component states. `/api/platform/system-health` remains inside the separate online-only `sage.dev` guard, current-MFA/recovery-acknowledgement boundary, and returns sanitized aggregate API, database, queue lag/failure, scheduler heartbeat, birthday-dispatch, synchronization/conflict, and storage-growth signals. No tenant record, child data, endpoint, credential, or unrestricted log content is exposed.
+
+Scheduler heartbeat and retention execute through scheduled commands/jobs. `operational_events` and `system_heartbeats` are global sanitized technical stores; narrow `SECURITY DEFINER` functions have fixed search paths, explicit cutoff bounds, revoked public execution, and runtime-only grants. Tenant retention loops set transaction-local `app.current_church_id`, preserving forced RLS. The runtime role has no direct delete grant on retained tenant data. Canonical `audit_events` and frozen legacy audit evidence are outside operational deletion.
+
+Change-feed pruning is bounded by both a 90-day cutoff and every active device cursor. Devices whose authorization/cursor ages out are marked `full_resync_required`; pull then refuses incremental synchronization until authenticated bootstrap advances the cursor to the current server maximum and clears that flag. Purging revoked device authorization and encrypted push secrets therefore cannot silently strand a stale incremental client.
+
+Vercel applies same-origin API forwarding, strict content security policy, HSTS and privacy headers, and immutable caching only to hashed assets. Service-worker API requests remain NetworkOnly. The Railway image contains production-only dependencies and the required PHP extensions, supports `api`, `worker`, `scheduler`, and explicitly invoked `migrate` modes, runs every applicable mode as `www-data`, and binds Apache to the platform-provided `PORT` (default 8080). Deployment, restore, rollback, rotation, incident, and bootstrap-removal procedures live under `docs/operations/` and `SECURITY.md`.
 
 ## Authentication and authorization
 

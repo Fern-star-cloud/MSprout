@@ -14,6 +14,7 @@ use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 final class OfflineBootstrapController extends Controller
 {
@@ -75,6 +76,16 @@ final class OfflineBootstrapController extends Controller
         })->values();
 
         $lease = $issue->handle($membership, $deviceId);
+        $serverCursor = (int) (ChangeFeedEntry::query()->where('church_id', $churchId)->max('sequence') ?? 0);
+        DB::table('device_cursors')->upsert([[
+            'id' => (string) Str::uuid(),
+            'church_id' => $churchId,
+            'membership_id' => $membership->id,
+            'device_id' => $deviceId,
+            'cursor' => $serverCursor,
+            'full_resync_required' => false,
+            'updated_at' => now('UTC'),
+        ]], ['membership_id', 'device_id'], ['cursor', 'full_resync_required', 'updated_at']);
 
         return response()->json([
             'actor' => ['id' => (string) $membership->user_id],
@@ -82,7 +93,7 @@ final class OfflineBootstrapController extends Controller
             'ministries' => $ministries,
             'roster' => $roster,
             'lease' => $lease,
-            'server_cursor' => (string) (ChangeFeedEntry::query()->where('church_id', $churchId)->max('sequence') ?? 0),
+            'server_cursor' => (string) $serverCursor,
         ])->header('Cache-Control', 'no-store, private');
     }
 }

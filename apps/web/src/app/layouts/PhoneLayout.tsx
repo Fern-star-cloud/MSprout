@@ -1,5 +1,4 @@
 import type { NavigationItem } from '../router'
-import type { CSSProperties } from 'react'
 
 function NavigationIcon({ name }: { name: NavigationItem['icon'] }) {
   const paths = {
@@ -23,7 +22,7 @@ export function PhoneLayout({ items, activePath }: { items: NavigationItem[]; ac
           <span>MinistrySprout</span>
         </a>
       </header>
-      <nav className="phone-navigation" aria-label="Phone navigation" style={{ '--navigation-count': items.length } as CSSProperties}>
+      <nav className="phone-navigation" aria-label="Phone navigation">
         {items.map((item) => (
           <a key={item.href} href={item.href} aria-current={activePath === item.href ? 'page' : undefined}>
             <NavigationIcon name={item.icon} />

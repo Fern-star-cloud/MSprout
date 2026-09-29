@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\Auth\PlatformSessionController;
 use App\Http\Controllers\Platform\ApplicationReviewController;
+use App\Http\Controllers\Platform\SystemHealthController;
 use App\Http\Middleware\ApplicationRequest;
 use App\Http\Middleware\RequirePlatformReview;
 use Illuminate\Support\Facades\Route;
@@ -11,6 +12,7 @@ Route::middleware(['auth:platform', RequirePlatformReview::class, ApplicationReq
     Route::get('/audit-events', [AuditController::class, 'platform']);
     Route::get('/applications', [ApplicationReviewController::class, 'index']);
     Route::get('/applications/{id}', [ApplicationReviewController::class, 'show'])->whereUuid('id');
+    Route::get('/system-health', [SystemHealthController::class, 'dashboard']);
     Route::post('/applications/{id}/approve', [ApplicationReviewController::class, 'approve'])->whereUuid('id');
     Route::post('/applications/{id}/reject', [ApplicationReviewController::class, 'reject'])->whereUuid('id');
 });

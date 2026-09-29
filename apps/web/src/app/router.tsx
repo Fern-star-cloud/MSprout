@@ -11,6 +11,7 @@ import { DeviceProfilesScreen } from '../features/device-profiles/DeviceProfiles
 import { MinistriesScreen } from '../features/ministries/MinistriesScreen'
 import { PlatformAuthScreen } from '../features/platform-auth/PlatformAuthScreen'
 import { ApplicationReviewScreen } from '../features/platform/applications/ApplicationReviewScreen'
+import { SystemHealthScreen } from '../features/platform/system-health/SystemHealthScreen'
 import { StudentsScreen } from '../features/students/StudentsScreen'
 import { TeacherInvitationScreen } from '../features/teachers/TeacherInvitationScreen'
 import { TeacherManagementScreen } from '../features/teachers/TeacherManagementScreen'
@@ -72,6 +73,7 @@ function screenFor(page: string, fragment: string, navigate: (path: string) => v
   if (page === 'application') return <ApplicationScreen />
   if (page === 'platform-applications') return <ApplicationReviewScreen />
   if (page === 'platform-audit') return <AuditScreen platform />
+  if (page === 'platform-system-health') return <SystemHealthScreen />
   if (page === 'platform-login' || page === 'platform-setup') return <PlatformAuthScreen setup={page === 'platform-setup'} fragment={fragment} />
   return <AuthScreen initialPage={authPages.includes(page as AuthPage) ? page as AuthPage : 'login'} fragment={fragment} />
 }

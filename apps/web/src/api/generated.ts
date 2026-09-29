@@ -4,6 +4,40 @@
  */
 
 export interface paths {
+    "/health/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Public process liveness. Returns no dependency, environment, build, tenant, or record details. */
+        get: operations["getLiveness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/health/ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Protected deployment readiness with component statuses only. Aggregate counts remain restricted to sage.dev. */
+        get: operations["getReadiness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sync/push": {
         parameters: {
             query?: never;
@@ -991,6 +1025,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/platform/system-health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Returns sanitized platform-wide aggregate operating health to the active sage.dev session with confirmed MFA. It never returns tenant identifiers, child data, endpoints, credentials, or raw errors. */
+        get: operations["getSystemHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/platform/applications": {
         parameters: {
             query?: never;
@@ -1322,6 +1373,64 @@ export interface components {
         Health: {
             /** @enum {string} */
             status: "ok";
+        };
+        Readiness: {
+            /** @enum {string} */
+            status: "ready" | "degraded" | "unavailable";
+            checks: {
+                /** @enum {string} */
+                api: "ok";
+                /** @enum {string} */
+                database: "ok" | "unavailable";
+                /** @enum {string} */
+                queue: "ok" | "degraded" | "unknown";
+                /** @enum {string} */
+                scheduler: "ok" | "degraded" | "unknown";
+            };
+        };
+        SystemHealth: {
+            /** @enum {string} */
+            status: "healthy" | "degraded";
+            /** Format: date-time */
+            checked_at: string;
+            api: {
+                /** @enum {string} */
+                status: "ok";
+            };
+            database: {
+                /** @enum {string} */
+                status: "ok";
+                size_bytes: number;
+                growth_bytes_24h: number | null;
+            };
+            queue: {
+                /** @enum {string} */
+                status: "ok" | "degraded";
+                pending_count: number;
+                oldest_age_seconds: number;
+                failed_24h: number;
+            };
+            scheduler: {
+                /** @enum {string} */
+                status: "ok" | "degraded";
+                /** Format: date-time */
+                last_run_at: string | null;
+            };
+            birthdays: {
+                /** @enum {string} */
+                status: "ok" | "degraded";
+                /** Format: date-time */
+                last_dispatch_at: string | null;
+                failed_24h: number;
+            };
+            synchronization: {
+                /** @enum {string} */
+                status: "ok" | "degraded";
+                events_24h: number;
+                rejected_24h: number;
+                open_conflicts: number;
+                error_rate: number;
+            };
         };
         PageMeta: {
             next_cursor: string | null;
@@ -2096,6 +2205,64 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getLiveness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The API process can serve requests. */
+            200: {
+                headers: {
+                    /** @description Liveness is never cached. */
+                    "Cache-Control"?: "no-store, private";
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
+    getReadiness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Required API, database, queue, and scheduler components are ready. */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Readiness"];
+                };
+            };
+            /** @description One or more required components are degraded or unavailable. */
+            503: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Readiness"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
     pushSyncEvents: {
         parameters: {
             query?: never;
@@ -3869,6 +4036,31 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
+        };
+    };
+    getSystemHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sanitized aggregate operating health. */
+            200: {
+                headers: {
+                    /** @description Operational health is never cached. */
+                    "Cache-Control"?: "no-store, private";
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemHealth"];
+                };
+            };
+            default: components["responses"]["AuthError"];
         };
     };
     listChurchApplications: {

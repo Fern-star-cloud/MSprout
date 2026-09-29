@@ -14,12 +14,13 @@ class PurgeRejectedApplications implements ShouldQueue
 {
     use Queueable;
 
-    public function handle(): void
+    public function handle(): int
     {
+        $purged = 0;
         ChurchApplication::query()->where('status', 'rejected')->whereNull('purged_at')->where('decided_at', '<=', now()->subDays(30))
-            ->select('id')->chunkById(100, function ($applications) {
+            ->select('id')->chunkById(100, function ($applications) use (&$purged) {
                 foreach ($applications as $candidate) {
-                    DB::transaction(function () use ($candidate) {
+                    DB::transaction(function () use ($candidate, &$purged) {
                         $application = ChurchApplication::query()->lockForUpdate()->findOrFail($candidate->id);
                         if ($application->purged_at || $application->status !== ApplicationStatus::Rejected || $application->decided_at->gt(now()->subDays(30))) {
                             return;
@@ -29,6 +30,7 @@ class PurgeRejectedApplications implements ShouldQueue
                             'church_name' => null, 'city' => null, 'address' => null, 'timezone' => null,
                             'duplicate_key' => null, 'reason' => null, 'purged_at' => now(),
                         ])->save();
+                        $purged++;
                         if (! $user || ChurchApplication::query()->where('user_id', $user->id)->whereNull('purged_at')->exists()) {
                             return;
                         }
@@ -47,5 +49,7 @@ class PurgeRejectedApplications implements ShouldQueue
                     });
                 }
             });
+
+        return $purged;
     }
 }

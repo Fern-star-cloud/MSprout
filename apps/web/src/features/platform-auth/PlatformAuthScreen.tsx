@@ -53,7 +53,7 @@ export function PlatformAuthScreen({ setup = false, fragment = '' }: { setup?: b
         }} />
       </>}
       {step === 'account' && <>
-        {handle && <p><a href="/account/platform-applications">Review church applications</a></p>}
+        {handle && <nav className="platform-links" aria-label="Platform administration"><a href="/account/platform-applications">Review church applications</a><a href="/account/platform-system-health">System health</a><a href="/account/platform-audit">Platform audit</a></nav>}
         {handle ? <p role="status">Signed in as {handle}</p> : <AuthForm fields={[]} submitLabel="Check platform session" onSubmit={showAccount} />}
         <AuthForm fields={[]} submitLabel="Sign out of platform" onSubmit={async () => {
           await authRequest('/platform/logout', 'POST'); setHandle(''); setEnrollment(null); setStep('login')

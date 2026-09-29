@@ -35,6 +35,76 @@ components:
           type: string
           enum:
             - ok
+    Readiness:
+      type: object
+      additionalProperties: false
+      required: [status, checks]
+      properties:
+        status: { type: string, enum: [ready, degraded, unavailable] }
+        checks:
+          type: object
+          additionalProperties: false
+          required: [api, database, queue, scheduler]
+          properties:
+            api: { type: string, enum: [ok] }
+            database: { type: string, enum: [ok, unavailable] }
+            queue: { type: string, enum: [ok, degraded, unknown] }
+            scheduler: { type: string, enum: [ok, degraded, unknown] }
+    SystemHealth:
+      type: object
+      additionalProperties: false
+      required: [status, checked_at, api, database, queue, scheduler, birthdays, synchronization]
+      properties:
+        status: { type: string, enum: [healthy, degraded] }
+        checked_at: { type: string, format: date-time }
+        api:
+          type: object
+          additionalProperties: false
+          required: [status]
+          properties:
+            status: { type: string, enum: [ok] }
+        database:
+          type: object
+          additionalProperties: false
+          required: [status, size_bytes, growth_bytes_24h]
+          properties:
+            status: { type: string, enum: [ok] }
+            size_bytes: { type: integer, minimum: 0 }
+            growth_bytes_24h: { type: [integer, "null"] }
+        queue:
+          type: object
+          additionalProperties: false
+          required: [status, pending_count, oldest_age_seconds, failed_24h]
+          properties:
+            status: { type: string, enum: [ok, degraded] }
+            pending_count: { type: integer, minimum: 0 }
+            oldest_age_seconds: { type: integer, minimum: 0 }
+            failed_24h: { type: integer, minimum: 0 }
+        scheduler:
+          type: object
+          additionalProperties: false
+          required: [status, last_run_at]
+          properties:
+            status: { type: string, enum: [ok, degraded] }
+            last_run_at: { type: [string, "null"], format: date-time }
+        birthdays:
+          type: object
+          additionalProperties: false
+          required: [status, last_dispatch_at, failed_24h]
+          properties:
+            status: { type: string, enum: [ok, degraded] }
+            last_dispatch_at: { type: [string, "null"], format: date-time }
+            failed_24h: { type: integer, minimum: 0 }
+        synchronization:
+          type: object
+          additionalProperties: false
+          required: [status, events_24h, rejected_24h, open_conflicts, error_rate]
+          properties:
+            status: { type: string, enum: [ok, degraded] }
+            events_24h: { type: integer, minimum: 0 }
+            rejected_24h: { type: integer, minimum: 0 }
+            open_conflicts: { type: integer, minimum: 0 }
+            error_rate: { type: number, minimum: 0, maximum: 1 }
     PageMeta:
       type: object
       required:
@@ -1374,6 +1444,11 @@ components:
       in: cookie
       name: ministrysprout_platform_session
       description: Distinct platform session scoped to /platform; mandatory confirmed MFA.
+    ReadinessToken:
+      type: apiKey
+      in: header
+      name: X-Readiness-Token
+      description: Deployment-only readiness probe token. It is never exposed to browsers or logs.
   responses:
     AuthError:
       description: Safe error envelope. 401 unauthenticated; 403 access or recent-password confirmation required; 410 expired setup; 419 CSRF mismatch; 422 invalid input; 429 rate limit. Responses are no-store.
@@ -1391,6 +1466,43 @@ components:
             type: string
             const: ""
 paths:
+  /health/live:
+    servers: [{ url: / }]
+    get:
+      operationId: getLiveness
+      description: Public process liveness. Returns no dependency, environment, build, tenant, or record details.
+      security: []
+      responses:
+        "200":
+          description: The API process can serve requests.
+          headers:
+            Cache-Control: { description: Liveness is never cached., schema: { type: string, const: "no-store, private" } }
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Health" }
+  /health/ready:
+    servers: [{ url: / }]
+    get:
+      operationId: getReadiness
+      description: Protected deployment readiness with component statuses only. Aggregate counts remain restricted to sage.dev.
+      security: [{ ReadinessToken: [] }]
+      responses:
+        "200":
+          description: Required API, database, queue, and scheduler components are ready.
+          headers:
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Readiness" }
+        "503":
+          description: One or more required components are degraded or unavailable.
+          headers:
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Readiness" }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
   /sync/push:
     post:
       operationId: pushSyncEvents
@@ -3256,6 +3368,22 @@ paths:
           description: A valid client UUID is accepted; other values are replaced.
           schema:
             type: string
+  /platform/system-health:
+    servers: [{ url: / }]
+    get:
+      operationId: getSystemHealth
+      description: Returns sanitized platform-wide aggregate operating health to the active sage.dev session with confirmed MFA. It never returns tenant identifiers, child data, endpoints, credentials, or raw errors.
+      security: [{ PlatformSession: [] }]
+      responses:
+        "200":
+          description: Sanitized aggregate operating health.
+          headers:
+            Cache-Control: { description: Operational health is never cached., schema: { type: string, const: "no-store, private" } }
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SystemHealth" }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
   /platform/applications:
     servers:
       - url: /

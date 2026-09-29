@@ -36,7 +36,7 @@ button:hover { background: var(--color-brand-strong); }
 .connectivity-status { display: inline-flex; align-items: center; gap: .4rem; min-height: 2rem; padding: .25rem .6rem; border: 1px solid var(--color-border); border-radius: 999px; color: var(--color-brand-strong); background: var(--color-brand-soft); font-size: .875rem; }
 .connectivity-status.is-offline { color: #6b4b00; background: #fff7df; }
 .connectivity-status[role="status"] { padding: .25rem .6rem; }
-.phone-navigation { position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(var(--navigation-count, 5), minmax(4.5rem, 1fr)); overflow-x: auto; padding-bottom: env(safe-area-inset-bottom); background: var(--color-surface); border-top: 1px solid var(--color-border); box-shadow: 0 -4px 20px rgb(23 56 45 / 8%); }
+.phone-navigation { position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(4.5rem, 1fr); overflow-x: auto; padding-bottom: env(safe-area-inset-bottom); background: var(--color-surface); border-top: 1px solid var(--color-border); box-shadow: 0 -4px 20px rgb(23 56 45 / 8%); }
 .phone-navigation a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem; padding: .35rem .15rem; color: var(--color-muted); text-decoration: none; font-size: .7rem; }
 .phone-navigation a[aria-current="page"] { color: var(--color-brand); background: var(--color-brand-soft); font-weight: 700; }
 .phone-navigation svg { width: 1.35rem; height: 1.35rem; }
@@ -106,6 +106,17 @@ button:hover { background: var(--color-brand-strong); }
 .history-cards dl { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; }
 .history-cards dl div { display: flex; justify-content: space-between; gap: .5rem; }
 .history-cards dd { margin: 0; }
+.system-health { display: grid; gap: 1rem; max-width: 64rem; margin: 0 auto; }
+.system-health-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.system-health-heading h1 { margin: .2rem 0; }
+.health-overall { width: fit-content; margin: 0; padding: .45rem .75rem; border-radius: 999px; color: var(--color-brand-strong); background: var(--color-brand-soft); font-weight: 700; }
+.health-overall.health-degraded { color: var(--color-danger); background: var(--color-danger-soft); }
+.health-grid { display: grid; gap: .75rem; }
+.health-grid article { padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-small); background: var(--color-surface); box-shadow: var(--shadow-card); }
+.health-grid h2 { margin: 0 0 .5rem; font-size: 1rem; }
+.health-grid p { margin: 0 0 .25rem; font-weight: 700; }
+.health-grid small, .health-boundary { color: var(--color-muted); }
+.platform-links { display: flex; flex-wrap: wrap; gap: .75rem; }
 
 @media (min-width: 48rem) {
   .application-layout { min-height: 100vh; display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); }
@@ -129,12 +140,13 @@ button:hover { background: var(--color-brand-strong); }
   .report-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .history-table-wrap { display: block; }
   .history-cards { display: none; }
+  .health-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 35rem) {
   .update-notice { align-items: stretch; flex-direction: column; }
   .attendance-heading, .attendance-finalize-bar { align-items: stretch; flex-direction: column; }
-  .report-heading, .attendance-history header { align-items: stretch; flex-direction: column; }
+  .report-heading, .attendance-history header, .system-health-heading { align-items: stretch; flex-direction: column; }
   .attendance-heading .attendance-connection { align-self: flex-start; }
 }
 

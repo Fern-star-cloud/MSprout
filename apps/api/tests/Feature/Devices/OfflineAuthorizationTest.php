@@ -61,12 +61,15 @@ it('renews one device authorization only for a verified active session and recor
     $authorization = DB::connection('pgsql_migration')->table('offline_authorizations')->where('device_id', $this->deviceId)->first();
     DB::connection('pgsql_migration')->table('offline_authorizations')->where('id', $authorization->id)
         ->update(['expires_at' => now()->subDay(), 'revoked_at' => now()]);
+    DB::connection('pgsql_migration')->table('device_cursors')->where('device_id', $this->deviceId)
+        ->update(['full_resync_required' => true]);
 
     $second = $this->getJson('/api/offline/bootstrap?device_id='.$this->deviceId)->assertOk();
 
     expect($second->json('lease.expires_at'))->not->toBe($first->json('lease.expires_at'))
         ->and(DB::connection('pgsql_migration')->table('offline_authorizations')->where('device_id', $this->deviceId)->count())->toBe(1)
         ->and(DB::connection('pgsql_migration')->table('offline_authorizations')->where('device_id', $this->deviceId)->value('revoked_at'))->toBeNull()
+        ->and(DB::connection('pgsql_migration')->table('device_cursors')->where('device_id', $this->deviceId)->value('full_resync_required'))->toBeFalse()
         ->and(DB::connection('pgsql_migration')->table('audit_events')->where('action', 'offline.authorization.issued')->count())->toBe(2);
 });
 

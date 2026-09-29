@@ -14,4 +14,9 @@ final class DeviceCursor extends Model
     public const CREATED_AT = null;
 
     protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return ['full_resync_required' => 'boolean', 'updated_at' => 'immutable_datetime'];
+    }
 }

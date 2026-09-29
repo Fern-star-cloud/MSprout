@@ -1,25 +1,26 @@
 # Current State
 
-Verified: 2026-09-29. This is the primary development handoff.
+Verified: 2026-09-30. This is the primary development handoff.
 
 ## Git state
 
 - Branch: `feat/mvp-foundation`.
 - The security-validation governance baseline is committed and pushed at `02c825aa7d59f8fb351b83e300f59960b88e0812`.
-- Task 16 is complete in the commit containing this handoff — `feat: add private birthday reminders`.
+- Task 16 is committed and pushed at `a444e5fbb47b1c600e8496c36709ec9a3c3d5fa6`.
+- Task 17 is complete in the commit containing this handoff — `chore: harden operations and production deployment`.
 - Repository remotes remain `origin = https://github.com/Fern-star-cloud/MSprout.git` and `upstream = https://github.com/Frierend/ministry-sprout.git`. This differs from the roadmap preflight's original one-remote expectation; do not change remotes without explicit direction.
 
 ## Roadmap position
 
-- Tasks 1–16: **COMPLETE / COMMITTED / PUSHED** on `feat/mvp-foundation`.
-- Tasks 17–18: **NOT STARTED**.
-- Preserve Tasks 1–16 and do not begin Task 17 automatically.
+- Tasks 1–17: **COMPLETE / COMMITTED / PUSHED** on `feat/mvp-foundation` after the Task 17 handoff commit is finalized.
+- Task 18: **NOT STARTED**.
+- Preserve Tasks 1–17 and do not begin Task 18 automatically.
 
 ## Security-validation baseline
 
-- Task 15's definitive Semgrep OWASP scan is the current comprehensive development baseline: 103 rules, 281 targets, approximately 99.9% parsing, and zero findings.
+- Task 17's definitive Semgrep OWASP scan is the current comprehensive production-hardening baseline: 108 rules, 314 application targets, approximately 99.9% parsing, and zero findings.
 - Ordinary feature work uses focused, risk-based Semgrep coverage for changed and directly relevant application inputs while that baseline remains valid. Security-sensitive boundaries still require explicit review and appropriate scanning, escalating to the full application scan whenever focused coverage is insufficient.
-- Task 17 must establish a new comprehensive production-hardening baseline. Task 18 must verify that evidence and rerun the comprehensive scan when intervening production-code or security-coverage changes invalidate it.
+- Task 18 must cite this baseline and rerun the comprehensive application scan if intervening production-code or security-coverage changes invalidate it.
 - Gitleaks, dependency audits, tenant/RLS and authorization requirements, and the full Semgrep scan in the configured push/pull-request security workflow are unchanged.
 
 See [ROADMAP_STATUS.md](ROADMAP_STATUS.md) for every task and commit.
@@ -149,15 +150,32 @@ Final Task 16 validation on 2026-09-29:
 
 See [the Task 16 verification report](../docs/qa/task-16-verification.md) for gate evidence and reviewed boundaries.
 
+Task 17 adds production operations, retention, deployment, and security hardening:
+
+- Public liveness remains minimal; token-protected readiness exposes only component states; the online-only MFA-protected `sage.dev` dashboard provides sanitized aggregate API, database, queue, scheduler, birthday, synchronization, conflict, and storage signals.
+- Scheduler heartbeat, operational pruning, and revoked-device purge jobs use bounded configuration and narrow fixed-search-path database functions. Tenant loops set transaction-local church scope so forced RLS remains active.
+- Retention removes only approved technical/application data: operational logs after 30 days, security events and sync receipts after 180 days, rejected application PII after 30 days, and change-feed rows only after active cursors pass them plus 90 days. Tenant audit evidence is never deleted. Expired devices are marked for full resynchronization before stale authorization data is purged.
+- The web deployment uses same-origin API rewrites, immutable asset caching, strict CSP, HSTS, and privacy headers. The API image supports API/worker/scheduler/migration service modes, honors the platform-injected port, and runs as unprivileged `www-data`.
+- Deployment, backup/restore, secret rotation, incident response, data retention, threat-model, rollback, and bootstrap-removal procedures are documented without weakening TLS, tenant, audit, authentication, or offline boundaries.
+
+Final Task 17 validation on 2026-09-30:
+
+- Focused operations/offline proof: **12 backend tests / 114 assertions** and **9 frontend tests** passed.
+- Aggregate verification: **128 frontend tests in 34 files**, frontend typecheck/build, and **208 backend tests / 1,299 assertions** passed. Stable Chrome Playwright passed **4 tests**.
+- Frontend lint, OpenAPI drift, frozen install, Pint, Composer strict validation/audit, pnpm audit, repository structure, route/config/schedule checks, production image build/runtime checks, Gitleaks, and `git diff --check` passed.
+- The mandatory full `semgrep scan --config p/owasp-top-ten apps` baseline passed after remediation: **108 rules over 314 targets**, approximately 99.9% parsed, zero findings. The final image and all applicable service modes run as `www-data`; default and injected-port liveness and the native container health check passed.
+
+See [the Task 17 verification report](../docs/qa/task-17-verification.md) for complete gate evidence and reviewed boundaries.
+
 ## Next work
 
-1. Preserve the committed Tasks 1–16 foundation.
-2. Task 17 — operations, retention, deployment, and security hardening — is next, but must not begin automatically.
+1. Preserve the committed Tasks 1–17 foundation.
+2. Task 18 — MVP qualification and one-church pilot — is next, but must not begin automatically.
 
 ## Known environment and repository issues
 
 - The default Windows `node` is 22.22.3, below the approved Node 24 baseline. Task 16 used the Codex-bundled Node 24.19.0 and pre-existing temporary pnpm 10.34.5 launcher without installing or purging host runtimes.
 - No PHP executable is on the default PATH. A pre-existing temporary Windows PHP 8.3.33 runtime and process-scoped extension scan files supply `pdo_pgsql`, GD, and ZIP outside the repository.
-- Composer/pnpm audits and Semgrep used process-scoped temporary trust configuration to retain TLS verification behind the host certificate interceptor. No global trust or machine configuration changed.
+- Composer/pnpm audits and Semgrep used process-scoped temporary trust configuration to retain TLS verification behind the host certificate interceptor. The comprehensive Task 17 scan ran in the pinned local Docker environment with its trusted roots mounted read-only. No global trust or machine configuration changed.
 - The two-remote configuration conflicts with the approved roadmap's original repository preflight and remains unresolved.
 - `vite-plugin-pwa` emits an upstream non-blocking `inlineDynamicImports` deprecation warning while building the injected service worker; the production build and offline browser test pass.
