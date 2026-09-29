@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Devices\IssueOfflineAuthorization;
 use App\Enums\ChurchRole;
+use App\Models\ChangeFeedEntry;
 use App\Models\Church;
 use App\Models\ChurchMembership;
 use App\Models\Enrollment;
@@ -80,7 +81,7 @@ final class OfflineBootstrapController extends Controller
             'ministries' => $ministries,
             'roster' => $roster,
             'lease' => $lease,
-            'server_cursor' => now('UTC')->format('Y-m-d\TH:i:s.u\Z'),
+            'server_cursor' => (string) (ChangeFeedEntry::query()->where('church_id', $churchId)->max('sequence') ?? 0),
         ])->header('Cache-Control', 'no-store, private');
     }
 }

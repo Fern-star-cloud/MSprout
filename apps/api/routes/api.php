@@ -6,6 +6,7 @@ use App\Http\Controllers\ChurchApplicationController;
 use App\Http\Controllers\OfflineBootstrapController;
 use App\Http\Controllers\RosterController;
 use App\Http\Controllers\StudentImportController;
+use App\Http\Controllers\SyncController;
 use App\Http\Controllers\TeacherManagementController;
 use App\Http\Middleware\ApplicationRequest;
 use Illuminate\Http\JsonResponse;
@@ -41,6 +42,11 @@ Route::get('/audit-events', [AuditController::class, 'church'])
 
 Route::get('/offline/bootstrap', OfflineBootstrapController::class)
     ->middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction', 'owner.mfa', 'throttle:offline-bootstrap']);
+
+Route::middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction', 'owner.mfa', 'throttle:sync'])->group(function () {
+    Route::post('/sync/push', [SyncController::class, 'push']);
+    Route::get('/sync/pull', [SyncController::class, 'pull']);
+});
 
 Route::post('/teacher-invitations/accept', [TeacherManagementController::class, 'accept'])
     ->middleware([ApplicationRequest::class, 'throttle:teacher-invitation']);

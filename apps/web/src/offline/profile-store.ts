@@ -1,7 +1,24 @@
 import { createProfileKeyMaterial, decryptPayload, encryptPayload, unwrapDataKey } from './crypto'
 import { offlineDatabase, type OfflineDatabase } from './db'
 import { assertLeaseMatchesProfile, isLeaseValid as leaseIsValid } from './lease'
-import { PROFILE_IDLE_TIMEOUT_MS, type EncryptedEnvelope, type OfflineBootstrap, type ProfileKeyMaterial, type ProfileRecord } from './schema'
+import {
+  PROFILE_IDLE_TIMEOUT_MS,
+  type EncryptedEntityRecord,
+  type EncryptedEnvelope,
+  type OfflineBootstrap,
+  type ProfileKeyMaterial,
+  type ProfileRecord,
+} from './schema'
+
+interface StoredAttendanceDraft {
+  id: string
+  ministryId: string
+}
+
+interface StoredOutboxEvent {
+  id: string
+  entityId: string
+}
 
 interface StoreOptions {
   now?: () => Date
@@ -134,20 +151,72 @@ export class LocalProfileStore {
     const roster = await encryptPayload(profileId, 'roster', key, bootstrap.roster)
     const ministries = await encryptPayload(profileId, 'ministries', key, bootstrap.ministries)
     const authorization = await encryptPayload(profileId, 'authorization', key, { actor: bootstrap.actor, lease: bootstrap.lease })
-    await this.db.transaction('rw', this.db.profiles, this.db.encryptedBlobs, this.db.serverCursors, async () => {
-      await this.db.encryptedBlobs.bulkPut([
-        { profileId, key: 'roster', encrypted: roster, updatedAt: now },
-        { profileId, key: 'ministries', encrypted: ministries, updatedAt: now },
-        { profileId, key: 'authorization', encrypted: authorization, updatedAt: now },
-      ])
-      await this.db.serverCursors.put({ profileId, cursor: bootstrap.server_cursor, updatedAt: now })
-      await this.db.profiles.update(profileId, {
-        churchId: bootstrap.lease.church_id,
-        leaseExpiresAt: bootstrap.lease.expires_at,
-        leaseSignature: bootstrap.lease.signature,
-        requiresReauthentication: false,
+    const authorizedMinistries = new Set(bootstrap.ministries.map(ministry => ministry.id))
+    const drafts = await this.db.attendanceDrafts.where('profileId').equals(profileId).toArray()
+    const revokedDraftIds = new Set<string>()
+    const conflicts: EncryptedEntityRecord[] = []
+
+    for (const record of drafts) {
+      const draft = await decryptPayload<StoredAttendanceDraft>(profileId, `attendance-draft:${record.id}`, key, record.encrypted)
+      if (authorizedMinistries.has(draft.ministryId)) continue
+      revokedDraftIds.add(record.id)
+      conflicts.push({
+        profileId,
+        id: `draft-${record.id}`,
+        encrypted: await encryptPayload(profileId, `sync-conflict:draft-${record.id}`, key, {
+          draft,
+          status: 'rejected',
+          reason: 'assignment_revoked',
+          quarantinedAt: now,
+        }),
+        updatedAt: now,
       })
-    })
+    }
+
+    const outbox = await this.db.outboxEvents.where('profileId').equals(profileId).toArray()
+    const revokedEventIds: string[] = []
+    for (const record of outbox) {
+      const event = await decryptPayload<StoredOutboxEvent>(profileId, `outbox-event:${record.id}`, key, record.encrypted)
+      if (!revokedDraftIds.has(event.entityId)) continue
+      revokedEventIds.push(record.id)
+      conflicts.push({
+        profileId,
+        id: record.id,
+        encrypted: await encryptPayload(profileId, `sync-conflict:${record.id}`, key, {
+          event,
+          status: 'rejected',
+          reason: 'assignment_revoked',
+          quarantinedAt: now,
+        }),
+        updatedAt: now,
+      })
+    }
+
+    await this.db.transaction(
+      'rw',
+      [this.db.profiles, this.db.encryptedBlobs, this.db.serverCursors, this.db.attendanceDrafts, this.db.outboxEvents, this.db.conflicts],
+      async () => {
+        await this.db.encryptedBlobs.bulkPut([
+          { profileId, key: 'roster', encrypted: roster, updatedAt: now },
+          { profileId, key: 'ministries', encrypted: ministries, updatedAt: now },
+          { profileId, key: 'authorization', encrypted: authorization, updatedAt: now },
+        ])
+        if (conflicts.length > 0) await this.db.conflicts.bulkPut(conflicts)
+        if (revokedDraftIds.size > 0) {
+          await this.db.attendanceDrafts.bulkDelete([...revokedDraftIds].map(id => [profileId, id]))
+        }
+        if (revokedEventIds.length > 0) {
+          await this.db.outboxEvents.bulkDelete(revokedEventIds.map(id => [profileId, id]))
+        }
+        await this.db.serverCursors.put({ profileId, cursor: bootstrap.server_cursor, updatedAt: now })
+        await this.db.profiles.update(profileId, {
+          churchId: bootstrap.lease.church_id,
+          leaseExpiresAt: bootstrap.lease.expires_at,
+          leaseSignature: bootstrap.lease.signature,
+          requiresReauthentication: false,
+        })
+      },
+    )
   }
 
   async saveEncryptedRoster(profileId: string, roster: unknown): Promise<void> {

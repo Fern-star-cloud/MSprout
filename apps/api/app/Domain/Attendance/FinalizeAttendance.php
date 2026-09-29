@@ -18,9 +18,9 @@ use Illuminate\Support\Facades\DB;
 
 final class FinalizeAttendance
 {
-    public function handle(string $sessionId, User $actor): AttendanceSession
+    public function handle(string $sessionId, User $actor, ?string $deviceId = null, ?string $syncBatchId = null): AttendanceSession
     {
-        return DB::transaction(function () use ($sessionId, $actor): AttendanceSession {
+        return DB::transaction(function () use ($sessionId, $actor, $deviceId, $syncBatchId): AttendanceSession {
             $churchId = app(TenantContext::class)->churchId();
             $session = AttendanceSession::query()
                 ->where('church_id', $churchId)
@@ -77,6 +77,8 @@ final class FinalizeAttendance
                 $session->id,
                 'success',
                 $churchId,
+                $deviceId,
+                $syncBatchId,
             ));
 
             return $session->refresh();

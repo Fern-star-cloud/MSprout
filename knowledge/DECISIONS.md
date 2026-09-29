@@ -53,3 +53,8 @@ Only decisions established by the approved design, roadmap, committed implementa
 ## Attendance
 
 25. **One stable local draft and atomic event per attendance mutation.** A church/ministry/date deterministically identifies the local attendance session so concurrent creation reuses one encrypted draft. Every create, individual mark, bulk mark, and finalize transition persists the encrypted draft and one minimal outbox event in the same IndexedDB transaction. Server finalization independently locks and validates the exact active roster, assignment, state completeness, and required audit before acknowledging the session. Source: approved Task 12 and validated attendance repository/finalization tests.
+
+## Synchronization
+
+26. **Receipts, domain state, audit, and feed converge atomically.** Replay identity is trusted church plus device and client event UUID. Sorted advisory locks serialize concurrent event/entity application; exact payload replays return the stored outcome, while claim or payload mismatch is rejected and audited. Accepted attendance state, canonical audit evidence, change-feed projection, and replay receipt share the tenant transaction. Source: approved Task 13 and validated sync replay/concurrency boundaries.
+27. **Revocation preserves work but removes cached authority.** Assignment tombstones or a refreshed bootstrap delete unauthorized roster/ministry projections and quarantine affected encrypted drafts/outbox events. Online 401/403 responses mark the profile for reauthentication, purge cached roster/ministry/authorization blobs, and clear protected UI state without deleting encrypted unsynced work. Source: design section 8.4 and validated Task 13 client/profile tests.

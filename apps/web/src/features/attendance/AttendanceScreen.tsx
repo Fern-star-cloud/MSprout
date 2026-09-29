@@ -120,6 +120,49 @@ export function AttendanceScreen({
     return () => { active = false }
   }, [date, ministries, ministryId, profile, repository, roster])
 
+  useEffect(() => {
+    if (!profile || !date) return
+    let active = true
+    const refreshAfterSync = () => {
+      void Promise.all([
+        store.readEncryptedMinistries(profile.id),
+        store.readEncryptedRoster(profile.id),
+        repository.countPending(profile.id),
+      ]).then(async ([availableMinistries, availableRoster, pendingCount]) => {
+        const nextMinistryId = availableMinistries.some(ministry => ministry.id === ministryId)
+          ? ministryId
+          : (availableMinistries[0]?.id ?? '')
+        const currentDraft = nextMinistryId
+          ? await repository.findDraft(profile.id, nextMinistryId, date)
+          : null
+        if (!active) return
+        setMinistries(availableMinistries)
+        setRoster(availableRoster)
+        setMinistryId(nextMinistryId)
+        setDraft(currentDraft)
+        setPending(pendingCount)
+        setSaved(false)
+        setError('')
+      }).catch(() => {
+        if (!active) return
+        setMinistries([])
+        setRoster([])
+        setMinistryId('')
+        setDraft(null)
+        setPending(0)
+        setSaved(false)
+        setError('Reconnect and authenticate this profile before reopening its assigned roster.')
+      })
+    }
+    globalThis.addEventListener('ministrysprout:sync-complete', refreshAfterSync)
+    globalThis.addEventListener('ministrysprout:sync-authorization-invalid', refreshAfterSync)
+    return () => {
+      active = false
+      globalThis.removeEventListener('ministrysprout:sync-complete', refreshAfterSync)
+      globalThis.removeEventListener('ministrysprout:sync-authorization-invalid', refreshAfterSync)
+    }
+  }, [date, ministryId, profile, repository, store])
+
   const marked = draft?.entries.filter((entry) => entry.state !== 'unmarked').length ?? 0
   const unmarked = (draft?.entries.length ?? 0) - marked
   const visibleEntries = useMemo(() => {

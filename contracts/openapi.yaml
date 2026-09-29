@@ -49,6 +49,7 @@ components:
           type: boolean
     SyncPushRequest:
       type: object
+      additionalProperties: false
       required:
         - device_id
         - batch_id
@@ -62,32 +63,117 @@ components:
           format: uuid
         events:
           type: array
+          minItems: 1
+          maxItems: 100
           items:
-            type: object
-            additionalProperties: true
+            $ref: "#/components/schemas/SyncPushEvent"
+    SyncEventBase:
+      type: object
+      required: [client_event_id, entity_id, base_version, occurred_at]
+      properties:
+        client_event_id: { type: string, format: uuid }
+        entity_id: { type: string, format: uuid }
+        base_version: { type: integer, minimum: 0, maximum: 2147483647 }
+        occurred_at: { type: string, format: date-time }
+    SyncPushEvent:
+      oneOf:
+        - allOf:
+            - $ref: "#/components/schemas/SyncEventBase"
+            - type: object
+              required: [action, payload]
+              unevaluatedProperties: false
+              properties:
+                action: { const: attendance.draft_created }
+                payload:
+                  type: object
+                  additionalProperties: false
+                  required: [ministry_id, attendance_date, student_ids]
+                  properties:
+                    ministry_id: { type: string, format: uuid }
+                    attendance_date: { type: string, format: date }
+                    student_ids: { type: array, maxItems: 500, uniqueItems: true, items: { type: string, format: uuid } }
+        - allOf:
+            - $ref: "#/components/schemas/SyncEventBase"
+            - type: object
+              required: [action, payload]
+              unevaluatedProperties: false
+              properties:
+                action: { const: attendance.student_marked }
+                payload:
+                  type: object
+                  additionalProperties: false
+                  required: [student_id, state]
+                  properties:
+                    student_id: { type: string, format: uuid }
+                    state: { type: string, enum: [present, absent] }
+        - allOf:
+            - $ref: "#/components/schemas/SyncEventBase"
+            - type: object
+              required: [action, payload]
+              unevaluatedProperties: false
+              properties:
+                action: { const: attendance.bulk_marked }
+                payload:
+                  type: object
+                  additionalProperties: false
+                  required: [state, student_ids]
+                  properties:
+                    state: { type: string, enum: [present, absent] }
+                    student_ids: { type: array, maxItems: 500, uniqueItems: true, items: { type: string, format: uuid } }
+        - allOf:
+            - $ref: "#/components/schemas/SyncEventBase"
+            - type: object
+              required: [action, payload]
+              unevaluatedProperties: false
+              properties:
+                action: { const: attendance.finalized }
+                payload: { type: object, additionalProperties: false }
+    SyncEventResult:
+      type: object
+      additionalProperties: false
+      required: [client_event_id, status]
+      properties:
+        client_event_id: { type: string, format: uuid }
+        status: { type: string, enum: [accepted, duplicate, conflict, rejected] }
+        original_status: { type: string, enum: [accepted, conflict, rejected] }
+        reason: { type: string, maxLength: 64 }
+        record_id: { type: string, format: uuid }
+        version: { type: integer, minimum: 1 }
     SyncPushResponse:
       type: object
+      additionalProperties: false
       required:
         - results
       properties:
         results:
           type: array
           items:
-            type: object
-            additionalProperties: true
+            $ref: "#/components/schemas/SyncEventResult"
+    SyncChange:
+      type: object
+      additionalProperties: false
+      required: [sequence, entity_type, entity_id, version, action, ministry_id, payload]
+      properties:
+        sequence: { type: string, pattern: "^[0-9]+$" }
+        entity_type: { type: string, enum: [attendance_session, ministry_assignment] }
+        entity_id: { type: string, format: uuid }
+        version: { type: integer, minimum: 1 }
+        action: { type: string, enum: [upsert, tombstone] }
+        ministry_id: { type: [string, "null"], format: uuid }
+        payload: { type: [object, "null"], additionalProperties: true }
     SyncPullResponse:
       type: object
-      required:
-        - changes
-        - page
+      additionalProperties: false
+      required: [changes, page, lease]
       properties:
         changes:
           type: array
           items:
-            type: object
-            additionalProperties: true
+            $ref: "#/components/schemas/SyncChange"
         page:
           $ref: "#/components/schemas/PageMeta"
+        lease:
+          $ref: "#/components/schemas/OfflineLease"
     AccountSession:
       type: object
       additionalProperties: false
@@ -1027,7 +1113,7 @@ components:
           type: array
           items: { $ref: "#/components/schemas/OfflineRosterStudent" }
         lease: { $ref: "#/components/schemas/OfflineLease" }
-        server_cursor: { type: string, format: date-time }
+        server_cursor: { type: string, pattern: "^[0-9]+$" }
   securitySchemes:
     ChurchSession:
       type: apiKey
@@ -1056,6 +1142,58 @@ components:
             type: string
             const: ""
 paths:
+  /sync/push:
+    post:
+      operationId: pushSyncEvents
+      description: Pushes at most 100 attendance events in stable client order. Active verified membership, matching device authorization, current lease, and current ministry assignment are revalidated. Exact replays are idempotent and payload mismatches cannot claim an earlier receipt.
+      security:
+        - ChurchSession: []
+      parameters:
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SyncPushRequest" }
+      responses:
+        "200":
+          description: One stable result per submitted event. Accepted domain state, audit evidence, feed entry, and replay receipt commit atomically.
+          headers:
+            Cache-Control: { description: Browser and intermediary storage is forbidden., schema: { type: string, const: "no-store, private" } }
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SyncPushResponse" }
+        default:
+          $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+  /sync/pull:
+    get:
+      operationId: pullSyncChanges
+      description: Returns a bounded ordered change-feed page after the supplied cursor. Attendance is assignment-scoped; targeted assignment tombstones remain visible so unauthorized cached data can be purged. A successful page renews the signed device lease.
+      security:
+        - ChurchSession: []
+      parameters:
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Device-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: cursor, in: query, required: false, schema: { type: string, pattern: "^[0-9]+$", default: "0" } }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 100 } }
+        - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Assignment-scoped ordered changes, durable cursor, and renewed lease.
+          headers:
+            Cache-Control: { description: Browser and intermediary storage is forbidden., schema: { type: string, const: "no-store, private" } }
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SyncPullResponse" }
+        default:
+          $ref: "#/components/responses/AuthError"
+          headers:
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
   /offline/bootstrap:
     get:
       operationId: getOfflineBootstrap

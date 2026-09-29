@@ -87,3 +87,68 @@ it('keeps the responsive controls usable with text labels and student avatars', 
   expect(screen.getByLabelText('Ministry')).toBeTruthy()
   expect(screen.getByLabelText('Attendance date')).toBeTruthy()
 })
+
+it('removes stale child data from memory after synchronization revokes the assignment', async () => {
+  let assigned = true
+  const draft: AttendanceDraft = {
+    id: 'session-a', profileId: 'profile-a', churchId: 'church-a', ministryId: 'ministry-a', ministryName: 'Primary',
+    attendanceDate: '2026-09-28', status: 'draft', version: 1, updatedAt: '2026-09-28T00:00:00Z',
+    entries: [{ studentId: 'student-a', displayName: 'Ana Sprout', gender: 'female', state: 'unmarked' }],
+  }
+  const repository = {
+    findDraft: vi.fn(async () => assigned ? draft : null),
+    createDraft: vi.fn(async () => draft),
+    countPending: vi.fn(async () => assigned ? 1 : 0),
+    markStudent: vi.fn(), bulkMark: vi.fn(), finalizeDraft: vi.fn(),
+  }
+  const store = {
+    activeProfile: vi.fn(async () => ({ id: 'profile-a', churchId: 'church-a' })),
+    readEncryptedMinistries: vi.fn(async () => assigned ? [{ id: 'ministry-a', name: 'Primary', version: 1 }] : []),
+    readEncryptedRoster: vi.fn(async () => assigned
+      ? [{ id: 'student-a', display_name: 'Ana Sprout', gender: 'female' as const, ministry_ids: ['ministry-a'] }]
+      : []),
+  }
+  render(<AttendanceScreen repository={repository} store={store} initialDate="2026-09-28" />)
+  expect(await screen.findByText('Ana Sprout')).toBeTruthy()
+
+  assigned = false
+  window.dispatchEvent(new Event('ministrysprout:sync-complete'))
+
+  await waitFor(() => expect(screen.queryByText('Ana Sprout')).toBeNull())
+  expect((screen.getByLabelText('Ministry') as HTMLSelectElement).options).toHaveLength(0)
+  expect(screen.getByText('0 marked · 0 unmarked')).toBeTruthy()
+  expect((screen.getByRole('button', { name: 'Finalize attendance' }) as HTMLButtonElement).disabled).toBe(true)
+})
+
+it('clears protected roster state when reconnect requires online reauthentication', async () => {
+  let invalid = false
+  const draft: AttendanceDraft = {
+    id: 'session-a', profileId: 'profile-a', churchId: 'church-a', ministryId: 'ministry-a', ministryName: 'Primary',
+    attendanceDate: '2026-09-28', status: 'draft', version: 1, updatedAt: '2026-09-28T00:00:00Z',
+    entries: [{ studentId: 'student-a', displayName: 'Ana Sprout', gender: 'female', state: 'unmarked' }],
+  }
+  const repository = {
+    findDraft: vi.fn(async () => draft), createDraft: vi.fn(async () => draft), countPending: vi.fn(async () => 1),
+    markStudent: vi.fn(), bulkMark: vi.fn(), finalizeDraft: vi.fn(),
+  }
+  const store = {
+    activeProfile: vi.fn(async () => ({ id: 'profile-a', churchId: 'church-a' })),
+    readEncryptedMinistries: vi.fn(async () => {
+      if (invalid) throw new Error('expired')
+      return [{ id: 'ministry-a', name: 'Primary', version: 1 }]
+    }),
+    readEncryptedRoster: vi.fn(async () => {
+      if (invalid) throw new Error('expired')
+      return [{ id: 'student-a', display_name: 'Ana Sprout', gender: 'female' as const, ministry_ids: ['ministry-a'] }]
+    }),
+  }
+  render(<AttendanceScreen repository={repository} store={store} initialDate="2026-09-28" />)
+  expect(await screen.findByText('Ana Sprout')).toBeTruthy()
+
+  invalid = true
+  window.dispatchEvent(new Event('ministrysprout:sync-authorization-invalid'))
+
+  await waitFor(() => expect(screen.queryByText('Ana Sprout')).toBeNull())
+  expect(screen.getByRole('alert').textContent).toContain('authenticate this profile')
+  expect((screen.getByLabelText('Ministry') as HTMLSelectElement).options).toHaveLength(0)
+})

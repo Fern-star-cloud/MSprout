@@ -2,6 +2,7 @@
 
 namespace App\Actions\Memberships;
 
+use App\Models\ChangeFeedEntry;
 use App\Models\Church;
 use App\Models\ChurchMembership;
 use App\Models\TeacherMinistryAssignment;
@@ -35,8 +36,21 @@ final class ManageTeachers
     public function assign(ChurchMembership $membership, array $ids, int $actorId): void
     {
         $this->validateMinistries($ids, $membership->church_id);
-        TeacherMinistryAssignment::query()->where('church_id', $membership->church_id)->where('membership_id', $membership->id)
-            ->whereNull('revoked_at')->whereNotIn('ministry_id', $ids)->update(['revoked_at' => now()]);
+        $revoked = TeacherMinistryAssignment::query()->where('church_id', $membership->church_id)->where('membership_id', $membership->id)
+            ->whereNull('revoked_at')->whereNotIn('ministry_id', $ids)->lockForUpdate()->get();
+        foreach ($revoked as $assignment) {
+            $assignment->forceFill(['revoked_at' => now()])->save();
+            ChangeFeedEntry::create([
+                'church_id' => $membership->church_id,
+                'ministry_id' => $assignment->ministry_id,
+                'target_membership_id' => $membership->id,
+                'entity_type' => 'ministry_assignment',
+                'entity_id' => $assignment->id,
+                'entity_version' => 1,
+                'action' => 'tombstone',
+                'payload_json' => ['ministry_id' => $assignment->ministry_id],
+            ]);
+        }
         foreach ($ids as $id) {
             TeacherMinistryAssignment::updateOrCreate(
                 ['church_id' => $membership->church_id, 'membership_id' => $membership->id, 'ministry_id' => $id],

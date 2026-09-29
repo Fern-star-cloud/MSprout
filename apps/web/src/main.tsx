@@ -6,9 +6,11 @@ import './styles/global.css'
 import App from './App.tsx'
 import { pwaUpdateController } from './pwa/update-controller'
 import { profileStore } from './offline/profile-store'
+import { installReconnectSynchronization } from './sync/reconnect'
 
 pwaUpdateController.setUnsafeLocalWorkChecker(() => profileStore.hasUnsafeLocalWork())
 pwaUpdateController.start(registerSW)
+installReconnectSynchronization()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

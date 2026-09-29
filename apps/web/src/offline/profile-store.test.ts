@@ -96,6 +96,59 @@ describe('isolated local profiles', () => {
     })).rejects.toThrow('actor')
   })
 
+  it('atomically quarantines work for assignments removed by a refreshed bootstrap', async () => {
+    const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
+    await store.unlockProfile(profile.id, '184629')
+    await store.saveBootstrap(profile.id, {
+      actor: { id: '11' },
+      ministries: [
+        { id: 'ministry-a', name: 'Primary', version: 1 },
+        { id: 'ministry-b', name: 'Youth', version: 1 },
+      ],
+      roster: [
+        { id: 'student-a', ministry_ids: ['ministry-a'] },
+        { id: 'student-b', ministry_ids: ['ministry-b'] },
+      ],
+      server_cursor: '10',
+      lease: lease(profile.id, '11', profile.deviceId, '2026-10-12T00:00:00Z'),
+    })
+    const draft = { id: 'draft-b', ministryId: 'ministry-b', entries: [] }
+    const event = { id: 'event-b', entityId: draft.id, action: 'attendance.draft_created' }
+    await db.attendanceDrafts.put({
+      profileId: profile.id,
+      id: draft.id,
+      encrypted: await store.encryptLocalPayload(profile.id, `attendance-draft:${draft.id}`, draft),
+      updatedAt: '2026-09-28T00:00:00Z',
+    })
+    await db.outboxEvents.put({
+      profileId: profile.id,
+      id: event.id,
+      encrypted: await store.encryptLocalPayload(profile.id, `outbox-event:${event.id}`, event),
+      updatedAt: '2026-09-28T00:00:00Z',
+    })
+
+    await store.saveBootstrap(profile.id, {
+      actor: { id: '11' },
+      ministries: [{ id: 'ministry-a', name: 'Primary', version: 2 }],
+      roster: [{ id: 'student-a', ministry_ids: ['ministry-a'] }],
+      server_cursor: '20',
+      lease: lease(profile.id, '11', profile.deviceId, '2026-10-12T00:00:00Z'),
+    })
+
+    expect(await db.attendanceDrafts.where('profileId').equals(profile.id).count()).toBe(0)
+    expect(await db.outboxEvents.where('profileId').equals(profile.id).count()).toBe(0)
+    expect(await db.conflicts.where('profileId').equals(profile.id).count()).toBe(2)
+    expect(await store.readEncryptedMinistries(profile.id)).toEqual([{ id: 'ministry-a', name: 'Primary', version: 2 }])
+    expect(await store.readEncryptedRoster(profile.id)).toEqual([{ id: 'student-a', ministry_ids: ['ministry-a'] }])
+    expect((await db.serverCursors.get(profile.id))?.cursor).toBe('20')
+    const quarantinedDraft = await db.conflicts.get([profile.id, `draft-${draft.id}`])
+    expect(await store.decryptLocalPayload(
+      profile.id,
+      `sync-conflict:draft-${draft.id}`,
+      quarantinedDraft!.encrypted,
+    )).toMatchObject({ reason: 'assignment_revoked', draft })
+  })
+
   it('purges only the selected profile and its namespaced data', async () => {
     const first = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
     const second = await store.createProfile({ actorId: '12', churchId: lease('', '', '', '').church_id, pin: '934175' })

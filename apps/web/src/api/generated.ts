@@ -4,6 +4,40 @@
  */
 
 export interface paths {
+    "/sync/push": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Pushes at most 100 attendance events in stable client order. Active verified membership, matching device authorization, current lease, and current ministry assignment are revalidated. Exact replays are idempotent and payload mismatches cannot claim an earlier receipt. */
+        post: operations["pushSyncEvents"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sync/pull": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Returns a bounded ordered change-feed page after the supplied cursor. Attendance is assignment-scoped; targeted assignment tombstones remain visible so unauthorized cached data can be purged. A successful page renews the signed device lease. */
+        get: operations["pullSyncChanges"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/offline/bootstrap": {
         parameters: {
             query?: never;
@@ -1060,20 +1094,83 @@ export interface components {
             device_id: string;
             /** Format: uuid */
             batch_id: string;
-            events: {
-                [key: string]: unknown;
-            }[];
+            events: components["schemas"]["SyncPushEvent"][];
+        };
+        SyncEventBase: {
+            /** Format: uuid */
+            client_event_id: string;
+            /** Format: uuid */
+            entity_id: string;
+            base_version: number;
+            /** Format: date-time */
+            occurred_at: string;
+        };
+        SyncPushEvent: (components["schemas"]["SyncEventBase"] & {
+            /** @constant */
+            action: "attendance.draft_created";
+            payload: {
+                /** Format: uuid */
+                ministry_id: string;
+                /** Format: date */
+                attendance_date: string;
+                student_ids: string[];
+            };
+        }) | (components["schemas"]["SyncEventBase"] & {
+            /** @constant */
+            action: "attendance.student_marked";
+            payload: {
+                /** Format: uuid */
+                student_id: string;
+                /** @enum {string} */
+                state: "present" | "absent";
+            };
+        }) | (components["schemas"]["SyncEventBase"] & {
+            /** @constant */
+            action: "attendance.bulk_marked";
+            payload: {
+                /** @enum {string} */
+                state: "present" | "absent";
+                student_ids: string[];
+            };
+        }) | (components["schemas"]["SyncEventBase"] & {
+            /** @constant */
+            action: "attendance.finalized";
+            payload: Record<string, never>;
+        });
+        SyncEventResult: {
+            /** Format: uuid */
+            client_event_id: string;
+            /** @enum {string} */
+            status: "accepted" | "duplicate" | "conflict" | "rejected";
+            /** @enum {string} */
+            original_status?: "accepted" | "conflict" | "rejected";
+            reason?: string;
+            /** Format: uuid */
+            record_id?: string;
+            version?: number;
         };
         SyncPushResponse: {
-            results: {
+            results: components["schemas"]["SyncEventResult"][];
+        };
+        SyncChange: {
+            sequence: string;
+            /** @enum {string} */
+            entity_type: "attendance_session" | "ministry_assignment";
+            /** Format: uuid */
+            entity_id: string;
+            version: number;
+            /** @enum {string} */
+            action: "upsert" | "tombstone";
+            /** Format: uuid */
+            ministry_id: string | null;
+            payload: {
                 [key: string]: unknown;
-            }[];
+            } | null;
         };
         SyncPullResponse: {
-            changes: {
-                [key: string]: unknown;
-            }[];
+            changes: components["schemas"]["SyncChange"][];
             page: components["schemas"]["PageMeta"];
+            lease: components["schemas"]["OfflineLease"];
         };
         AccountSession: {
             email_verified: boolean;
@@ -1513,7 +1610,6 @@ export interface components {
             ministries: components["schemas"]["OfflineMinistry"][];
             roster: components["schemas"]["OfflineRosterStudent"][];
             lease: components["schemas"]["OfflineLease"];
-            /** Format: date-time */
             server_cursor: string;
         };
     };
@@ -1551,6 +1647,70 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    pushSyncEvents: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncPushRequest"];
+            };
+        };
+        responses: {
+            /** @description One stable result per submitted event. Accepted domain state, audit evidence, feed entry, and replay receipt commit atomically. */
+            200: {
+                headers: {
+                    /** @description Browser and intermediary storage is forbidden. */
+                    "Cache-Control"?: "no-store, private";
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncPushResponse"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    pullSyncChanges: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header: {
+                "X-Church-Id": string;
+                "X-Device-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Assignment-scoped ordered changes, durable cursor, and renewed lease. */
+            200: {
+                headers: {
+                    /** @description Browser and intermediary storage is forbidden. */
+                    "Cache-Control"?: "no-store, private";
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncPullResponse"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
     getOfflineBootstrap: {
         parameters: {
             query: {
