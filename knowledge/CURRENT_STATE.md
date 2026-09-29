@@ -5,15 +5,15 @@ Verified: 2026-09-29. This is the primary development handoff.
 ## Git state
 
 - Branch: `feat/mvp-foundation`.
-- Task 15 is committed and pushed at `1737921911f83695294fe760b68e6421a1a21a2d` — `feat: add basic attendance reports`.
-- The security-validation governance optimization started from that clean, synchronized checkpoint. Its milestone is the commit containing this handoff; it does not implement Task 16 or change product behavior.
+- The security-validation governance baseline is committed and pushed at `02c825aa7d59f8fb351b83e300f59960b88e0812`.
+- Task 16 is complete in the commit containing this handoff — `feat: add private birthday reminders`.
 - Repository remotes remain `origin = https://github.com/Fern-star-cloud/MSprout.git` and `upstream = https://github.com/Frierend/ministry-sprout.git`. This differs from the roadmap preflight's original one-remote expectation; do not change remotes without explicit direction.
 
 ## Roadmap position
 
-- Tasks 1–15: **COMPLETE / COMMITTED / PUSHED** on `feat/mvp-foundation`.
-- Tasks 16–18: **NOT STARTED**.
-- Preserve Tasks 1–15 and do not begin Task 16 automatically.
+- Tasks 1–16: **COMPLETE / COMMITTED / PUSHED** on `feat/mvp-foundation`.
+- Tasks 17–18: **NOT STARTED**.
+- Preserve Tasks 1–16 and do not begin Task 17 automatically.
 
 ## Security-validation baseline
 
@@ -132,14 +132,31 @@ Final Task 15 validation on 2026-09-29:
 
 See [the Task 15 verification report](../docs/qa/task-15-verification.md) for gate evidence and reviewed boundaries.
 
+Task 16 adds privacy-safe birthday reminders and an authorized in-app fallback:
+
+- The every-minute scheduler selects only active churches at 8:00 AM in their IANA timezone through a narrow database function, then creates one church/date dispatch and one church/date/user/device delivery under the restricted runtime role and forced RLS.
+- Owner recipients are church-wide; Teachers are limited to students in currently assigned ministries. Recipient authorization and the birthday count are rechecked immediately before sending, so membership or assignment revocation suppresses queued delivery.
+- Web Push endpoint/key material is encrypted at rest. Only trusted browser push-service HTTPS hosts are accepted, endpoint hashes support identity without disclosure, and permanent failures or membership revocation disable subscriptions.
+- Push payloads contain only the generic title and birthday count. Names and turning ages are available only through the authenticated tenant-scoped route or the existing unlocked, encrypted, leased offline projection; full birthdates remain excluded.
+- The UI requests permission only after an authenticated deliberate action, remembers denial without repeatedly prompting, explains unsupported/iOS Home Screen requirements, and keeps the service worker's `/api/**` NetworkOnly boundary.
+
+Final Task 16 validation on 2026-09-29:
+
+- Focused birthday/notification proof: **12 backend tests / 84 assertions** and **22 frontend tests in 5 files passed**.
+- Aggregate verification: **126 frontend tests in 33 files**, frontend typecheck/build, and **203 backend tests / 1,232 assertions passed**.
+- Chrome Playwright: **4 tests passed**. Frontend lint, OpenAPI drift, frozen install, Pint, Composer strict validation/audit, pnpm audit, structure, Gitleaks, focused risk-based Semgrep, and `git diff --check` passed.
+- Focused Semgrep applied 123 OWASP rules to all 33 parsed Task 16 PHP/TypeScript/OpenAPI targets with zero findings and approximately 100% parsing. The Task 15 comprehensive baseline remains the repository-wide development baseline until Task 17 establishes the mandated production-hardening baseline.
+
+See [the Task 16 verification report](../docs/qa/task-16-verification.md) for gate evidence and reviewed boundaries.
+
 ## Next work
 
-1. Preserve the committed Tasks 1–15 foundation.
-2. Task 16 — privacy-safe birthday notifications — is next, but must not begin automatically.
+1. Preserve the committed Tasks 1–16 foundation.
+2. Task 17 — operations, retention, deployment, and security hardening — is next, but must not begin automatically.
 
 ## Known environment and repository issues
 
-- The default Windows `node` is 22.22.3, below the approved Node 24 baseline. Task 15 used the Codex-bundled Node 24.21.0 and pre-existing temporary pnpm 10.34.5 launcher without installing or purging host runtimes.
+- The default Windows `node` is 22.22.3, below the approved Node 24 baseline. Task 16 used the Codex-bundled Node 24.19.0 and pre-existing temporary pnpm 10.34.5 launcher without installing or purging host runtimes.
 - No PHP executable is on the default PATH. A pre-existing temporary Windows PHP 8.3.33 runtime and process-scoped extension scan files supply `pdo_pgsql`, GD, and ZIP outside the repository.
 - Composer/pnpm audits and Semgrep used process-scoped temporary trust configuration to retain TLS verification behind the host certificate interceptor. No global trust or machine configuration changed.
 - The two-remote configuration conflicts with the approved roadmap's original repository preflight and remains unresolved.

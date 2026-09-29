@@ -78,6 +78,7 @@ final class OfflineBootstrapController extends Controller
 
         return response()->json([
             'actor' => ['id' => (string) $membership->user_id],
+            'timezone' => $timezone,
             'ministries' => $ministries,
             'roster' => $roster,
             'lease' => $lease,

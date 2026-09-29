@@ -32,7 +32,7 @@ Only decisions established by the approved design, roadmap, committed implementa
 ## Messaging and background work
 
 16. **Database-backed transactional queue first.** Approval mail must use the primary database queue so the queue record participates in the decision transaction. Redis is not required for the pilot. Source: approved design and Task 5.
-17. **Privacy-safe birthday delivery.** Future push notifications contain a count, not child names or birthdates; authorized details appear only after opening the app. Source: approved design section 10.
+17. **Privacy-safe, idempotent birthday delivery.** Push notifications contain only a generic title and authorized birthday count; child names, ages, birthdates, endpoints, and key material never enter push-visible logs or audit metadata. Delivery is unique per church/local-date/user/device, executes through restricted-runtime forced-RLS tenant context, and rechecks membership and Teacher assignment before sending. Authorized detail appears only in the app or its encrypted leased offline projection. Source: approved Task 16 and validated notification/privacy tests.
 
 ## Student import
 

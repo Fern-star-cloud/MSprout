@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ApplicationScreen } from '../features/applications/ApplicationScreen'
 import { AuditScreen } from '../features/audit/AuditScreen'
 import { AttendanceScreen } from '../features/attendance/AttendanceScreen'
+import { BirthdayScreen } from '../features/birthdays/BirthdayScreen'
 import { ConflictReviewScreen } from '../features/conflicts/ConflictReviewScreen'
 import { AuthScreen, type AuthPage } from '../features/auth/AuthScreen'
 import { ImportScreen } from '../features/imports/ImportScreen'
@@ -21,7 +22,7 @@ import { WideLayout } from './layouts/WideLayout'
 export interface NavigationItem {
   label: string
   href: string
-  icon: 'home' | 'attendance' | 'ministries' | 'students' | 'teachers' | 'import'
+  icon: 'home' | 'attendance' | 'birthday' | 'ministries' | 'students' | 'teachers' | 'import'
 }
 
 const navigationItems: NavigationItem[] = [
@@ -29,17 +30,19 @@ const navigationItems: NavigationItem[] = [
   { label: 'Attendance', href: '/account/attendance', icon: 'attendance' },
   { label: 'Review', href: '/account/conflicts', icon: 'attendance' },
   { label: 'Reports', href: '/account/reports', icon: 'attendance' },
+  { label: 'Birthdays', href: '/account/birthdays', icon: 'birthday' },
   { label: 'Ministries', href: '/account/ministries', icon: 'ministries' },
   { label: 'Students', href: '/account/students', icon: 'students' },
   { label: 'Teachers', href: '/account/teachers', icon: 'teachers' },
   { label: 'Import', href: '/account/imports', icon: 'import' },
 ]
 
-const shellPages = new Set(['dashboard', 'attendance', 'conflicts', 'reports', 'ministries', 'students', 'teachers', 'imports', 'audit'])
+const shellPages = new Set(['dashboard', 'attendance', 'conflicts', 'reports', 'birthdays', 'ministries', 'students', 'teachers', 'imports', 'audit'])
 const authPages: AuthPage[] = ['login', 'verify-email', 'forgot-password', 'reset-password', 'mfa']
 
 function Dashboard() {
-  return <section className="dashboard-card"><p className="eyebrow">Church workspace</p><h1>Welcome to MinistrySprout</h1><p>Choose a ministry task from the navigation.</p></section>
+  const churchId = new URLSearchParams(globalThis.location?.search ?? '').get('church') ?? ''
+  return <><section className="dashboard-card"><p className="eyebrow">Church workspace</p><h1>Welcome to MinistrySprout</h1><p>Choose a ministry task from the navigation.</p></section>{churchId && <BirthdayScreen initialChurchId={churchId} />}</>
 }
 
 function UpdateNotice() {
@@ -59,6 +62,7 @@ function screenFor(page: string, fragment: string, navigate: (path: string) => v
   if (page === 'attendance') return <AttendanceScreen />
   if (page === 'conflicts') return <ConflictReviewScreen />
   if (page === 'reports') return <ReportScreen />
+  if (page === 'birthdays') return <BirthdayScreen />
   if (page === 'audit') return <AuditScreen />
   if (page === 'teachers') return <TeacherManagementScreen />
   if (page === 'ministries') return <MinistriesScreen />

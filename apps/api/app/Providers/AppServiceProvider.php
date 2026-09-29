@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Domain\Audit\CorrelationContext;
 use App\Support\Captcha\CaptchaVerifier;
 use App\Support\Captcha\TurnstileVerifier;
+use App\Support\Notifications\PushSender;
+use App\Support\Notifications\WebPushSender;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -24,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(CorrelationContext::class);
         $this->app->singleton(TenantContext::class);
         $this->app->bind(CaptchaVerifier::class, TurnstileVerifier::class);
+        $this->app->bind(PushSender::class, WebPushSender::class);
     }
 
     /**
@@ -46,6 +49,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('student-imports', fn (Request $request) => Limit::perMinute(10)->by('imports:'.$request->user('web')?->id));
         RateLimiter::for('offline-bootstrap', fn (Request $request) => Limit::perMinute(10)->by('offline-bootstrap:'.$request->user('web')?->id));
         RateLimiter::for('sync', fn (Request $request) => Limit::perMinute(120)->by('sync:'.$request->user('web')?->id));
+        RateLimiter::for('notifications', fn (Request $request) => Limit::perMinute(10)->by('notifications:'.$request->user('web')?->id));
         RateLimiter::for('church-applications', fn (Request $request) => [
             Limit::perMinute(5)->by('applicant:'.$request->user('web')->id),
             Limit::perMinute(10)->by('application-ip:'.$request->ip()),

@@ -72,6 +72,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/birthdays/today": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Returns names and turning ages only after authenticated tenant authorization. Owners see active church students; Teachers see only students enrolled in currently assigned ministries. Full birthdates and birth years are never returned. */
+        get: operations["getTodaysBirthdays"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/push-subscriptions/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Returns only the public VAPID configuration after authenticated tenant authorization. */
+        get: operations["getPushConfiguration"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/push-subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Registers one device after a deliberate granted browser permission. Endpoint and key material are encrypted at rest and never returned. */
+        post: operations["registerPushSubscription"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/push-subscriptions/{deviceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Revokes only the caller's subscription for the specified device. Stored endpoint and key values are never returned. */
+        delete: operations["revokePushSubscription"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sync-conflicts": {
         parameters: {
             query?: never;
@@ -1722,6 +1790,50 @@ export interface components {
         AttendanceReportResponse: {
             data: components["schemas"]["AttendanceReport"];
         };
+        BirthdayEntry: {
+            /** Format: uuid */
+            id: string;
+            display_name: string;
+            turning_age: number;
+            ministry_names: string[];
+        };
+        BirthdayProjection: {
+            /** Format: date */
+            local_date: string;
+            timezone: string;
+            /** @enum {string} */
+            role: "owner" | "teacher";
+            count: number;
+            birthdays: components["schemas"]["BirthdayEntry"][];
+        };
+        BirthdayProjectionResponse: {
+            data: components["schemas"]["BirthdayProjection"];
+        };
+        PushConfiguration: {
+            vapid_public_key: string;
+            configured: boolean;
+        };
+        PushSubscriptionInput: {
+            /** Format: uuid */
+            device_id: string;
+            /** @constant */
+            permission: "granted";
+            subscription: {
+                /** Format: uri */
+                endpoint: string;
+                expirationTime: number | null;
+                keys: {
+                    p256dh: string;
+                    auth: string;
+                };
+            };
+        };
+        PushSubscriptionResult: {
+            /** Format: uuid */
+            device_id: string;
+            /** @enum {string} */
+            permission: "granted" | "denied";
+        };
         ConflictEvidence: {
             value: {
                 /** @enum {string} */
@@ -1942,6 +2054,8 @@ export interface components {
             actor: {
                 id: string;
             };
+            /** @description IANA timezone used for offline birthday matching. */
+            timezone: string;
             ministries: components["schemas"]["OfflineMinistry"][];
             roster: components["schemas"]["OfflineRosterStudent"][];
             lease: components["schemas"]["OfflineLease"];
@@ -2110,6 +2224,122 @@ export interface operations {
                 content: {
                     "text/csv": string;
                 };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    getTodaysBirthdays: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Privacy-scoped birthday projection for the church-local date. */
+            200: {
+                headers: {
+                    /** @description Browser and intermediary storage is forbidden. */
+                    "Cache-Control"?: "no-store, private";
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BirthdayProjectionResponse"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    getPushConfiguration: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public push configuration. */
+            200: {
+                headers: {
+                    /** @description Browser and intermediary storage is forbidden. */
+                    "Cache-Control"?: "no-store, private";
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushConfiguration"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    registerPushSubscription: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PushSubscriptionInput"];
+            };
+        };
+        responses: {
+            /** @description Device subscription registered. */
+            201: {
+                headers: {
+                    /** @description Browser and intermediary storage is forbidden. */
+                    "Cache-Control"?: "no-store, private";
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushSubscriptionResult"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    revokePushSubscription: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path: {
+                deviceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Device subscription revoked. */
+            204: {
+                headers: {
+                    /** @description Browser and intermediary storage is forbidden. */
+                    "Cache-Control"?: "no-store, private";
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             default: components["responses"]["AuthError"];
         };

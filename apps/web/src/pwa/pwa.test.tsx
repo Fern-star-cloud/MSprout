@@ -46,6 +46,15 @@ describe('installable application metadata', () => {
     expect(source).toContain('createHandlerBoundToURL')
     expect(source).toContain('NavigationRoute')
   })
+
+  it('shows only a generic birthday notification and opens the authenticated birthday route', () => {
+    const source = readFileSync(resolve('src/pwa/service-worker.ts'), 'utf8')
+
+    expect(source).toContain("showNotification('Birthday reminder'")
+    expect(source).toContain("data: { url: '/account/birthdays' }")
+    expect(source).toContain("new URL('/account/birthdays', self.location.origin)")
+    expect(source).not.toContain('date_of_birth')
+  })
 })
 
 describe('controlled service-worker updates', () => {

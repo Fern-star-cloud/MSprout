@@ -37,3 +37,10 @@ dt { font-weight: 600; }
 fieldset { min-width: 0; border: 1px solid #cedbcf; margin: 1rem 0; border-radius: 8px; }
 .device-profiles form button + button { margin-top: .75rem; }
 .device-profiles > button { width: 100%; }
+.birthday-screen { max-width: 760px; }
+.birthday-summary, .notification-settings { background: #f6fbf4; border: 1px solid #cedbcf; border-radius: 12px; padding: 1rem; }
+.birthday-list { list-style: none; padding: 0; display: grid; gap: .75rem; }
+.birthday-list li { display: flex; align-items: center; gap: .8rem; min-height: 64px; padding: .8rem 1rem; border: 1px solid #cedbcf; border-radius: 10px; background: white; }
+.birthday-list small { display: block; color: #516657; margin-top: .2rem; }
+.birthday-mark { font-size: 1.5rem; }
+.notification-settings { margin-top: 1.5rem; }

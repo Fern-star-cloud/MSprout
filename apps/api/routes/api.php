@@ -4,8 +4,10 @@ use App\Http\Controllers\AttendanceReportController;
 use App\Http\Controllers\AttendanceReviewController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\Auth\ChurchAccountController;
+use App\Http\Controllers\BirthdayController;
 use App\Http\Controllers\ChurchApplicationController;
 use App\Http\Controllers\OfflineBootstrapController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\RosterController;
 use App\Http\Controllers\StudentImportController;
 use App\Http\Controllers\SyncController;
@@ -53,6 +55,13 @@ Route::middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction
 Route::middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction', 'owner.mfa'])->group(function () {
     Route::get('/attendance-reports', [AttendanceReportController::class, 'index']);
     Route::get('/attendance-reports/export', [AttendanceReportController::class, 'export']);
+    Route::get('/birthdays/today', BirthdayController::class);
+    Route::get('/push-subscriptions/config', [PushSubscriptionController::class, 'config']);
+});
+
+Route::middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction', 'owner.mfa', ApplicationRequest::class, 'throttle:notifications'])->group(function () {
+    Route::post('/push-subscriptions', [PushSubscriptionController::class, 'store']);
+    Route::delete('/push-subscriptions/{deviceId}', [PushSubscriptionController::class, 'destroy'])->whereUuid('deviceId');
 });
 
 Route::middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction', 'owner.mfa', 'throttle:sync'])->group(function () {

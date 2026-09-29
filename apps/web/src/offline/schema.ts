@@ -67,6 +67,7 @@ export interface OfflineLease {
 
 export interface OfflineBootstrap {
   actor: { id: string }
+  timezone?: string
   ministries: Array<{ id: string; name: string; version: number }>
   roster: Array<Record<string, unknown>>
   lease: OfflineLease

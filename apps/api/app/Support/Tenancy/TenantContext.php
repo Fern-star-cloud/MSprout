@@ -78,4 +78,38 @@ final class TenantContext
             }
         });
     }
+
+    /**
+     * Run trusted scheduler/queue work through the restricted runtime role and forced RLS.
+     */
+    public function runForSystem(string $churchId, Closure $callback): mixed
+    {
+        if (! Str::isUuid($churchId)) {
+            throw new InvalidArgumentException('The church identifier must be a UUID.');
+        }
+
+        $churchId = Str::lower($churchId);
+        if ($this->churchId !== null) {
+            if (! hash_equals($this->churchId, $churchId) || $this->role !== null) {
+                throw new LogicException('A different tenant context cannot be nested.');
+            }
+
+            return $callback();
+        }
+
+        return DB::connection()->transaction(function () use ($churchId, $callback): mixed {
+            DB::selectOne("SELECT set_config('app.current_church_id', ?, true)", [$churchId]);
+            if (! Church::whereKey($churchId)->where('status', 'active')->exists()) {
+                throw new AuthorizationException;
+            }
+            $this->churchId = $churchId;
+            $this->role = null;
+
+            try {
+                return $callback();
+            } finally {
+                $this->churchId = null;
+            }
+        });
+    }
 }

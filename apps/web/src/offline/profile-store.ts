@@ -150,7 +150,7 @@ export class LocalProfileStore {
     const now = this.now().toISOString()
     const roster = await encryptPayload(profileId, 'roster', key, bootstrap.roster)
     const ministries = await encryptPayload(profileId, 'ministries', key, bootstrap.ministries)
-    const authorization = await encryptPayload(profileId, 'authorization', key, { actor: bootstrap.actor, lease: bootstrap.lease })
+    const authorization = await encryptPayload(profileId, 'authorization', key, { actor: bootstrap.actor, lease: bootstrap.lease, timezone: bootstrap.timezone })
     const authorizedMinistries = new Set(bootstrap.ministries.map(ministry => ministry.id))
     const drafts = await this.db.attendanceDrafts.where('profileId').equals(profileId).toArray()
     const revokedDraftIds = new Set<string>()

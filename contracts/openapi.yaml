@@ -982,6 +982,70 @@ components:
       required: [data]
       properties:
         data: { $ref: "#/components/schemas/AttendanceReport" }
+    BirthdayEntry:
+      type: object
+      additionalProperties: false
+      required: [id, display_name, turning_age, ministry_names]
+      properties:
+        id: { type: string, format: uuid }
+        display_name: { type: string, maxLength: 320 }
+        turning_age: { type: integer, minimum: 0, maximum: 150 }
+        ministry_names:
+          type: array
+          items: { type: string, maxLength: 120 }
+    BirthdayProjection:
+      type: object
+      additionalProperties: false
+      required: [local_date, timezone, role, count, birthdays]
+      properties:
+        local_date: { type: string, format: date }
+        timezone: { type: string }
+        role: { type: string, enum: [owner, teacher] }
+        count: { type: integer, minimum: 0 }
+        birthdays:
+          type: array
+          items: { $ref: "#/components/schemas/BirthdayEntry" }
+    BirthdayProjectionResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { $ref: "#/components/schemas/BirthdayProjection" }
+    PushConfiguration:
+      type: object
+      additionalProperties: false
+      required: [vapid_public_key, configured]
+      properties:
+        vapid_public_key: { type: string }
+        configured: { type: boolean }
+    PushSubscriptionInput:
+      type: object
+      additionalProperties: false
+      required: [device_id, permission, subscription]
+      properties:
+        device_id: { type: string, format: uuid }
+        permission: { type: string, const: granted }
+        subscription:
+          type: object
+          additionalProperties: false
+          required: [endpoint, expirationTime, keys]
+          properties:
+            endpoint: { type: string, format: uri, maxLength: 2048 }
+            expirationTime: { type: [integer, "null"], minimum: 0 }
+            keys:
+              type: object
+              additionalProperties: false
+              required: [p256dh, auth]
+              properties:
+                p256dh: { type: string, minLength: 8, maxLength: 512 }
+                auth: { type: string, minLength: 8, maxLength: 256 }
+    PushSubscriptionResult:
+      type: object
+      additionalProperties: false
+      required: [device_id, permission]
+      properties:
+        device_id: { type: string, format: uuid }
+        permission: { type: string, enum: [granted, denied] }
     ConflictEvidence:
       type: object
       additionalProperties: false
@@ -1282,7 +1346,7 @@ components:
     OfflineBootstrap:
       type: object
       additionalProperties: false
-      required: [actor, ministries, roster, lease, server_cursor]
+      required: [actor, timezone, ministries, roster, lease, server_cursor]
       properties:
         actor:
           type: object
@@ -1290,6 +1354,7 @@ components:
           required: [id]
           properties:
             id: { type: string, pattern: "^[0-9]{1,20}$" }
+        timezone: { type: string, description: IANA timezone used for offline birthday matching. }
         ministries:
           type: array
           items: { $ref: "#/components/schemas/OfflineMinistry" }
@@ -1421,6 +1486,81 @@ paths:
           content:
             text/csv:
               schema: { type: string, format: binary }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
+  /birthdays/today:
+    get:
+      operationId: getTodaysBirthdays
+      description: Returns names and turning ages only after authenticated tenant authorization. Owners see active church students; Teachers see only students enrolled in currently assigned ministries. Full birthdates and birth years are never returned.
+      security: [{ ChurchSession: [] }]
+      parameters:
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Privacy-scoped birthday projection for the church-local date.
+          headers:
+            Cache-Control: { description: Browser and intermediary storage is forbidden., schema: { type: string, const: "no-store, private" } }
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BirthdayProjectionResponse" }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
+  /push-subscriptions/config:
+    get:
+      operationId: getPushConfiguration
+      description: Returns only the public VAPID configuration after authenticated tenant authorization.
+      security: [{ ChurchSession: [] }]
+      parameters:
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Public push configuration.
+          headers:
+            Cache-Control: { description: Browser and intermediary storage is forbidden., schema: { type: string, const: "no-store, private" } }
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PushConfiguration" }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
+  /push-subscriptions:
+    post:
+      operationId: registerPushSubscription
+      description: Registers one device after a deliberate granted browser permission. Endpoint and key material are encrypted at rest and never returned.
+      security: [{ ChurchSession: [] }]
+      parameters:
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PushSubscriptionInput" }
+      responses:
+        "201":
+          description: Device subscription registered.
+          headers:
+            Cache-Control: { description: Browser and intermediary storage is forbidden., schema: { type: string, const: "no-store, private" } }
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PushSubscriptionResult" }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
+  /push-subscriptions/{deviceId}:
+    delete:
+      operationId: revokePushSubscription
+      description: Revokes only the caller's subscription for the specified device. Stored endpoint and key values are never returned.
+      security: [{ ChurchSession: [] }]
+      parameters:
+        - { name: deviceId, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
+      responses:
+        "204":
+          description: Device subscription revoked.
+          headers:
+            Cache-Control: { description: Browser and intermediary storage is forbidden., schema: { type: string, const: "no-store, private" } }
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
         default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
   /sync-conflicts:
     get:
