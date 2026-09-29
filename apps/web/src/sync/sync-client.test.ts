@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createOfflineDatabase, type OfflineDatabase } from '../offline/db'
 import type { EncryptedEnvelope, OfflineLease, ProfileRecord } from '../offline/schema'
-import type { LocalAttendanceEvent } from '../features/attendance/domain'
+import type { AttendanceDraft, LocalAttendanceEvent } from '../features/attendance/domain'
 import { SyncClient, type SyncProfileAccess } from './sync-client'
 
 const profileId = 'profile-a'
@@ -91,6 +91,47 @@ describe('profile synchronization client', () => {
     expect(await db.outboxEvents.where('profileId').equals(profileId).count()).toBe(0)
     expect((await db.serverCursors.get(profileId))?.cursor).toBe('7')
     expect(requests.filter(request => request.url.startsWith('/api/sync/pull'))).toHaveLength(2)
+  })
+
+  it('applies the encrypted temporary guest lifecycle from the attendance change feed', async () => {
+    const sessionId = '00000000-0000-4000-8000-000000000200'
+    const guestId = '00000000-0000-4000-8000-000000000500'
+    const draft: AttendanceDraft = {
+      id: sessionId, profileId, churchId, ministryId: '00000000-0000-4000-8000-000000000300',
+      ministryName: 'Primary', attendanceDate: '2026-09-29', status: 'draft', version: 2,
+      entries: [], guests: [{ id: guestId, displayName: 'Guest Child', gender: 'female', state: 'present', status: 'pending' }],
+      updatedAt: '2026-09-29T00:00:00Z',
+    }
+    await db.attendanceDrafts.add({
+      profileId, id: sessionId, encrypted: await codec.encrypt(profileId, `attendance-draft:${sessionId}`, draft),
+      updatedAt: draft.updatedAt,
+    })
+    const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input) === '/api/sync/push') {
+        const body = JSON.parse(String(init?.body))
+        return Response.json({ results: body.events.map((event: { client_event_id: string }) => ({
+          client_event_id: event.client_event_id, status: 'accepted', record_id: sessionId, version: 2,
+        })) })
+      }
+      return Response.json({
+        changes: [{
+          sequence: '1', entity_type: 'attendance_session', entity_id: sessionId, version: 3,
+          action: 'upsert', ministry_id: draft.ministryId,
+          payload: { status: 'draft', records: [], guests: [{
+            id: guestId, display_name: 'Guest Child', gender: 'female', state: 'present', status: 'linked',
+            resolved_student_id: '00000000-0000-4000-8000-000000000600', merged_into_guest_id: null,
+          }] },
+        }],
+        page: { next_cursor: '1', has_more: false }, lease: lease(),
+      })
+    })
+
+    await new SyncClient(db, codec, { fetcher }).syncProfile(profileId)
+
+    const stored = await db.attendanceDrafts.get([profileId, sessionId])
+    const current = await codec.decrypt<AttendanceDraft>(profileId, `attendance-draft:${sessionId}`, stored!.encrypted)
+    expect(current.guests).toEqual([{ id: guestId, displayName: 'Guest Child', gender: 'female', state: 'present', status: 'linked' }])
+    expect(current.version).toBe(3)
   })
 
   it('quarantines rejected and conflicting events with their safe reason', async () => {

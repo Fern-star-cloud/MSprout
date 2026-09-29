@@ -38,6 +38,142 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sync-conflicts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Owners receive their tenant's open attendance conflict evidence. Teachers receive only a boolean Needs Owner Review status and no actor, device, or correlation details. */
+        get: operations["listSyncConflicts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sync-conflicts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Owner-only side-by-side attendance conflict evidence. */
+        get: operations["showSyncConflict"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sync-conflicts/{id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Owner-only online resolution. Appends an attendance revision, preserves the original record, advances the session version, and audits atomically. */
+        post: operations["resolveSyncConflict"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance-sessions/{session}/records/{record}/corrections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Owner-only online correction of finalized attendance through an append-only revision; the original record value and actor are not mutated. */
+        post: operations["correctAttendanceRecord"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance-guests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Owner-only online pending guest review queue with bounded attendance provenance and no guardian details. */
+        get: operations["listPendingAttendanceGuests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance-guests/{id}/promote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Owner-only promotion of a pending attendance guest into a new student while preserving guest attendance provenance. */
+        post: operations["promoteAttendanceGuest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance-guests/{id}/link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Owner-only link of a pending attendance guest to an existing active student while preserving guest attendance provenance. */
+        post: operations["linkAttendanceGuest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance-guests/{id}/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Owner-only duplicate merge that retains both source guest provenance rows. */
+        post: operations["mergeAttendanceGuest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/offline/bootstrap": {
         parameters: {
             query?: never;
@@ -1134,6 +1270,14 @@ export interface components {
             };
         }) | (components["schemas"]["SyncEventBase"] & {
             /** @constant */
+            action: "attendance.guest_added";
+            payload: {
+                display_name: string;
+                /** @enum {string} */
+                gender?: "male" | "female" | "unspecified";
+            };
+        }) | (components["schemas"]["SyncEventBase"] & {
+            /** @constant */
             action: "attendance.finalized";
             payload: Record<string, never>;
         });
@@ -1464,6 +1608,21 @@ export interface components {
             state: components["schemas"]["AttendanceState"];
             version: number;
         };
+        AttendanceGuest: {
+            /** Format: uuid */
+            id: string;
+            display_name: string;
+            /** @enum {string} */
+            gender: "male" | "female" | "unspecified";
+            /** @constant */
+            state: "present";
+            /** @enum {string} */
+            status: "pending" | "promoted" | "linked" | "merged";
+            /** Format: uuid */
+            resolved_student_id?: string | null;
+            /** Format: uuid */
+            merged_into_guest_id?: string | null;
+        };
         AttendanceSession: {
             /** Format: uuid */
             id: string;
@@ -1481,6 +1640,102 @@ export interface components {
             /** Format: date-time */
             deleted_at?: string | null;
             records: components["schemas"]["AttendanceRecord"][];
+            guests: components["schemas"]["AttendanceGuest"][];
+        };
+        ConflictEvidence: {
+            value: {
+                /** @enum {string} */
+                state: "present" | "absent";
+            };
+            actor_id: number | null;
+            /** Format: uuid */
+            device_id: string | null;
+            /** Format: date-time */
+            local_time: string | null;
+            /** Format: date-time */
+            server_time: string | null;
+            /** Format: uuid */
+            correlation_id: string | null;
+        };
+        AttendanceConflict: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            session_id: string;
+            /** Format: uuid */
+            record_id: string;
+            /** @constant */
+            field: "state";
+            base_version: number;
+            /** @enum {string} */
+            status: "open" | "resolved";
+            existing: components["schemas"]["ConflictEvidence"];
+            incoming: components["schemas"]["ConflictEvidence"];
+        };
+        ConflictList: {
+            data: components["schemas"]["AttendanceConflict"][];
+        } | {
+            needs_owner_review: boolean;
+        };
+        AttendanceRevisionResult: {
+            /** Format: uuid */
+            revision_id: string;
+            /** @enum {string} */
+            effective_state: "present" | "absent";
+            version: number;
+        };
+        ConflictResolutionResult: {
+            /** Format: uuid */
+            id: string;
+            /** @constant */
+            status: "resolved";
+            /** Format: uuid */
+            revision_id: string;
+            /** @enum {string} */
+            effective_state: "present" | "absent";
+            version: number;
+        };
+        GuestResolutionResult: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "promoted" | "linked" | "merged";
+            /** Format: uuid */
+            student_id: string | null;
+            /** Format: uuid */
+            merged_into_guest_id: string | null;
+            version: number;
+        };
+        GuestPromotionInput: {
+            first_name: string;
+            middle_name?: string | null;
+            last_name: string;
+            preferred_name?: string | null;
+            suffix?: string | null;
+            /** Format: date */
+            date_of_birth?: string | null;
+            /** @enum {string|null} */
+            gender?: "male" | "female" | "unspecified" | null;
+            external_reference?: string | null;
+        };
+        PendingAttendanceGuest: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            session_id: string;
+            display_name: string;
+            /** @enum {string} */
+            gender: "male" | "female" | "unspecified";
+            actor_id: number;
+            /** Format: uuid */
+            device_id: string;
+            /** Format: date-time */
+            local_time: string;
+            /** Format: date-time */
+            server_time: string;
+        };
+        PendingAttendanceGuestList: {
+            data: components["schemas"]["PendingAttendanceGuest"][];
         };
         ImportStudentData: {
             first_name?: string;
@@ -1706,6 +1961,261 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SyncPullResponse"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    listSyncConflicts: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Role-appropriate conflict queue. */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConflictList"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    showSyncConflict: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Conflict evidence visible to the tenant Owner. */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceConflict"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    resolveSyncConflict: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    choice: "existing" | "incoming";
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Resolved conflict and appended revision. */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConflictResolutionResult"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    correctAttendanceRecord: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path: {
+                session: string;
+                record: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    state: "present" | "absent";
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Appended attendance correction. */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceRevisionResult"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    listPendingAttendanceGuests: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Up to 100 pending guests ordered by local attendance time. */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PendingAttendanceGuestList"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    promoteAttendanceGuest: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GuestPromotionInput"];
+            };
+        };
+        responses: {
+            /** @description Guest promoted and attendance linked. */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuestResolutionResult"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    linkAttendanceGuest: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    student_id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Guest linked and attendance preserved. */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuestResolutionResult"];
+                };
+            };
+            default: components["responses"]["AuthError"];
+        };
+    };
+    mergeAttendanceGuest: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Church-Id": string;
+                "X-Correlation-Id"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    guest_id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Duplicate guest merged into the selected canonical guest. */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuestResolutionResult"];
                 };
             };
             default: components["responses"]["AuthError"];

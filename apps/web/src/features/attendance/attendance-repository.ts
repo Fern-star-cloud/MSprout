@@ -77,6 +77,7 @@ export class AttendanceRepository {
         gender: student.gender,
         state: 'unmarked',
       })),
+      guests: [],
       updatedAt: now,
     }
     const event = this.event(draft, 'attendance.draft_created', 0, {
@@ -145,6 +146,23 @@ export class AttendanceRepository {
     })
   }
 
+  async addGuest(
+    profileId: string,
+    draftId: string,
+    displayName: string,
+    gender: AttendanceDraft['entries'][number]['gender'] = 'unspecified',
+  ): Promise<AttendanceDraft> {
+    const normalized = displayName.replace(/[\s\p{Z}]+/gu, ' ').trim()
+    if (!normalized || normalized.length > 120) throw new Error('Guest display name must be between 1 and 120 characters.')
+    if (!['male', 'female', 'unspecified'].includes(gender)) throw new Error('Guest gender is invalid.')
+
+    return this.mutate(profileId, draftId, 'attendance.guest_added', (draft, eventId) => {
+      draft.guests ??= []
+      draft.guests.push({ id: eventId, displayName: normalized, gender, state: 'present', status: 'pending' })
+      return { display_name: normalized, gender }
+    })
+  }
+
   async countPending(profileId: string): Promise<number> {
     return this.db.outboxEvents.where('profileId').equals(profileId).count()
   }
@@ -161,17 +179,19 @@ export class AttendanceRepository {
     profileId: string,
     draftId: string,
     action: AttendanceEventAction,
-    change: (draft: AttendanceDraft) => Record<string, unknown>,
+    change: (draft: AttendanceDraft, eventId: string) => Record<string, unknown>,
   ): Promise<AttendanceDraft> {
     const stored = await this.db.attendanceDrafts.get([profileId, draftId])
     if (!stored) throw new Error('Attendance draft not found.')
     const draft = await this.codec.decrypt<AttendanceDraft>(profileId, `attendance-draft:${draftId}`, stored.encrypted)
+    draft.guests ??= []
     if (draft.status !== 'draft') throw new Error('This attendance draft is no longer editable.')
     const baseVersion = draft.version
-    const payload = change(draft)
+    const eventId = this.id()
+    const payload = change(draft, eventId)
     draft.version += 1
     draft.updatedAt = this.now().toISOString()
-    const event = this.event(draft, action, baseVersion, payload)
+    const event = this.event(draft, action, baseVersion, payload, eventId)
     const encryptedDraft = await this.codec.encrypt(profileId, `attendance-draft:${draft.id}`, draft)
     const encryptedEvent = await this.codec.encrypt(profileId, `outbox-event:${event.id}`, event)
 
@@ -192,9 +212,10 @@ export class AttendanceRepository {
     action: AttendanceEventAction,
     baseVersion: number,
     payload: Record<string, unknown>,
+    id = this.id(),
   ): LocalAttendanceEvent {
     return {
-      id: this.id(),
+      id,
       profileId: draft.profileId,
       entityId: draft.id,
       action,

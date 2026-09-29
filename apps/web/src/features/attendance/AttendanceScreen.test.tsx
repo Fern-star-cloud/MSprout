@@ -15,6 +15,7 @@ it('supports search, individual and bulk marking, counts, and safe finalization'
       { studentId: 'student-a', displayName: 'Ana Sprout', gender: 'female', state: 'unmarked' },
       { studentId: 'student-b', displayName: 'Ben Sprout', gender: 'male', state: 'unmarked' },
     ],
+    guests: [],
   }
   const repository = {
     findDraft: vi.fn(async () => null),
@@ -29,6 +30,10 @@ it('supports search, individual and bulk marking, counts, and safe finalization'
       return draft
     }),
     finalizeDraft: vi.fn(async () => { draft = { ...draft, status: 'finalized_pending' }; return draft }),
+    addGuest: vi.fn(async (_profile: string, _draft: string, displayName: string, gender: AttendanceDraft['entries'][number]['gender']) => {
+      draft = { ...draft, guests: [...draft.guests, { id: 'guest-a', displayName, gender, state: 'present', status: 'pending' }] }
+      return draft
+    }),
   }
   const store = {
     activeProfile: vi.fn(async () => ({ id: 'profile-a', churchId: 'church-a' })),
@@ -49,6 +54,12 @@ it('supports search, individual and bulk marking, counts, and safe finalization'
   window.dispatchEvent(new Event('online'))
   expect(await screen.findByText(/Online.*1 pending/i)).toBeTruthy()
   expect((screen.getByRole('button', { name: 'Finalize attendance' }) as HTMLButtonElement).disabled).toBe(true)
+
+  await user.type(screen.getByLabelText('Display name'), 'Guest Child')
+  await user.selectOptions(screen.getByLabelText('Gender (optional)'), 'female')
+  await user.click(screen.getByRole('button', { name: 'Add guest as present' }))
+  expect(await screen.findByText('Guest Child')).toBeTruthy()
+  expect(screen.getByText('Temporary guest · Present')).toBeTruthy()
 
   await user.click(screen.getByRole('button', { name: 'Mark Ana Sprout present' }))
   expect(await screen.findByText('1 marked · 1 unmarked')).toBeTruthy()
@@ -72,7 +83,9 @@ it('keeps the responsive controls usable with text labels and student avatars', 
       id: 'session-a', profileId: input.profileId, churchId: input.churchId, ministryId: input.ministryId,
       ministryName: input.ministryName, attendanceDate: input.attendanceDate, status: 'draft' as const, version: 1,
       updatedAt: '2026-09-28T00:00:00Z', entries: input.students.map(student => ({ studentId: student.id, displayName: student.displayName, gender: student.gender, state: 'unmarked' as const })),
+      guests: [],
     })), countPending: vi.fn(async () => 0), markStudent: vi.fn(), bulkMark: vi.fn(), finalizeDraft: vi.fn(),
+    addGuest: vi.fn(),
   }
   const store = {
     activeProfile: vi.fn(async () => ({ id: 'profile-a', churchId: 'church-a' })),
@@ -94,12 +107,14 @@ it('removes stale child data from memory after synchronization revokes the assig
     id: 'session-a', profileId: 'profile-a', churchId: 'church-a', ministryId: 'ministry-a', ministryName: 'Primary',
     attendanceDate: '2026-09-28', status: 'draft', version: 1, updatedAt: '2026-09-28T00:00:00Z',
     entries: [{ studentId: 'student-a', displayName: 'Ana Sprout', gender: 'female', state: 'unmarked' }],
+    guests: [],
   }
   const repository = {
     findDraft: vi.fn(async () => assigned ? draft : null),
     createDraft: vi.fn(async () => draft),
     countPending: vi.fn(async () => assigned ? 1 : 0),
     markStudent: vi.fn(), bulkMark: vi.fn(), finalizeDraft: vi.fn(),
+    addGuest: vi.fn(),
   }
   const store = {
     activeProfile: vi.fn(async () => ({ id: 'profile-a', churchId: 'church-a' })),
@@ -126,10 +141,12 @@ it('clears protected roster state when reconnect requires online reauthenticatio
     id: 'session-a', profileId: 'profile-a', churchId: 'church-a', ministryId: 'ministry-a', ministryName: 'Primary',
     attendanceDate: '2026-09-28', status: 'draft', version: 1, updatedAt: '2026-09-28T00:00:00Z',
     entries: [{ studentId: 'student-a', displayName: 'Ana Sprout', gender: 'female', state: 'unmarked' }],
+    guests: [],
   }
   const repository = {
     findDraft: vi.fn(async () => draft), createDraft: vi.fn(async () => draft), countPending: vi.fn(async () => 1),
     markStudent: vi.fn(), bulkMark: vi.fn(), finalizeDraft: vi.fn(),
+    addGuest: vi.fn(),
   }
   const store = {
     activeProfile: vi.fn(async () => ({ id: 'profile-a', churchId: 'church-a' })),

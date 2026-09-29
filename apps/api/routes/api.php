@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttendanceReviewController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\Auth\ChurchAccountController;
 use App\Http\Controllers\ChurchApplicationController;
@@ -46,6 +47,17 @@ Route::get('/offline/bootstrap', OfflineBootstrapController::class)
 Route::middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction', 'owner.mfa', 'throttle:sync'])->group(function () {
     Route::post('/sync/push', [SyncController::class, 'push']);
     Route::get('/sync/pull', [SyncController::class, 'pull']);
+});
+
+Route::middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction', 'owner.mfa', 'throttle:sync'])->group(function () {
+    Route::get('/sync-conflicts', [AttendanceReviewController::class, 'conflicts']);
+    Route::get('/sync-conflicts/{id}', [AttendanceReviewController::class, 'conflict'])->whereUuid('id');
+    Route::post('/sync-conflicts/{id}/resolve', [AttendanceReviewController::class, 'resolve'])->whereUuid('id');
+    Route::post('/attendance-sessions/{session}/records/{record}/corrections', [AttendanceReviewController::class, 'correct'])
+        ->whereUuid('session')->whereUuid('record');
+    Route::get('/attendance-guests', [AttendanceReviewController::class, 'guests']);
+    Route::post('/attendance-guests/{id}/{resolution}', [AttendanceReviewController::class, 'guest'])
+        ->whereUuid('id')->whereIn('resolution', ['promote', 'link', 'merge']);
 });
 
 Route::post('/teacher-invitations/accept', [TeacherManagementController::class, 'accept'])

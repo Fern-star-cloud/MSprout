@@ -8,6 +8,14 @@ export interface AttendanceEntry {
   state: AttendanceState
 }
 
+export interface AttendanceGuestEntry {
+  id: string
+  displayName: string
+  gender: AttendanceEntry['gender']
+  state: 'present'
+  status: 'pending' | 'promoted' | 'linked' | 'merged'
+}
+
 export interface AttendanceDraft {
   id: string
   profileId: string
@@ -18,6 +26,7 @@ export interface AttendanceDraft {
   status: AttendanceSessionStatus
   version: number
   entries: AttendanceEntry[]
+  guests: AttendanceGuestEntry[]
   updatedAt: string
 }
 
@@ -40,6 +49,7 @@ export type AttendanceEventAction =
   | 'attendance.draft_created'
   | 'attendance.student_marked'
   | 'attendance.bulk_marked'
+  | 'attendance.guest_added'
   | 'attendance.finalized'
 
 export interface LocalAttendanceEvent {

@@ -2,20 +2,25 @@
 
 namespace App\Domain\Sync;
 
+use App\Domain\Attendance\DetectAttendanceConflict;
 use App\Domain\Attendance\FinalizeAttendance;
+use App\Domain\Attendance\PublishAttendanceChange;
 use App\Domain\Audit\AuditEntry;
 use App\Domain\Audit\AuditWriter;
 use App\Domain\Audit\CorrelationContext;
 use App\Enums\AttendanceSessionStatus;
+use App\Models\AttendanceGuest;
 use App\Models\AttendanceRecord;
+use App\Models\AttendanceRevision;
 use App\Models\AttendanceSession;
-use App\Models\ChangeFeedEntry;
 use App\Models\ChurchMembership;
 use App\Models\Enrollment;
+use App\Models\SyncConflict;
 use App\Models\SyncEvent;
 use App\Models\User;
 use App\Policies\AttendancePolicy;
 use App\Support\Tenancy\TenantContext;
+use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -112,6 +117,7 @@ final class ApplySyncBatch
             'attendance.draft_created' => $this->createDraft($event, $actor, $deviceId, $batchId),
             'attendance.student_marked' => $this->markStudent($event, $actor, $deviceId, $batchId),
             'attendance.bulk_marked' => $this->bulkMark($event, $actor, $deviceId, $batchId),
+            'attendance.guest_added' => $this->addGuest($event, $actor, $deviceId, $batchId),
             'attendance.finalized' => $this->finalize($event, $actor, $deviceId, $batchId),
             default => throw new SyncResult('rejected', 'unsupported_action'),
         };
@@ -123,7 +129,7 @@ final class ApplySyncBatch
         if ((int) $event['base_version'] !== 0 || ! $this->valid($event['payload'], [
             'ministry_id' => ['required', 'uuid'],
             'attendance_date' => ['required', 'date_format:Y-m-d'],
-            'student_ids' => ['required', 'array', 'max:500'],
+            'student_ids' => ['present', 'array', 'max:500'],
             'student_ids.*' => ['required', 'uuid', 'distinct'],
         ], ['ministry_id', 'attendance_date', 'student_ids'])) {
             throw new SyncResult('rejected', 'invalid_payload');
@@ -193,7 +199,17 @@ final class ApplySyncBatch
         ], ['student_id', 'state'])) {
             throw new SyncResult('rejected', 'invalid_payload');
         }
-        $session = $this->editableSession($event, $actor);
+        $session = AttendanceSession::query()
+            ->where('church_id', app(TenantContext::class)->churchId())
+            ->whereNull('deleted_at')
+            ->lockForUpdate()
+            ->find($event['entity_id']);
+        if ($session === null) {
+            throw new SyncResult('rejected', 'record_not_found');
+        }
+        if (! (new AttendancePolicy)->view($actor, $session)) {
+            throw new SyncResult('rejected', 'assignment_revoked', $session->id, (int) $session->version);
+        }
         $record = AttendanceRecord::query()
             ->where('church_id', $session->church_id)
             ->where('attendance_session_id', $session->id)
@@ -204,7 +220,53 @@ final class ApplySyncBatch
         if ($record === null) {
             throw new SyncResult('rejected', 'roster_changed', $session->id, (int) $session->version);
         }
-        $record->forceFill(['state' => $event['payload']['state'], 'version' => $record->version + 1])->save();
+        if ((int) $event['base_version'] === 0 || (int) $event['base_version'] > (int) $session->version) {
+            throw new SyncResult('conflict', 'version_conflict', $session->id, (int) $session->version);
+        }
+        $existing = $this->effectiveState($record);
+        $finalized = $session->status !== AttendanceSessionStatus::Draft;
+        $classification = app(DetectAttendanceConflict::class)->classify(
+            'state', (int) $event['base_version'], (int) $session->version,
+            $existing['state'], $event['payload']['state'], $finalized,
+        );
+        if ($classification === DetectAttendanceConflict::REVIEW) {
+            $now = now('UTC');
+            SyncConflict::create([
+                'church_id' => $session->church_id,
+                'attendance_session_id' => $session->id,
+                'attendance_record_id' => $record->id,
+                'incoming_event_id' => $event['client_event_id'],
+                'field' => 'state', 'base_version' => $event['base_version'],
+                'existing_value' => ['state' => $existing['state']],
+                'incoming_value' => ['state' => $event['payload']['state']],
+                'existing_actor_id' => $existing['actor_id'],
+                'incoming_actor_id' => $actor->id,
+                'existing_device_id' => $existing['device_id'],
+                'incoming_device_id' => $deviceId,
+                'existing_correlation_id' => $existing['correlation_id'],
+                'incoming_correlation_id' => app(CorrelationContext::class)->id(),
+                'existing_occurred_at' => $existing['occurred_at'],
+                'existing_received_at' => $existing['received_at'],
+                'incoming_occurred_at' => CarbonImmutable::parse($event['occurred_at'])->utc(),
+                'incoming_received_at' => $now,
+                'was_finalized' => $session->finalized_at !== null,
+                'status' => 'open',
+            ]);
+            $session->forceFill(['status' => AttendanceSessionStatus::NeedsReview, 'version' => $session->version + 1])->save();
+            $this->feed($session);
+            throw new SyncResult('conflict', 'attendance_conflict', $session->id, (int) $session->version);
+        }
+        if ($classification === DetectAttendanceConflict::DEDUPLICATE) {
+            return [$session->id, (int) $session->version];
+        }
+        $receivedAt = now('UTC');
+        $record->forceFill([
+            'state' => $event['payload']['state'], 'version' => $record->version + 1,
+            'recorded_by' => $actor->id, 'recorded_device_id' => $deviceId,
+            'recorded_correlation_id' => app(CorrelationContext::class)->id(),
+            'recorded_at' => CarbonImmutable::parse($event['occurred_at'])->utc(),
+            'recorded_received_at' => $receivedAt,
+        ])->save();
         $session->forceFill(['version' => $session->version + 1])->save();
         $this->auditAndFeed($event['action'], $session, $actor, $deviceId, $batchId);
 
@@ -233,10 +295,67 @@ final class ApplySyncBatch
             throw new SyncResult('rejected', 'roster_changed', $session->id, (int) $session->version);
         }
         foreach ($records as $record) {
-            $record->forceFill(['state' => $event['payload']['state'], 'version' => $record->version + 1])->save();
+            $record->forceFill([
+                'state' => $event['payload']['state'], 'version' => $record->version + 1,
+                'recorded_by' => $actor->id, 'recorded_device_id' => $deviceId,
+                'recorded_correlation_id' => app(CorrelationContext::class)->id(),
+                'recorded_at' => CarbonImmutable::parse($event['occurred_at'])->utc(),
+                'recorded_received_at' => now('UTC'),
+            ])->save();
         }
         $session->forceFill(['version' => $session->version + 1])->save();
         $this->auditAndFeed($event['action'], $session, $actor, $deviceId, $batchId);
+
+        return [$session->id, (int) $session->version];
+    }
+
+    /** @return array{string, int} */
+    private function addGuest(array $event, User $actor, string $deviceId, string $batchId): array
+    {
+        if (! $this->valid($event['payload'], [
+            'display_name' => ['required', 'string', 'max:120'],
+            'gender' => ['sometimes', 'in:male,female,unspecified'],
+        ], ['display_name', 'gender'])) {
+            throw new SyncResult('rejected', 'invalid_payload');
+        }
+        $displayName = trim((string) preg_replace('/[\s\p{Z}]+/u', ' ', $event['payload']['display_name']));
+        if ($displayName === '') {
+            throw new SyncResult('rejected', 'invalid_payload');
+        }
+        $session = AttendanceSession::query()
+            ->where('church_id', app(TenantContext::class)->churchId())
+            ->whereNull('deleted_at')->lockForUpdate()->find($event['entity_id']);
+        if ($session === null) {
+            throw new SyncResult('rejected', 'record_not_found');
+        }
+        if (! (new AttendancePolicy)->update($actor, $session)) {
+            throw new SyncResult(
+                (new AttendancePolicy)->view($actor, $session) ? 'conflict' : 'rejected',
+                (new AttendancePolicy)->view($actor, $session) ? 'record_finalized' : 'assignment_revoked',
+                $session->id,
+                (int) $session->version,
+            );
+        }
+        $existing = AttendanceGuest::query()->where('church_id', $session->church_id)->find($event['client_event_id']);
+        if ($existing !== null) {
+            if ($existing->attendance_session_id === $session->id
+                && $existing->display_name === $displayName
+                && $existing->gender === ($event['payload']['gender'] ?? 'unspecified')) {
+                return [$session->id, (int) $session->version];
+            }
+            throw new SyncResult('rejected', 'event_mismatch', $session->id, (int) $session->version);
+        }
+        AttendanceGuest::create([
+            'id' => $event['client_event_id'], 'church_id' => $session->church_id,
+            'attendance_session_id' => $session->id, 'display_name' => $displayName,
+            'gender' => $event['payload']['gender'] ?? 'unspecified', 'state' => 'present', 'status' => 'pending',
+            'created_by' => $actor->id, 'source_device_id' => $deviceId,
+            'source_correlation_id' => app(CorrelationContext::class)->id(),
+            'occurred_at' => CarbonImmutable::parse($event['occurred_at'])->utc(),
+            'received_at' => now('UTC'),
+        ]);
+        $session->forceFill(['version' => $session->version + 1])->save();
+        $this->auditAndFeed('attendance.guest_added', $session, $actor, $deviceId, $batchId);
 
         return [$session->id, (int) $session->version];
     }
@@ -295,31 +414,36 @@ final class ApplySyncBatch
 
     private function feed(AttendanceSession $session): void
     {
-        $session->load(['records' => fn ($query) => $query->whereNull('deleted_at')->orderBy('student_id')]);
-        ChangeFeedEntry::create([
-            'church_id' => $session->church_id,
-            'ministry_id' => $session->ministry_id,
-            'entity_type' => 'attendance_session',
-            'entity_id' => $session->id,
-            'entity_version' => $session->version,
-            'action' => 'upsert',
-            'payload_json' => [
-                'id' => $session->id,
-                'ministry_id' => $session->ministry_id,
-                'attendance_date' => $session->attendance_date->format('Y-m-d'),
-                'status' => $session->status->value,
-                'version' => $session->version,
-                'finalized_at' => $session->finalized_at?->toISOString(),
-                'deleted_at' => $session->deleted_at?->toISOString(),
-                'records' => $session->records->map(fn (AttendanceRecord $record): array => [
-                    'id' => $record->id,
-                    'student_id' => $record->student_id,
-                    'state' => $record->state->value,
-                    'version' => $record->version,
-                    'deleted_at' => $record->deleted_at?->toISOString(),
-                ])->values()->all(),
-            ],
-        ]);
+        app(PublishAttendanceChange::class)->handle($session);
+    }
+
+    /** @return array{state: string, actor_id: int|null, device_id: string|null, correlation_id: string|null, occurred_at: mixed, received_at: mixed} */
+    private function effectiveState(AttendanceRecord $record): array
+    {
+        $revision = AttendanceRevision::query()
+            ->where('church_id', $record->church_id)
+            ->where('attendance_record_id', $record->id)
+            ->latest('revised_at')->latest('id')->first();
+
+        if ($revision !== null) {
+            return [
+                'state' => $revision->after_state,
+                'actor_id' => $revision->resolving_actor_id,
+                'device_id' => null,
+                'correlation_id' => null,
+                'occurred_at' => null,
+                'received_at' => $revision->revised_at,
+            ];
+        }
+
+        return [
+            'state' => $record->state->value,
+            'actor_id' => $record->recorded_by,
+            'device_id' => $record->recorded_device_id,
+            'correlation_id' => $record->recorded_correlation_id,
+            'occurred_at' => $record->recorded_at,
+            'received_at' => $record->recorded_received_at,
+        ];
     }
 
     private function valid(array $payload, array $rules, array $allowed): bool

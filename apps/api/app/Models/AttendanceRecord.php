@@ -17,6 +17,8 @@ class AttendanceRecord extends Model
     {
         return [
             'state' => AttendanceState::class,
+            'recorded_at' => 'immutable_datetime',
+            'recorded_received_at' => 'immutable_datetime',
             'deleted_at' => 'immutable_datetime',
         ];
     }

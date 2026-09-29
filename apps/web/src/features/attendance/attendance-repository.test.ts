@@ -100,6 +100,27 @@ describe('offline attendance repository', () => {
     expect((await repository.listEvents('profile-a')).at(-1)?.action).toBe('attendance.finalized')
   })
 
+  it('adds a present temporary guest with only the approved minimal sync payload', async () => {
+    const draft = await createDraft()
+
+    const withGuest = await repository.addGuest('profile-a', draft.id, '  Guest   Child  ', 'female')
+    const event = (await repository.listEvents('profile-a')).at(-1)
+
+    expect(withGuest.guests).toEqual([{
+      id: event?.id,
+      displayName: 'Guest Child',
+      gender: 'female',
+      state: 'present',
+      status: 'pending',
+    }])
+    expect(event).toMatchObject({
+      action: 'attendance.guest_added',
+      entityId: draft.id,
+      payload: { display_name: 'Guest Child', gender: 'female' },
+    })
+    expect(Object.keys(event?.payload ?? {}).sort()).toEqual(['display_name', 'gender'])
+  })
+
   it('rolls back the draft write when the matching outbox event cannot be stored', async () => {
     await db.outboxEvents.add({
       profileId: 'profile-a',

@@ -17,10 +17,10 @@ Source of truth: [approved implementation roadmap](../docs/superpowers/plans/202
 | 11. Isolated local profiles, encryption, offline lease | COMPLETE / COMMITTED | Profile-scoped Dexie schema, PBKDF2/AES-GCM key protection, locking/switching/purge, signed assignment-scoped 14-day bootstrap lease, contract/UI/tests, and `docs/qa/task-11-verification.md` |
 | 12. Attendance domain, drafts, marking UI | COMPLETE / COMMITTED | Tenant/RLS attendance schema, assignment-scoped policy, atomic audited finalization, encrypted atomic local drafts/outbox, responsive marking UI, contract/tests, and `docs/qa/task-12-verification.md` |
 | 13. Idempotent push/pull synchronization | COMPLETE / COMMITTED | Tenant/RLS replay receipts and ordered feed/cursors, atomic audited attendance push, assignment-scoped pull/tombstones, bounded encrypted-profile client loop, revocation quarantine/purge, reconnect convergence, contract/tests, and `docs/qa/task-13-verification.md` |
-| 14. Conflicts, revisions, temporary guests | NOT STARTED | No implementation evidence |
+| 14. Conflicts, revisions, temporary guests | COMPLETE / COMMITTED | Field-aware conflict/dedupe/merge, immutable Owner revisions/corrections, tenant/RLS guest lifecycle and provenance, role-safe review UI, synchronized contract/tests, and `docs/qa/task-14-verification.md` |
 | 15. Attendance history, reports, CSV export | NOT STARTED | No implementation evidence |
 | 16. Privacy-safe birthday notifications | NOT STARTED | No implementation evidence |
 | 17. Operations, retention, deployment, hardening | NOT STARTED | No implementation evidence; earlier tasks contain only their own scoped retention/security work |
 | 18. MVP qualification and one-church pilot | NOT STARTED | No implementation evidence |
 
-Tasks 1–13 are complete, committed, and pushed on `feat/mvp-foundation`. Task 14 has not started.
+Tasks 1–14 are complete, committed, and pushed on `feat/mvp-foundation`. Task 15 has not started.

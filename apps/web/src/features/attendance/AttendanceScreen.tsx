@@ -29,6 +29,7 @@ interface AttendanceDataRepository {
   markStudent(profileId: string, draftId: string, studentId: string, state: AttendanceState): Promise<AttendanceDraft>
   bulkMark(profileId: string, draftId: string, state: AttendanceState, only?: AttendanceState): Promise<AttendanceDraft>
   finalizeDraft(profileId: string, draftId: string): Promise<AttendanceDraft>
+  addGuest(profileId: string, draftId: string, displayName: string, gender: AttendanceDraft['entries'][number]['gender']): Promise<AttendanceDraft>
   countPending(profileId: string): Promise<number>
 }
 
@@ -74,6 +75,8 @@ export function AttendanceScreen({
   const [date, setDate] = useState(initialDate)
   const [draft, setDraft] = useState<AttendanceDraft | null>(null)
   const [search, setSearch] = useState('')
+  const [guestName, setGuestName] = useState('')
+  const [guestGender, setGuestGender] = useState<AttendanceDraft['entries'][number]['gender']>('unspecified')
   const [pending, setPending] = useState(0)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -185,6 +188,19 @@ export function AttendanceScreen({
     }
   }
 
+  async function addGuest(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!draft) return
+    const normalized = guestName.replace(/[\s\p{Z}]+/gu, ' ').trim()
+    if (!normalized) {
+      setError('Enter a guest display name.')
+      return
+    }
+    await save(() => repository.addGuest(profile!.id, draft.id, normalized, guestGender))
+    setGuestName('')
+    setGuestGender('unspecified')
+  }
+
   if (loading && !profile) return <section className="attendance-empty"><h1>Take attendance</h1><p>Loading the protected roster…</p></section>
   if (!profile) return <section className="attendance-empty"><p className="eyebrow">Offline attendance</p><h1>Take attendance</h1><p>{error || 'Unlock a device profile to open its assigned roster.'}</p><a href="/profiles">Choose a device profile</a></section>
 
@@ -207,6 +223,17 @@ export function AttendanceScreen({
             <button type="button" className="secondary" disabled={!draft || busy || draft.status !== 'draft'} onClick={() => void save(() => repository.bulkMark(profile.id, draft!.id, 'present', 'unmarked'))}>Mark all unmarked present</button>
             <button type="button" className="secondary" disabled={!draft || busy || draft.status !== 'draft'} onClick={() => void save(() => repository.bulkMark(profile.id, draft!.id, 'absent', 'unmarked'))}>Mark all unmarked absent</button>
           </div>
+          <form className="attendance-guest-form" aria-label="Add temporary guest" onSubmit={(event) => void addGuest(event)}>
+            <h2>Add guest</h2>
+            <label htmlFor="attendance-guest-name">Display name</label>
+            <input id="attendance-guest-name" maxLength={120} value={guestName} onChange={(event) => setGuestName(event.target.value)} disabled={!draft || busy || draft.status !== 'draft'} />
+            <label htmlFor="attendance-guest-gender">Gender (optional)</label>
+            <select id="attendance-guest-gender" value={guestGender} onChange={(event) => setGuestGender(event.target.value as typeof guestGender)} disabled={!draft || busy || draft.status !== 'draft'}>
+              <option value="unspecified">Unspecified</option><option value="female">Female</option><option value="male">Male</option>
+            </select>
+            <button type="submit" className="secondary" disabled={!draft || busy || draft.status !== 'draft' || !guestName.trim()}>Add guest as present</button>
+            <p>Only a display name and optional gender are saved. Guardian and contact details are not accepted in this offline guest flow.</p>
+          </form>
         </aside>
         <div className="attendance-roster-panel">
           <label htmlFor="attendance-search">Search roster</label>
@@ -222,6 +249,11 @@ export function AttendanceScreen({
                 <button type="button" className={entry.state === 'present' ? 'is-selected' : 'secondary'} aria-pressed={entry.state === 'present'} aria-label={`Mark ${entry.displayName} present`} disabled={busy || draft?.status !== 'draft'} onClick={() => void save(() => repository.markStudent(profile.id, draft!.id, entry.studentId, 'present'))}>✓ Present</button>
                 <button type="button" className={entry.state === 'absent' ? 'is-selected is-absent' : 'secondary'} aria-pressed={entry.state === 'absent'} aria-label={`Mark ${entry.displayName} absent`} disabled={busy || draft?.status !== 'draft'} onClick={() => void save(() => repository.markStudent(profile.id, draft!.id, entry.studentId, 'absent'))}>× Absent</button>
               </div>
+            </li>)}
+            {(draft?.guests ?? []).filter((guest) => guest.status !== 'merged' && guest.displayName.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())).map((guest) => <li key={guest.id}>
+              <img src={avatarForGender(guest.gender)} alt={`${guest.displayName} avatar`} />
+              <strong>{guest.displayName}</strong>
+              <span className="guest-badge">Temporary guest · Present</span>
             </li>)}
           </ul>
         </div>

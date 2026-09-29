@@ -11,4 +11,8 @@ it('defines the attendance states and versioned tenant session projection', () =
   expect(schemas.AttendanceSession.additionalProperties).toBe(false)
   expect(schemas.AttendanceSession.required).toEqual(expect.arrayContaining(['church_id', 'ministry_id', 'attendance_date', 'status', 'version']))
   expect(schemas.AttendanceRecord.required).toEqual(expect.arrayContaining(['student_id', 'state', 'version']))
+  expect(schemas.AttendanceGuest.required).toEqual(expect.arrayContaining(['display_name', 'gender', 'state', 'status']))
+  expect(contract.paths['/sync-conflicts/{id}/resolve'].post.operationId).toBe('resolveSyncConflict')
+  expect(contract.paths['/attendance-guests/{id}/promote'].post.operationId).toBe('promoteAttendanceGuest')
+  expect(contract.paths['/attendance-guests'].get.operationId).toBe('listPendingAttendanceGuests')
 })

@@ -126,6 +126,20 @@ components:
               required: [action, payload]
               unevaluatedProperties: false
               properties:
+                action: { const: attendance.guest_added }
+                payload:
+                  type: object
+                  additionalProperties: false
+                  required: [display_name]
+                  properties:
+                    display_name: { type: string, minLength: 1, maxLength: 120 }
+                    gender: { type: string, enum: [male, female, unspecified] }
+        - allOf:
+            - $ref: "#/components/schemas/SyncEventBase"
+            - type: object
+              required: [action, payload]
+              unevaluatedProperties: false
+              properties:
                 action: { const: attendance.finalized }
                 payload: { type: object, additionalProperties: false }
     SyncEventResult:
@@ -882,10 +896,22 @@ components:
         student_id: { type: string, format: uuid }
         state: { $ref: "#/components/schemas/AttendanceState" }
         version: { type: integer, minimum: 1 }
+    AttendanceGuest:
+      type: object
+      additionalProperties: false
+      required: [id, display_name, gender, state, status]
+      properties:
+        id: { type: string, format: uuid }
+        display_name: { type: string, minLength: 1, maxLength: 120 }
+        gender: { type: string, enum: [male, female, unspecified] }
+        state: { type: string, const: present }
+        status: { type: string, enum: [pending, promoted, linked, merged] }
+        resolved_student_id: { type: [string, "null"], format: uuid }
+        merged_into_guest_id: { type: [string, "null"], format: uuid }
     AttendanceSession:
       type: object
       additionalProperties: false
-      required: [id, church_id, ministry_id, attendance_date, status, version, records]
+      required: [id, church_id, ministry_id, attendance_date, status, version, records, guests]
       properties:
         id: { type: string, format: uuid }
         church_id: { type: string, format: uuid }
@@ -899,6 +925,110 @@ components:
         records:
           type: array
           items: { $ref: "#/components/schemas/AttendanceRecord" }
+        guests:
+          type: array
+          items: { $ref: "#/components/schemas/AttendanceGuest" }
+    ConflictEvidence:
+      type: object
+      additionalProperties: false
+      required: [value, actor_id, device_id, local_time, server_time, correlation_id]
+      properties:
+        value:
+          type: object
+          additionalProperties: false
+          required: [state]
+          properties:
+            state: { type: string, enum: [present, absent] }
+        actor_id: { type: [integer, "null"] }
+        device_id: { type: [string, "null"], format: uuid }
+        local_time: { type: [string, "null"], format: date-time }
+        server_time: { type: [string, "null"], format: date-time }
+        correlation_id: { type: [string, "null"], format: uuid }
+    AttendanceConflict:
+      type: object
+      additionalProperties: false
+      required: [id, session_id, record_id, field, base_version, status, existing, incoming]
+      properties:
+        id: { type: string, format: uuid }
+        session_id: { type: string, format: uuid }
+        record_id: { type: string, format: uuid }
+        field: { type: string, const: state }
+        base_version: { type: integer, minimum: 0 }
+        status: { type: string, enum: [open, resolved] }
+        existing: { $ref: "#/components/schemas/ConflictEvidence" }
+        incoming: { $ref: "#/components/schemas/ConflictEvidence" }
+    ConflictList:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [data]
+          properties:
+            data: { type: array, items: { $ref: "#/components/schemas/AttendanceConflict" } }
+        - type: object
+          additionalProperties: false
+          required: [needs_owner_review]
+          properties:
+            needs_owner_review: { type: boolean }
+    AttendanceRevisionResult:
+      type: object
+      additionalProperties: false
+      required: [revision_id, effective_state, version]
+      properties:
+        revision_id: { type: string, format: uuid }
+        effective_state: { type: string, enum: [present, absent] }
+        version: { type: integer, minimum: 1 }
+    ConflictResolutionResult:
+      type: object
+      additionalProperties: false
+      required: [id, status, revision_id, effective_state, version]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, const: resolved }
+        revision_id: { type: string, format: uuid }
+        effective_state: { type: string, enum: [present, absent] }
+        version: { type: integer, minimum: 1 }
+    GuestResolutionResult:
+      type: object
+      additionalProperties: false
+      required: [id, status, student_id, merged_into_guest_id, version]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [promoted, linked, merged] }
+        student_id: { type: [string, "null"], format: uuid }
+        merged_into_guest_id: { type: [string, "null"], format: uuid }
+        version: { type: integer, minimum: 1 }
+    GuestPromotionInput:
+      type: object
+      additionalProperties: false
+      required: [first_name, last_name]
+      properties:
+        first_name: { type: string, minLength: 1, maxLength: 120 }
+        middle_name: { type: [string, "null"], maxLength: 120 }
+        last_name: { type: string, minLength: 1, maxLength: 120 }
+        preferred_name: { type: [string, "null"], maxLength: 120 }
+        suffix: { type: [string, "null"], maxLength: 40 }
+        date_of_birth: { type: [string, "null"], format: date }
+        gender: { type: [string, "null"], enum: [male, female, unspecified, null] }
+        external_reference: { type: [string, "null"], maxLength: 120 }
+    PendingAttendanceGuest:
+      type: object
+      additionalProperties: false
+      required: [id, session_id, display_name, gender, actor_id, device_id, local_time, server_time]
+      properties:
+        id: { type: string, format: uuid }
+        session_id: { type: string, format: uuid }
+        display_name: { type: string, minLength: 1, maxLength: 120 }
+        gender: { type: string, enum: [male, female, unspecified] }
+        actor_id: { type: integer }
+        device_id: { type: string, format: uuid }
+        local_time: { type: string, format: date-time }
+        server_time: { type: string, format: date-time }
+    PendingAttendanceGuestList:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data: { type: array, maxItems: 100, items: { $ref: "#/components/schemas/PendingAttendanceGuest" } }
     ImportStudentData:
       type: object
       additionalProperties: false
@@ -1194,6 +1324,196 @@ paths:
           $ref: "#/components/responses/AuthError"
           headers:
             X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+  /sync-conflicts:
+    get:
+      operationId: listSyncConflicts
+      description: Owners receive their tenant's open attendance conflict evidence. Teachers receive only a boolean Needs Owner Review status and no actor, device, or correlation details.
+      security: [{ ChurchSession: [] }]
+      parameters:
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Role-appropriate conflict queue.
+          headers:
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConflictList" }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
+  /sync-conflicts/{id}:
+    get:
+      operationId: showSyncConflict
+      description: Owner-only side-by-side attendance conflict evidence.
+      security: [{ ChurchSession: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Conflict evidence visible to the tenant Owner.
+          headers:
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AttendanceConflict" }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
+  /sync-conflicts/{id}/resolve:
+    post:
+      operationId: resolveSyncConflict
+      description: Owner-only online resolution. Appends an attendance revision, preserves the original record, advances the session version, and audits atomically.
+      security: [{ ChurchSession: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [choice, reason]
+              properties:
+                choice: { type: string, enum: [existing, incoming] }
+                reason: { type: string, minLength: 1, maxLength: 500 }
+      responses:
+        "200":
+          description: Resolved conflict and appended revision.
+          headers:
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConflictResolutionResult" }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
+  /attendance-sessions/{session}/records/{record}/corrections:
+    post:
+      operationId: correctAttendanceRecord
+      description: Owner-only online correction of finalized attendance through an append-only revision; the original record value and actor are not mutated.
+      security: [{ ChurchSession: [] }]
+      parameters:
+        - { name: session, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: record, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [state, reason]
+              properties:
+                state: { type: string, enum: [present, absent] }
+                reason: { type: string, minLength: 1, maxLength: 500 }
+      responses:
+        "200":
+          description: Appended attendance correction.
+          headers:
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AttendanceRevisionResult" }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
+  /attendance-guests:
+    get:
+      operationId: listPendingAttendanceGuests
+      description: Owner-only online pending guest review queue with bounded attendance provenance and no guardian details.
+      security: [{ ChurchSession: [] }]
+      parameters:
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Up to 100 pending guests ordered by local attendance time.
+          headers:
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PendingAttendanceGuestList" }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
+  /attendance-guests/{id}/promote:
+    post:
+      operationId: promoteAttendanceGuest
+      description: Owner-only promotion of a pending attendance guest into a new student while preserving guest attendance provenance.
+      security: [{ ChurchSession: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GuestPromotionInput" }
+      responses:
+        "200":
+          description: Guest promoted and attendance linked.
+          headers:
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GuestResolutionResult" }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
+  /attendance-guests/{id}/link:
+    post:
+      operationId: linkAttendanceGuest
+      description: Owner-only link of a pending attendance guest to an existing active student while preserving guest attendance provenance.
+      security: [{ ChurchSession: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [student_id]
+              properties:
+                student_id: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Guest linked and attendance preserved.
+          headers:
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GuestResolutionResult" }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
+  /attendance-guests/{id}/merge:
+    post:
+      operationId: mergeAttendanceGuest
+      description: Owner-only duplicate merge that retains both source guest provenance rows.
+      security: [{ ChurchSession: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
+        - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [guest_id]
+              properties:
+                guest_id: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Duplicate guest merged into the selected canonical guest.
+          headers:
+            X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GuestResolutionResult" }
+        default: { $ref: "#/components/responses/AuthError", headers: { X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } } } }
   /offline/bootstrap:
     get:
       operationId: getOfflineBootstrap

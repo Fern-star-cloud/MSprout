@@ -238,6 +238,22 @@ export class SyncClient {
           const state = states.get(entry.studentId)
           if (state === 'unmarked' || state === 'present' || state === 'absent') entry.state = state as AttendanceState
         }
+        if (Array.isArray(change.payload.guests)) {
+          draft.guests = (change.payload.guests as Array<Record<string, unknown>>).flatMap((guest) => {
+            if (typeof guest.id !== 'string' || typeof guest.display_name !== 'string'
+              || !['male', 'female', 'unspecified'].includes(String(guest.gender))
+              || !['pending', 'promoted', 'linked', 'merged'].includes(String(guest.status))) return []
+            return [{
+              id: guest.id,
+              displayName: guest.display_name,
+              gender: guest.gender as 'male' | 'female' | 'unspecified',
+              state: 'present' as const,
+              status: guest.status as 'pending' | 'promoted' | 'linked' | 'merged',
+            }]
+          })
+        } else {
+          draft.guests ??= []
+        }
         const status = change.payload.status
         if (status === 'draft' || status === 'finalized' || status === 'needs_review' || status === 'revised') draft.status = status
         draft.version = change.version

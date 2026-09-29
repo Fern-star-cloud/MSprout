@@ -5,19 +5,19 @@ Verified: 2026-09-29. This is the primary development handoff.
 ## Git state
 
 - Branch: `feat/mvp-foundation`.
-- Task 13 started from clean, synchronized checkpoint `1b7eb36d8cfeb5de5555f9fe9396df5982b1a123` — `feat: add offline-ready attendance workflow`.
-- The current Task 13 milestone is the commit containing this handoff, with subject `feat: add idempotent attendance synchronization`.
+- Task 14 started from clean, synchronized checkpoint `eaddc9d034b7696387bb56ad6aa33bdf2dd63bf2` — `feat: add idempotent attendance synchronization`.
+- The current Task 14 milestone is the commit containing this handoff, with subject `feat: preserve attendance conflicts and revisions`.
 - Repository remotes remain `origin = https://github.com/Fern-star-cloud/MSprout.git` and `upstream = https://github.com/Frierend/ministry-sprout.git`. This differs from the roadmap preflight's original one-remote expectation; do not change remotes without explicit direction.
 
 ## Roadmap position
 
-- Tasks 1–13: **COMPLETE / COMMITTED / PUSHED** on `feat/mvp-foundation`.
-- Tasks 14–18: **NOT STARTED**.
-- Preserve Tasks 1–13 and do not begin Task 14 automatically.
+- Tasks 1–14: **COMPLETE / COMMITTED / PUSHED** on `feat/mvp-foundation`.
+- Tasks 15–18: **NOT STARTED**.
+- Preserve Tasks 1–14 and do not begin Task 15 automatically.
 
 See [ROADMAP_STATUS.md](ROADMAP_STATUS.md) for every task and commit.
 
-## Committed Tasks 8–13 foundation
+## Committed Tasks 8–14 foundation
 
 Task 8 is committed at `dc3c13c6cd5e4909c644b0abe37d18875cbe248f`. It provides ministries, students, enrollments, canonical student input normalization, date-only birthdates, server-derived display name/age, Owner roster writes, assignment-limited Teacher reads, bundled gender avatars, forced tenant RLS, and Task 7 audit integration.
 
@@ -66,7 +66,7 @@ Task 12 adds the offline-ready attendance domain and marking workflow:
 - Owner or actively assigned Teacher authorization protects drafts. Finalization locks the session and roster, requires an exact active enrollment roster with every regular student marked, preserves the actor/time, increments version, and writes required audit evidence in the same transaction.
 - Encrypted profile-local drafts use stable session identifiers and atomically append one minimal outbox event for create, mark, bulk mark, and finalize operations. Concurrent draft creation is idempotent, local mutations use optimistic concurrency, and finalized-pending drafts become read-only.
 - The responsive attendance screen loads only the unlocked profile's protected roster, supports ministry/date selection, search, individual and bulk marking, counts, avatars, live connection/pending state, local-save confirmation, and safe fixed-bar finalization.
-- Task 13 now supplies synchronization transport and acknowledgement; Task 14 conflict resolution, revisions, and temporary guests remain unimplemented.
+- Task 13 supplies synchronization transport and acknowledgement; Task 14 now supplies conflict resolution, immutable revisions, and temporary guests.
 
 Final Task 12 validation on 2026-09-28:
 
@@ -92,14 +92,30 @@ Final Task 13 validation on 2026-09-29:
 
 See [the Task 13 verification report](../docs/qa/task-13-verification.md) for gate evidence and reviewed boundaries.
 
+Task 14 adds attendance conflicts, revisions, and temporary guests:
+
+- Contradictory stale attendance changes persist bounded evidence and move the session to Needs Review; identical values deduplicate, non-overlapping records merge, and future versions remain conflicts. Multiple open conflicts keep the session in review until the last resolution.
+- Owners with current MFA receive online list/show/resolve and finalized-attendance correction actions. Each decision appends an immutable before/after revision with original/resolving actors, bounded reason, and UTC time while preserving the original attendance record value and actor.
+- `sync_conflicts`, `attendance_revisions`, and `attendance_guests` use tenant-safe keys, constraints, forced RLS, and restricted runtime grants. Conflict/guest provenance is immutable and revision rows are append-only.
+- Offline guest events permit only display name and optional gender, remain encrypted and profile-scoped locally, and preserve actor/device/correlation/local/server time when promoted, linked, or merged by an Owner.
+- The online review screen gives Owners side-by-side evidence and guest resolution controls. Assigned Teachers see only a Needs Owner Review boolean, never actor, device, correlation, or unrelated ministry details.
+
+Final Task 14 validation on 2026-09-29:
+
+- Aggregate verification: **113 frontend tests in 27 files**, frontend typecheck/lint/build, and **189 backend tests / 1,136 assertions passed**.
+- Chrome Playwright: **4 tests passed**. OpenAPI drift, Pint, Composer strict validation/audit, pnpm audit, structure, Gitleaks, Semgrep, and `git diff --check` passed.
+- Semgrep found zero issues from 103 rules over 272 tracked application files and 123 rules over the complete 28-file Task 14 source/contract set.
+
+See [the Task 14 verification report](../docs/qa/task-14-verification.md) for gate evidence and reviewed boundaries.
+
 ## Next work
 
-1. Preserve the committed Tasks 1–13 foundation.
-2. Task 14 — conflicts, revisions, and temporary guests — is next, but must not begin automatically.
+1. Preserve the committed Tasks 1–14 foundation.
+2. Task 15 — attendance history, reports, and safe CSV export — is next, but must not begin automatically.
 
 ## Known environment and repository issues
 
-- The default Windows `node` is 22.22.3, below the approved Node 24 baseline. Tasks 11–13 used the Codex-bundled Node 24.19.0 and pre-existing temporary pnpm 10.34.5 launcher without installing or purging host runtimes.
+- The default Windows `node` is 22.22.3, below the approved Node 24 baseline. Tasks 11–14 used the Codex-bundled Node 24.19.0 and pre-existing temporary pnpm 10.34.5 launcher without installing or purging host runtimes.
 - No PHP executable is on the default PATH. A pre-existing temporary Windows PHP 8.3.33 runtime and process-scoped extension scan files supply `pdo_pgsql`, GD, and ZIP outside the repository.
 - Composer/pnpm audits and Semgrep used process-scoped temporary trust configuration to retain TLS verification behind the host certificate interceptor. No global trust or machine configuration changed.
 - The two-remote configuration conflicts with the approved roadmap's original repository preflight and remains unresolved.

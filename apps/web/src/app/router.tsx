@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ApplicationScreen } from '../features/applications/ApplicationScreen'
 import { AuditScreen } from '../features/audit/AuditScreen'
 import { AttendanceScreen } from '../features/attendance/AttendanceScreen'
+import { ConflictReviewScreen } from '../features/conflicts/ConflictReviewScreen'
 import { AuthScreen, type AuthPage } from '../features/auth/AuthScreen'
 import { ImportScreen } from '../features/imports/ImportScreen'
 import { DeviceProfilesScreen } from '../features/device-profiles/DeviceProfilesScreen'
@@ -25,13 +26,14 @@ export interface NavigationItem {
 const navigationItems: NavigationItem[] = [
   { label: 'Home', href: '/account/dashboard', icon: 'home' },
   { label: 'Attendance', href: '/account/attendance', icon: 'attendance' },
+  { label: 'Review', href: '/account/conflicts', icon: 'attendance' },
   { label: 'Ministries', href: '/account/ministries', icon: 'ministries' },
   { label: 'Students', href: '/account/students', icon: 'students' },
   { label: 'Teachers', href: '/account/teachers', icon: 'teachers' },
   { label: 'Import', href: '/account/imports', icon: 'import' },
 ]
 
-const shellPages = new Set(['dashboard', 'attendance', 'ministries', 'students', 'teachers', 'imports', 'audit'])
+const shellPages = new Set(['dashboard', 'attendance', 'conflicts', 'ministries', 'students', 'teachers', 'imports', 'audit'])
 const authPages: AuthPage[] = ['login', 'verify-email', 'forgot-password', 'reset-password', 'mfa']
 
 function Dashboard() {
@@ -53,6 +55,7 @@ function screenFor(page: string, fragment: string, navigate: (path: string) => v
   if (page === 'profiles') return <DeviceProfilesScreen onUnlocked={() => navigate('/account/attendance')} />
   if (page === 'dashboard') return <Dashboard />
   if (page === 'attendance') return <AttendanceScreen />
+  if (page === 'conflicts') return <ConflictReviewScreen />
   if (page === 'audit') return <AuditScreen />
   if (page === 'teachers') return <TeacherManagementScreen />
   if (page === 'ministries') return <MinistriesScreen />
