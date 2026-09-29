@@ -1288,6 +1288,8 @@ semgrep scan --config p/owasp-top-ten apps
 
 Expected: no high/critical dependency issue, no secret, all tests pass, and only reviewed Semgrep findings remain.
 
+This full-repository OWASP scan is the mandatory production-hardening baseline for Tasks 17–18. Record its commit and coverage so Task 18 can determine whether later production-code or security-coverage changes invalidate it.
+
 Commit:
 
 ~~~bash
@@ -1334,6 +1336,8 @@ Use one approved church, at least two Teachers, and multiple profiles on one dev
 - [ ] **Step 5: Enforce the release checklist**
 
 Release only if all twelve acceptance criteria in the design spec pass, no high/critical security finding remains, backup restore succeeds, queue/scheduler heartbeat is healthy, support contacts and incident steps exist, and the Owner confirms reports match manual counts.
+
+Verify that Task 17's comprehensive full-repository Semgrep OWASP baseline still covers the release candidate. If production application code, security controls, scanner configuration, or scan coverage changed after that baseline, rerun `semgrep scan --config p/owasp-top-ten apps` and review/remediate every finding before the release decision. Otherwise record the unchanged baseline commit as the still-valid comprehensive application-scan evidence. The configured CI security scan remains required.
 
 - [ ] **Step 6: Commit pilot evidence template**
 

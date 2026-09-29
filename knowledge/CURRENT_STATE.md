@@ -5,8 +5,8 @@ Verified: 2026-09-29. This is the primary development handoff.
 ## Git state
 
 - Branch: `feat/mvp-foundation`.
-- Task 15 started from clean, synchronized checkpoint `11abcc6bc9d3ac6a9e0081863e2168478d471ac3` — `feat: preserve attendance conflicts and revisions`.
-- The current Task 15 milestone is the commit containing this handoff, with subject `feat: add basic attendance reports`.
+- Task 15 is committed and pushed at `1737921911f83695294fe760b68e6421a1a21a2d` — `feat: add basic attendance reports`.
+- The security-validation governance optimization started from that clean, synchronized checkpoint. Its milestone is the commit containing this handoff; it does not implement Task 16 or change product behavior.
 - Repository remotes remain `origin = https://github.com/Fern-star-cloud/MSprout.git` and `upstream = https://github.com/Frierend/ministry-sprout.git`. This differs from the roadmap preflight's original one-remote expectation; do not change remotes without explicit direction.
 
 ## Roadmap position
@@ -14,6 +14,13 @@ Verified: 2026-09-29. This is the primary development handoff.
 - Tasks 1–15: **COMPLETE / COMMITTED / PUSHED** on `feat/mvp-foundation`.
 - Tasks 16–18: **NOT STARTED**.
 - Preserve Tasks 1–15 and do not begin Task 16 automatically.
+
+## Security-validation baseline
+
+- Task 15's definitive Semgrep OWASP scan is the current comprehensive development baseline: 103 rules, 281 targets, approximately 99.9% parsing, and zero findings.
+- Ordinary feature work uses focused, risk-based Semgrep coverage for changed and directly relevant application inputs while that baseline remains valid. Security-sensitive boundaries still require explicit review and appropriate scanning, escalating to the full application scan whenever focused coverage is insufficient.
+- Task 17 must establish a new comprehensive production-hardening baseline. Task 18 must verify that evidence and rerun the comprehensive scan when intervening production-code or security-coverage changes invalidate it.
+- Gitleaks, dependency audits, tenant/RLS and authorization requirements, and the full Semgrep scan in the configured push/pull-request security workflow are unchanged.
 
 See [ROADMAP_STATUS.md](ROADMAP_STATUS.md) for every task and commit.
 
