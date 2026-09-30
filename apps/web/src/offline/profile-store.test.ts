@@ -96,6 +96,28 @@ describe('isolated local profiles', () => {
     })).rejects.toThrow('actor')
   })
 
+  it('invalidates cached authorization after server denial without discarding unsynchronized work', async () => {
+    const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
+    await store.unlockProfile(profile.id, '184629')
+    await store.saveBootstrap(profile.id, {
+      actor: { id: '11' }, ministries: [{ id: 'ministry-a', name: 'Primary', version: 1 }], roster: [{ id: 'student-a' }], server_cursor: '1',
+      lease: lease(profile.id, '11', profile.deviceId, '2026-10-12T00:00:00Z'),
+    })
+    await db.attendanceDrafts.put({
+      profileId: profile.id, id: 'draft-a', encrypted: await store.encryptLocalPayload(profile.id, 'attendance-draft:draft-a', { id: 'draft-a' }), updatedAt: '2026-09-28T00:00:00Z',
+    })
+    await db.outboxEvents.put({
+      profileId: profile.id, id: 'event-a', encrypted: await store.encryptLocalPayload(profile.id, 'outbox-event:event-a', { id: 'event-a' }), updatedAt: '2026-09-28T00:00:00Z',
+    })
+
+    await (store as LocalProfileStore & { invalidateAuthorization(profileId: string): Promise<void> }).invalidateAuthorization(profile.id)
+
+    expect((await db.profiles.get(profile.id))?.requiresReauthentication).toBe(true)
+    expect(await db.encryptedBlobs.where('profileId').equals(profile.id).count()).toBe(0)
+    expect(await db.attendanceDrafts.where('profileId').equals(profile.id).count()).toBe(1)
+    expect(await db.outboxEvents.where('profileId').equals(profile.id).count()).toBe(1)
+  })
+
   it('atomically quarantines work for assignments removed by a refreshed bootstrap', async () => {
     const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
     await store.unlockProfile(profile.id, '184629')
@@ -169,12 +191,19 @@ describe('isolated local profiles', () => {
     const first = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
     const second = await store.createProfile({ actorId: '12', churchId: lease('', '', '', '').church_id, pin: '934175' })
     await store.unlockProfile(first.id, '184629')
+    await store.saveBootstrap(first.id, {
+      actor: { id: '11' }, ministries: [], roster: [{ id: 'student-a' }], server_cursor: '1',
+      lease: lease(first.id, '11', first.deviceId, '2026-10-12T00:00:00Z'),
+    })
+    store.lockProfile(first.id)
+    await store.unlockProfile(second.id, '934175')
 
-    await store.switchProfile(second.id, '934175', { online: false })
+    await store.switchProfile(first.id, '184629', { online: false })
 
-    expect(store.isUnlocked(first.id)).toBe(false)
-    expect(store.isUnlocked(second.id)).toBe(true)
-    expect((await db.profiles.get(second.id))?.requiresReauthentication).toBe(true)
+    expect(store.isUnlocked(second.id)).toBe(false)
+    expect(store.isUnlocked(first.id)).toBe(true)
+    expect((await db.profiles.get(first.id))?.requiresReauthentication).toBe(true)
+    expect(await store.readEncryptedRoster(first.id)).toEqual([{ id: 'student-a' }])
   })
 
   it('clears the server session when switching online and still requires the selected actor to sign in', async () => {

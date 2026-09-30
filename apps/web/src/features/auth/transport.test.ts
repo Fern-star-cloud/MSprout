@@ -77,7 +77,9 @@ it('downloads only allowlisted same-origin attendance report filters', async () 
   vi.stubGlobal('fetch', fetcher)
   const path = `/api/attendance-reports/export?date_from=2026-09-01&date_to=2026-09-30&ministry_id=${ministry}`
 
-  await expect(authDownload(path, church)).resolves.toBeInstanceOf(Blob)
+  const download = await authDownload(path, church)
+  expect(download).toMatchObject({ size: 3, type: 'text/csv' })
+  await expect(download.text()).resolves.toBe('csv')
   expect(fetcher).toHaveBeenCalledWith(path, expect.objectContaining({ cache: 'no-store', headers: expect.objectContaining({ 'X-Church-Id': church }) }))
   await expect(authDownload('/api/attendance-reports/export?date_from=2026-09-01&date_to=2026-09-30&child_name=private', church)).rejects.toThrow('Invalid download request')
   expect(fetcher).toHaveBeenCalledTimes(1)

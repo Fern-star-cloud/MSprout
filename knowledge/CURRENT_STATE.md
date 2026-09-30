@@ -6,21 +6,21 @@ Verified: 2026-09-30. This is the primary development handoff.
 
 - Branch: `feat/mvp-foundation`.
 - The security-validation governance baseline is committed and pushed at `02c825aa7d59f8fb351b83e300f59960b88e0812`.
-- Task 16 is committed and pushed at `a444e5fbb47b1c600e8496c36709ec9a3c3d5fa6`.
-- Task 17 is complete in the commit containing this handoff — `chore: harden operations and production deployment`.
+- Task 17 is committed and pushed at `a989dd904551a26f6f7548ee0c88128f13c6933d`.
+- Task 18 is complete in the commit containing this handoff — `test: add mvp release qualification`.
 - Repository remotes remain `origin = https://github.com/Fern-star-cloud/MSprout.git` and `upstream = https://github.com/Frierend/ministry-sprout.git`. This differs from the roadmap preflight's original one-remote expectation; do not change remotes without explicit direction.
 
 ## Roadmap position
 
-- Tasks 1–17: **COMPLETE / COMMITTED / PUSHED** on `feat/mvp-foundation` after the Task 17 handoff commit is finalized.
-- Task 18: **NOT STARTED**.
-- Preserve Tasks 1–17 and do not begin Task 18 automatically.
+- Tasks 1–17: **COMPLETE / COMMITTED / PUSHED** on `feat/mvp-foundation`.
+- Task 18: **COMPLETE** in the commit containing this handoff; the controlled one-church qualification pilot and all twelve acceptance criteria passed.
+- The approved MVP roadmap ends at Task 18. Preserve Tasks 1–18; do not invent Task 19 or begin post-MVP development without a new approved scope.
 
 ## Security-validation baseline
 
-- Task 17's definitive Semgrep OWASP scan is the current comprehensive production-hardening baseline: 108 rules, 314 application targets, approximately 99.9% parsing, and zero findings.
+- Task 18 invalidated Task 17's baseline by changing the offline-security path and dependencies. The definitive release-candidate Semgrep OWASP scan is now the comprehensive baseline: 108 rules, 322 application targets, approximately 99.9% parsing, and zero findings.
 - Ordinary feature work uses focused, risk-based Semgrep coverage for changed and directly relevant application inputs while that baseline remains valid. Security-sensitive boundaries still require explicit review and appropriate scanning, escalating to the full application scan whenever focused coverage is insufficient.
-- Task 18 must cite this baseline and rerun the comprehensive application scan if intervening production-code or security-coverage changes invalidate it.
+- Future production or security-coverage changes must apply the repository's risk-based invalidation rules to this Task 18 baseline.
 - Gitleaks, dependency audits, tenant/RLS and authorization requirements, and the full Semgrep scan in the configured push/pull-request security workflow are unchanged.
 
 See [ROADMAP_STATUS.md](ROADMAP_STATUS.md) for every task and commit.
@@ -167,15 +167,26 @@ Final Task 17 validation on 2026-09-30:
 
 See [the Task 17 verification report](../docs/qa/task-17-verification.md) for complete gate evidence and reviewed boundaries.
 
+Task 18 qualifies the complete approved MVP boundary:
+
+- Whole-MVP Playwright scenarios cover onboarding, two Teacher profiles, four offline attendance dates across closure/reopen, authorization refresh, bounded outage retry, exactly-once convergence, conflicts/corrections/reports, safe import, birthday privacy, storage failure, PWA update, and cross-tenant denial.
+- A qualification-discovered offline-security defect was remediated: correct PIN unlock can read an unexpired encrypted cache after restart/profile switch, while reauthentication-required state still blocks push/pull until the same actor refreshes authorization online. Expiry, revocation, and online authorization failure remain fail-closed.
+- The definitive matrix passed **60/60 Playwright tests** across desktop Chrome, Pixel 7 Chrome emulation, iPhone 13 WebKit emulation, and iPad WebKit emulation. Axe found no serious/critical issue on qualified surfaces.
+- Aggregate verification passed **131 frontend tests in 34 files** and **208 backend tests / 1,299 assertions**, with typecheck, production build, lint, OpenAPI drift, formatting, frozen install, structure, audits, Gitleaks, and whitespace checks green. Focused offline profile/device/sync proof passed 20 tests after the final authorization-denial correction.
+- Newly published Laravel/Flysystem advisories were remediated to Laravel 13.34.0 and Flysystem 3.36.0; final Composer and pnpm audits report no known vulnerabilities. The dependency-refreshed image and operations checks passed.
+- The encrypted isolated PostgreSQL restore drill matched required counts/checksums and destroyed all temporary restore/backup artifacts. Queue startup, scheduler heartbeat, PWA update, and offline-to-online convergence passed.
+- Release decision: **GO** for the approved MVP boundary and controlled one-church pilot procedure. See [Task 18 verification](../docs/qa/task-18-verification.md), [browser matrix](../docs/qa/browser-matrix.md), [pilot evidence](../docs/qa/pilot-runbook.md), and [release checklist](../docs/qa/release-checklist.md).
+
 ## Next work
 
-1. Preserve the committed Tasks 1–17 foundation.
-2. Task 18 — MVP qualification and one-church pilot — is next, but must not begin automatically.
+1. Preserve the completed Tasks 1–18 MVP foundation and the Task 18 release evidence.
+2. Stop at the MVP boundary. Any production rollout follows the existing deployment/pilot runbooks; any product expansion requires a separately approved post-MVP scope.
 
 ## Known environment and repository issues
 
-- The default Windows `node` is 22.22.3, below the approved Node 24 baseline. Task 16 used the Codex-bundled Node 24.19.0 and pre-existing temporary pnpm 10.34.5 launcher without installing or purging host runtimes.
+- The default Windows `node` is 22.22.3, below the approved Node 24 baseline. Task 18 used the Codex-bundled Node 24.19.0 with Corepack pnpm 10.34.5 without installing or purging host runtimes.
 - No PHP executable is on the default PATH. A pre-existing temporary Windows PHP 8.3.33 runtime and process-scoped extension scan files supply `pdo_pgsql`, GD, and ZIP outside the repository.
-- Composer/pnpm audits and Semgrep used process-scoped temporary trust configuration to retain TLS verification behind the host certificate interceptor. The comprehensive Task 17 scan ran in the pinned local Docker environment with its trusted roots mounted read-only. No global trust or machine configuration changed.
-- The two-remote configuration conflicts with the approved roadmap's original repository preflight and remains unresolved.
+- Composer/pnpm audits and Semgrep used process-scoped temporary trust configuration to retain TLS verification behind the host certificate interceptor. The comprehensive Task 18 scan ran in the existing local Docker environment with its trusted roots mounted read-only. No global trust or machine configuration changed.
+- Playwright used installed stable Chrome. The host's existing WebKit 2336 was selected through a process-scoped executable-path override because it predates the current package's managed revision; no browser was installed or reconfigured. The 60-test matrix is browser-engine/device-emulation evidence, not physical-device evidence.
+- The pre-existing `upstream` remote differs from the roadmap's original one-remote preflight. It was not used or modified; Task 18 finalization is explicitly limited to the existing tracked `origin/feat/mvp-foundation` branch.
 - `vite-plugin-pwa` emits an upstream non-blocking `inlineDynamicImports` deprecation warning while building the injected service worker; the production build and offline browser test pass.

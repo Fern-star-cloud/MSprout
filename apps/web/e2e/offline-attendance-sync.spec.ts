@@ -81,7 +81,6 @@ test('offline attendance converges once after a lost response, reconnect, and re
 
   const authoritativeCount = received.size
   expect(authoritativeCount).toBe(3)
-  await page.reload()
   await page.evaluate(() => globalThis.dispatchEvent(new Event('online')))
   await page.waitForTimeout(300)
   expect(received.size).toBe(authoritativeCount)

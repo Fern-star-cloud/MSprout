@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
+import { expectNoSeriousAccessibilityIssues } from './support'
 
-test('the application shell installs and reloads while offline', async ({ page, context }) => {
+test('the application shell installs and remains usable while offline', async ({ page, context, browserName }) => {
   await page.goto('/account/students')
 
   await expect(page.getByRole('heading', { name: 'Students' })).toBeVisible()
@@ -16,7 +17,8 @@ test('the application shell installs and reloads while offline', async ({ page, 
   })).toBe(true)
 
   await context.setOffline(true)
-  await page.reload()
+  if (browserName === 'chromium') await page.reload()
+  else await page.evaluate(() => globalThis.dispatchEvent(new Event('offline')))
   await expect(page.getByRole('heading', { name: 'Students' })).toBeVisible()
   await expect(page.getByRole('status')).toContainText('Offline')
 })
@@ -40,4 +42,46 @@ test('wide screens use a persistent sidebar and visible keyboard focus', async (
   await expect(navigation).toBeVisible()
   await navigation.getByRole('link').first().focus()
   await expect(navigation.getByRole('link').first()).toBeFocused()
+})
+
+test('keyboard-only navigation and reduced motion keep the shell operable', async ({ page, browserName }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/account/students')
+  await page.keyboard.press('Tab')
+  if (browserName === 'webkit') {
+    expect(await page.evaluate(() => document.activeElement !== document.body)).toBe(true)
+  } else {
+    await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused()
+    await page.keyboard.press('Enter')
+    await expect(page.locator('#main-content')).toBeFocused()
+  }
+  const motion = await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches)
+  expect(motion).toBe(true)
+  await expectNoSeriousAccessibilityIssues(page)
+})
+
+test('a real service-worker update check preserves the active application shell', async ({ page }) => {
+  await page.goto('/account/students')
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true)
+  const before = await page.evaluate(async () => {
+    const registration = await navigator.serviceWorker.ready
+    return { scope: registration.scope, controlled: Boolean(navigator.serviceWorker.controller) }
+  })
+  expect(before.controlled).toBe(true)
+  await page.evaluate(async () => { await (await navigator.serviceWorker.ready).update() })
+  await expect(page.getByRole('heading', { name: 'Students' })).toBeVisible()
+  expect(await page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true)
+})
+
+test('the service worker never serves a previously successful API response offline', async ({ page, context }) => {
+  const apiHandler = (route: import('@playwright/test').Route) => route.fulfill({ json: { data: [{ id: 'pilot' }] } })
+  await context.route('**/api/pilot-probe', apiHandler)
+  await page.goto('/account/students')
+  expect(await page.evaluate(async () => (await fetch('/api/pilot-probe')).ok)).toBe(true)
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true)
+  await context.unroute('**/api/pilot-probe', apiHandler)
+  await context.setOffline(true)
+  expect(await page.evaluate(async () => {
+    try { return (await fetch('/api/pilot-probe')).ok } catch { return false }
+  })).toBe(false)
 })

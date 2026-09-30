@@ -46,6 +46,7 @@ it('uploads previews maps excludes and idempotently commits selected rows', asyn
   await waitFor(() => expect(authUpload).toHaveBeenCalledWith('/api/imports/students/preview', file, church))
   expect(await screen.findByText('1 valid')).not.toBeNull()
   expect(screen.getByText('1 invalid')).not.toBeNull()
+  expect(screen.getByRole('region', { name: 'Import preview rows' }).getAttribute('tabindex')).toBe('0')
   await user.selectOptions(screen.getByLabelText('Map New Group'), ministry)
   await user.click(screen.getByLabelText('Approve row 3'))
   await user.click(screen.getByRole('button', { name: 'Commit 2 students' }))

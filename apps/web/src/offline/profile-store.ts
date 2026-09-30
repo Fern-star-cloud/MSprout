@@ -219,6 +219,17 @@ export class LocalProfileStore {
     )
   }
 
+  async invalidateAuthorization(profileId: string): Promise<void> {
+    await this.db.transaction('rw', [this.db.profiles, this.db.encryptedBlobs], async () => {
+      await this.db.profiles.update(profileId, { requiresReauthentication: true })
+      await this.db.encryptedBlobs.bulkDelete([
+        [profileId, 'roster'],
+        [profileId, 'ministries'],
+        [profileId, 'authorization'],
+      ])
+    })
+  }
+
   async saveEncryptedRoster(profileId: string, roster: unknown): Promise<void> {
     const encrypted = await encryptPayload(profileId, 'roster', this.keyFor(profileId), roster)
     await this.db.encryptedBlobs.put({ profileId, key: 'roster', encrypted, updatedAt: this.now().toISOString() })

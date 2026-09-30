@@ -125,7 +125,7 @@ export function ImportScreen() {
       {unknown.map(name => <label key={name}>Map {name}<select value={mappings[name] ?? ''} onChange={event => setMappings(current => ({ ...current, [name]: event.target.value }))}>
         <option value="">Choose an existing ministry</option>{ministries.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
       </select></label>)}
-      <div className="import-table-wrap"><table className="import-table"><thead><tr><th>Approve</th><th>Row</th><th>Student</th><th>Status</th><th>Details</th></tr></thead><tbody>
+      <div className="import-table-wrap" role="region" aria-label="Import preview rows" tabIndex={0}><table className="import-table"><thead><tr><th>Approve</th><th>Row</th><th>Student</th><th>Status</th><th>Details</th></tr></thead><tbody>
         {preview.rows.map(row => {
           const selectable = row.status === 'valid' || (row.status === 'needs_mapping' && row.unknown_ministries.every(name => Boolean(mappings[name])))
           return <tr key={row.id}><td><input type="checkbox" aria-label={`Approve row ${row.row_number}`} checked={selected.has(row.id)} disabled={!selectable || completed !== null} onChange={event => toggle(row.id, event.target.checked)} /></td>

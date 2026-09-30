@@ -23,7 +23,7 @@ Authentication setup, the isolated platform invitation, and verification command
 
 ## Production operations
 
-The production target is Vercel for the PWA and separate Railway API, worker, and scheduler services built from one Laravel image. Follow [the deployment runbook](docs/operations/deployment.md), [the backup and restore procedure](docs/operations/backup-restore.md), and [the threat model](docs/security/threat-model.md). Task 17 prepares this topology; Task 18 still owns release qualification and the pilot.
+The production target is Vercel for the PWA and separate Railway API, worker, and scheduler services built from one Laravel image. Follow [the deployment runbook](docs/operations/deployment.md), [the backup and restore procedure](docs/operations/backup-restore.md), and [the threat model](docs/security/threat-model.md). Task 18 qualified the MVP release candidate and controlled one-church pilot procedure; its go/no-go evidence is in [the release checklist](docs/qa/release-checklist.md).
 
 ## Security
 

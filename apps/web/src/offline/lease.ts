@@ -1,7 +1,7 @@
 import type { OfflineLease, ProfileRecord } from './schema'
 
-export function isLeaseValid(profile: Pick<ProfileRecord, 'leaseExpiresAt' | 'requiresReauthentication'>, now = new Date()): boolean {
-  if (!profile.leaseExpiresAt || profile.requiresReauthentication) return false
+export function isLeaseValid(profile: Pick<ProfileRecord, 'leaseExpiresAt'>, now = new Date()): boolean {
+  if (!profile.leaseExpiresAt) return false
   const expiry = Date.parse(profile.leaseExpiresAt)
   return Number.isFinite(expiry) && expiry > now.getTime()
 }

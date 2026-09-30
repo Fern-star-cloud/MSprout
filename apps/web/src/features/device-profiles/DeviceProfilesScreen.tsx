@@ -1,10 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { ApiError } from '../../api/client'
 import { authRequest } from '../auth/transport'
 import { profileStore, type LocalProfileStore } from '../../offline/profile-store'
 import type { OfflineBootstrap, ProfileRecord } from '../../offline/schema'
 
 interface DeviceProfilesScreenProps {
-  store?: Pick<LocalProfileStore, 'listProfiles' | 'unlockProfile' | 'switchProfile' | 'createProfile' | 'saveBootstrap' | 'purgeProfile'>
+  store?: Pick<LocalProfileStore, 'listProfiles' | 'unlockProfile' | 'switchProfile' | 'createProfile' | 'saveBootstrap' | 'invalidateAuthorization' | 'purgeProfile'>
   onUnlocked?: () => void
 }
 
@@ -77,6 +78,28 @@ export function DeviceProfilesScreen({ store = profileStore, onUnlocked }: Devic
     await refresh()
   }
 
+  const refreshAuthorization = async () => {
+    const profile = profiles.find((candidate) => candidate.id === selected)
+    if (!profile || !profile.churchId || !navigator.onLine) return
+    setMessage('')
+    try {
+      await store.unlockProfile(profile.id, pin)
+      const bootstrap = await authRequest<OfflineBootstrap>(`/api/offline/bootstrap?device_id=${profile.deviceId}`, 'GET', undefined, profile.churchId)
+      await store.saveBootstrap(profile.id, bootstrap)
+      setPin('')
+      await refresh()
+      setMessage('Authorization refreshed for this profile. Synchronizing pending work…')
+      globalThis.dispatchEvent(new Event('online'))
+      onUnlocked?.()
+    } catch (error) {
+      if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
+        await store.invalidateAuthorization(profile.id)
+        await refresh()
+      }
+      setMessage('Authorization could not be refreshed. Sign in as this profile’s teacher, check the PIN, and try again.')
+    }
+  }
+
   return (
     <section className="auth-card device-profiles">
       <p className="eyebrow">Shared device protection</p>
@@ -97,6 +120,7 @@ export function DeviceProfilesScreen({ store = profileStore, onUnlocked }: Devic
           <input id="profile-pin" inputMode="numeric" autoComplete="off" pattern="[0-9]{6,12}" minLength={6} maxLength={12} value={pin} onChange={(event) => setPin(event.target.value)} required />
           <p className="privacy-note">This PIN protects this device profile. It is not your church password.</p>
           <button type="submit" disabled={!selected}>Use profile {Math.max(1, profiles.findIndex((profile) => profile.id === selected) + 1)}</button>
+          <button className="secondary" type="button" disabled={!selected || !navigator.onLine} onClick={() => void refreshAuthorization()}>Refresh authorization after sign-in</button>
           <button className="secondary" type="button" onClick={() => void purge()}>Remove selected profile</button>
         </form>
       ) : <p>No offline profiles are stored on this device.</p>}
