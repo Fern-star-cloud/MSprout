@@ -8,7 +8,7 @@ Verified: 2026-09-30. This is the development checkpoint index. The [canonical s
 - The security-validation governance baseline is committed and pushed at `02c825aa7d59f8fb351b83e300f59960b88e0812`.
 - Task 17 is committed and pushed at `a989dd904551a26f6f7548ee0c88128f13c6933d`.
 - Task 18 is committed and pushed at `ffee8ebe9e87fe096c52e23f7a0d49da9c1c0202` — `test: add mvp release qualification`.
-- The current runtime-qualification maintenance changes are validated and reviewed before their one task commit. Resolve their final commit with `git log -1 --format="%H %s" -- docs/qa/MSPROUT_SYSTEM_HANDOFF.md` and verify actual worktree/upstream state; this file does not invent a self-referential SHA.
+- Runtime-qualification maintenance is committed/pushed at `df7cf6118f5f119253154ce015803fd143bb1a6c` — `fix: qualify runtime and document system handoff`; verified clean/0/0 at planning reconnaissance.
 - Repository remotes remain `origin = https://github.com/Fern-star-cloud/MSprout.git` and `upstream = https://github.com/Frierend/ministry-sprout.git`. This differs from the roadmap preflight's original one-remote expectation; do not change remotes without explicit direction.
 
 ## Roadmap position
@@ -16,6 +16,12 @@ Verified: 2026-09-30. This is the development checkpoint index. The [canonical s
 - Tasks 1–17: **COMPLETE / COMMITTED / PUSHED** on `feat/mvp-foundation`.
 - Task 18: **COMPLETE / COMMITTED / PUSHED**; the controlled automated one-church qualification rehearsal and all twelve acceptance criteria passed. It was not a human or production pilot.
 - The approved MVP roadmap ends at Task 18. Preserve Tasks 1–18; do not invent Task 19 or begin post-MVP development without a new approved scope.
+
+## Manual planning and local tooling
+
+The requested planning/tooling layer adds [23 ordered QA phases](../docs/qa/MANUAL_TESTING_ROADMAP.md), separate [manual state](MANUAL_TESTING.md) and [Codebase Memory operating knowledge](CODEBASE_MEMORY.md). No new manual phase, product feature or development data mutation occurred. Cases remain NOT_RUN; MT-00 is the next execution entry point. Operational authority/security/finalization in AGENTS.md is unchanged. Planning validation was recorded before finalization; resolve the task commit from the roadmap's history and verify actual upstream/worktree state rather than assuming a self-referential commit SHA.
+
+Codebase Memory v0.11.0 is installed outside the repository with a scoped user Codex MCP entry, external cache and explicit indexing. Current desktop-chat tool visibility requires restart and remains distinct from direct server verification recorded in CODEBASE_MEMORY.md. The existing Codex CLI has a config-version mismatch; unrelated desktop settings were preserved. Provider/device commissioning gaps remain future manual prerequisites, not results fabricated by planning.
 
 ## Security-validation baseline
 

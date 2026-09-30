@@ -5,6 +5,9 @@ Always begin with [CURRENT_STATE.md](CURRENT_STATE.md). Then read only what the 
 | Need | Document |
 |---|---|
 | Current MVP operation, fixtures, runtime/manual qualification, defects and next action | [Canonical system handoff](../docs/qa/MSPROUT_SYSTEM_HANDOFF.md) |
+| Ordered live/manual qualification cases and phase exit rules | [Manual testing roadmap](../docs/qa/MANUAL_TESTING_ROADMAP.md) |
+| Current manual phase, findings, blockers, evidence and next action | [MANUAL_TESTING.md](MANUAL_TESTING.md) |
+| Scoped local graph tooling, installation, verification and rollback | [CODEBASE_MEMORY.md](CODEBASE_MEMORY.md) |
 | Product purpose, terminology, business or security invariants | [PROJECT_BRAIN.md](PROJECT_BRAIN.md) |
 | System boundaries, data flow, authentication, tenancy, audit design | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Roadmap implementation or task selection | [ROADMAP_STATUS.md](ROADMAP_STATUS.md) and the [approved roadmap](../docs/superpowers/plans/2026-08-20-ministry-sprout-implementation-roadmap.md) |

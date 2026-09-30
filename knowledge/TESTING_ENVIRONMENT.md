@@ -2,6 +2,19 @@
 
 Verified on 2026-09-30 unless a historical milestone is explicitly identified.
 
+## Manual planning / Codebase Memory integration validation
+
+Planning/tooling-only maintenance against starting checkpoint `df7cf6118f5f119253154ce015803fd143bb1a6c`, 2026-09-30:
+
+- `git diff --check` passed. Local Markdown file references passed; the roadmap has **23 complete phase schemas / 211 unique case IDs**, initially NOT_RUN. Review corrected source-sensitive application/invitation/version assumptions and named fixture dependencies; no BLOCKING or SHOULD FIX item remains in the planning review.
+- Gitleaks 8.30.0 scanned a temporary exact-path snapshot of all ten intended added/changed files, including new/untracked documents, using `detect --no-git --no-banner --redact`; **zero leaks**. Private config backups, downloads, receipts, graph cache and scanner output remain outside Git. No real credentials were added.
+- User Codex TOML parses; removing only the new MCP entry produces parsed settings equal to the pre-install snapshot. The desktop-bundled CLI reports the entry enabled with the reviewed executable, repository cwd and allowed-root/cache environment. No optional project JSON is necessary: native Blade discovery indexed all four templates.
+- Reviewed official pinned Windows **v0.11.0** installer/checksums passed. Independent local stdio MCP initialize/tools-list/list/architecture/symbol/trace smoke checks passed (17 tools). Full MSprout reindex passed with **2,563 nodes / 7,656 edges**, six reviewed partial parses and zero unusable files. Initial graph was 2,521/7,614; graph counts are observations, not completeness/security proof. Out-of-root indexing was denied as intended; indexed path inspection found no excluded environment/private-key/runtime-data paths. See [tool evidence and limitations](CODEBASE_MEMORY.md), including unverified independent signature/attestation checking.
+- Active desktop-chat MCP visibility remains **PENDING restart**, explicitly allowed by this request. It is distinct from the passing standalone MCP protocol checks. No desktop invocation, manual phase or new live product qualification is claimed.
+- No application source, contract, dependency, migration, scanner/CI execution or product runtime input changed. Therefore backend/frontend/build/audit/OWASP product gates were not invalidated or rerun solely for documentation. The runtime-qualification comprehensive Semgrep baseline and final delta recorded in [CURRENT_STATE.md](CURRENT_STATE.md) remain applicable; full security CI coverage is unchanged. Git whitespace and secret checks cover this documentation/tooling change separately.
+
+These results were recorded before the one permitted task finalization; resolve its commit from the roadmap's history and verify actual tracking/remote state. Tasks 1–18 and development data are preserved; no Task 19 or manual run report was created.
+
 ## Canonical architecture
 
 - Local infrastructure: `compose.yaml` runs PostgreSQL `18-alpine` on loopback port 5432 and Mailpit `v1.27.7` on loopback ports 1025/8025.

@@ -4,6 +4,8 @@
 
 Canonical developer/operator/manual-testing orientation for the current implemented MVP. A new session should read this file and `AGENTS.md` first. Repository authority still applies; this operational summary does not approve product expansion. Evidence distinguishes live runtime, modeled browser scenarios, automated backend tests, inspection and historical reports.
 
+Qualification sequencing now lives in [MANUAL_TESTING_ROADMAP.md](MANUAL_TESTING_ROADMAP.md); current phase/findings/blockers live in [manual knowledge](../../knowledge/MANUAL_TESTING.md). [Codebase Memory knowledge](../../knowledge/CODEBASE_MEMORY.md) covers advisory graph tools. These distinct layers do not alter the historical results below or AGENTS.md authority.
+
 ## 2. Repository Checkpoint
 
 Qualification date: **2026-09-30, Asia/Taipei**; handoff assembled at **21:54:06 +08:00**. Starting HEAD `ffee8ebe9e87fe096c52e23f7a0d49da9c1c0202`, `test: add mvp release qualification`. Branch/upstream: `feat/mvp-foundation` / `origin/feat/mvp-foundation`; initially clean, unstaged, 0/0 ahead/behind. Authenticated remote read agreed. `origin/main`: `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f`, unchanged. Existing `upstream` remote was not used/modified.
@@ -198,7 +200,7 @@ Verifier requires configured secret, success, exact expected hostname and action
 
 ## 19. Teacher Invitation Lifecycle
 
-Owner/current MFA/recent auth selects email/assignments -> expiring invitation/queued mail -> signed-fragment recipient link -> token/identity checks -> create/use church account, verified membership/assignments. Mismatch/expiry/replay/revocation fail safely. Owner can revoke/change scope; device/push invalidation and tombstone reconciliation quarantine unsynced work. Ownership transfer locks memberships, requires assurance, preserves one Owner and audits atomically.
+Owner/current MFA/recent auth selects email/nonempty assignments -> expiring invitation/synchronous private-transport mail -> signed-fragment recipient link -> token/identity checks -> create/use church account, verified membership/assignments. Source inspection during manual planning confirms Teacher invitation mail is synchronous to keep raw proofs out of serialized jobs; application decisions/platform setup use the queue. Re-invitation revokes older pending invitations; consumed acceptance returns410. Mismatch/expiry/replay/revocation fail safely. Owner can revoke/change scope, including clearing accepted Teacher assignments; device/push invalidation and tombstone reconciliation quarantine unsynced work. Ownership transfer locks memberships, requires assurance, preserves one Owner and audits atomically.
 
 ## 20. Ministry and Roster Model
 
@@ -460,8 +462,8 @@ No dev migrate:fresh/volume delete/reseed/SQLite delete/history discard/broad pr
 
 ## 47. Exact Next Action
 
-Verify qualification commit/worktree/upstream, then commission real Turnstile site/secret/hostname for the chosen origin without altering verification checks. Confirm applicant form/status with existing dev fixture. When human provides private operator recovery mailbox, use official sage.dev invitation/MFA procedure, approved synthetic church/Teacher/roster data and first complete live integration journey. Observe hosted CI and physical-device evidence before claiming production pilot readiness. No next feature.
+Verify qualification commit `df7cf6118f5f119253154ce015803fd143bb1a6c` and the subsequent planning commit/worktree/upstream. Follow [roadmap entry point](MANUAL_TESTING_ROADMAP.md): MT-00 preflight first, then its ordered commissioning and qualification phases. Read [manual state](../../knowledge/MANUAL_TESTING.md) before each run. Real Turnstile/private administrator mailbox/MFA/provider/device prerequisites remain explicit; no phase was executed by planning and no next product feature is authorized.
 
 ## 48. Continuation Prompt
 
-> Read AGENTS.md and docs/qa/MSPROUT_SYSTEM_HANDOFF.md first. Verify Git checkpoint/status/upstream and preserve work. Tasks1–18 are complete; no new feature. Continue only explicitly requested commissioning/qualification. Distinguish live runtime, modeled browser, automated tests, inspection and historical evidence. Preserve PostgreSQL/RLS, MFA/CSRF/audit, origin-only API session recognition, protected encrypted lease expiry/binding and unsynced work. Use documented process-scoped Windows tools; never reset/reseed development or weaken security. Update canonical handoff/knowledge with verified facts, follow RED/YELLOW/GREEN/exact-path finalization, then stop.
+> Read AGENTS.md, docs/qa/MSPROUT_SYSTEM_HANDOFF.md, docs/qa/MANUAL_TESTING_ROADMAP.md, knowledge/MANUAL_TESTING.md and knowledge/CODEBASE_MEMORY.md. Verify checkpoint/status/upstream and preserve work. Tasks 1–18 are complete; no new feature/Task 19. Execute MT-00 only, record actual expected/actual/result/evidence and exact prerequisites, update manual knowledge and stop at the reviewed checkpoint. Distinguish live runtime, modeled browser, automated tests, inspection and historical evidence. Preserve PostgreSQL/RLS, MFA/CSRF/CAPTCHA/audit, protected leases and unsynced work. Use documented process-scoped Windows tools; never reset/reseed development or weaken security. Verify scoped MCP visibility after restart if pending; source/tests remain authoritative. Follow AGENTS.md remediation/validation/finalization.

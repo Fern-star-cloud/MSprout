@@ -1,3 +1,6 @@
 node_modules/
 .pnpm-store/
 .env
+
+# Local Codebase Memory graph snapshots are disposable, never application data.
+.codebase-memory/
