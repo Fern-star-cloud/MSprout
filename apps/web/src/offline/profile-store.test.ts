@@ -96,6 +96,20 @@ describe('isolated local profiles', () => {
     })).rejects.toThrow('actor')
   })
 
+  it('does not extend encrypted authorization by editing the clear profile expiry', async () => {
+    const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
+    await store.unlockProfile(profile.id, '184629')
+    await store.saveBootstrap(profile.id, {
+      actor: { id: '11' }, ministries: [], roster: [{ id: 'student-a' }], server_cursor: '1',
+      lease: lease(profile.id, '11', profile.deviceId, '2026-09-27T23:59:59Z'),
+    })
+    await db.profiles.update(profile.id, { leaseExpiresAt: '2099-01-01T00:00:00Z' })
+
+    expect(await store.isLeaseValid(profile.id)).toBe(false)
+    await expect(store.readEncryptedRoster(profile.id)).rejects.toThrow('expired')
+    await expect(store.encryptLocalPayload(profile.id, 'draft', {})).rejects.toThrow('expired')
+  })
+
   it('invalidates cached authorization after server denial without discarding unsynchronized work', async () => {
     const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
     await store.unlockProfile(profile.id, '184629')
@@ -178,8 +192,10 @@ describe('isolated local profiles', () => {
     await store.saveEncryptedRoster(first.id, [{ id: 'student-a' }])
     store.lockProfile(first.id)
     await store.unlockProfile(second.id, '934175')
-    await store.saveEncryptedRoster(second.id, [{ id: 'student-b' }])
-    await db.profiles.update(second.id, { leaseExpiresAt: '2026-10-12T00:00:00Z', requiresReauthentication: false })
+    await store.saveBootstrap(second.id, {
+      actor: { id: '12' }, ministries: [], roster: [{ id: 'student-b' }], server_cursor: '1',
+      lease: lease(second.id, '12', second.deviceId, '2026-10-12T00:00:00Z'),
+    })
 
     await store.purgeProfile(first.id)
 

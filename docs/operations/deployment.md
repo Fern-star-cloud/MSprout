@@ -23,6 +23,7 @@ Set values in the deployment secret stores; never paste values into Git, tickets
 | Sessions/cache/queue | `SESSION_DRIVER`, `SESSION_COOKIE`, `SESSION_SECURE_COOKIE`, `SESSION_SAME_SITE`, `CACHE_STORE`, `QUEUE_CONNECTION`, `QUEUE_FAILED_DRIVER` |
 | Mail and application review | `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`, `TURNSTILE_SECRET_KEY`, `TURNSTILE_HOSTNAME` |
 | Platform and operations | `PLATFORM_SESSION_COOKIE`, `PLATFORM_SETUP_LIFETIME`, `READINESS_TOKEN`, `QUEUE_LAG_WARNING_SECONDS`, `SCHEDULER_STALE_SECONDS` |
+| Web build | `VITE_TURNSTILE_SITE_KEY` (public site key; paired with API Turnstile secret/hostname) |
 | Web Push | `WEBPUSH_VAPID_SUBJECT`, `WEBPUSH_VAPID_PUBLIC_KEY`, `WEBPUSH_VAPID_PRIVATE_KEY` |
 
 Production requires `APP_ENV=production`, `APP_DEBUG=false`, HTTPS, secure cookies, PostgreSQL-backed queues, and a cryptographically random `READINESS_TOKEN`. The public `/health/live` response is only `{ "status": "ok" }`; `/health/ready` requires `X-Readiness-Token`; aggregate metrics require an active, verified, MFA-confirmed `sage.dev` session at `/platform/system-health`.
@@ -37,7 +38,7 @@ Production requires `APP_ENV=production`, `APP_DEBUG=false`, HTTPS, secure cooki
 
 ## `sage.dev` bootstrap and removal
 
-Run `php artisan platform:bootstrap` only in the isolated migration/administrative job using the private recovery email. The command creates a pending identity and a short-lived signed setup link; setup still requires email possession, password creation, MFA confirmation, and recovery-code acknowledgement. Remove the bootstrap job and any one-time delivery secret immediately afterward. To disable access, set the platform administrator status to `disabled`, revoke its sessions, rotate affected credentials if compromise is suspected, and preserve the audit evidence. Never convert a church identity into `sage.dev` or give `sage.dev` a church membership.
+Run `php artisan platform:bootstrap-admin --handle=sage.dev --email=<private-recovery-email>` only in the isolated migration/administrative job using the private recovery email. The command creates a pending identity and a short-lived signed setup link; setup still requires email possession, password creation, MFA confirmation, and recovery-code acknowledgement. Remove the bootstrap job and any one-time delivery secret immediately afterward. To disable access, set the platform administrator status to `disabled`, revoke its sessions, rotate affected credentials if compromise is suspected, and preserve the audit evidence. Never convert a church identity into `sage.dev` or give `sage.dev` a church membership.
 
 ## Key rotation
 
@@ -58,7 +59,7 @@ Run the scheduler continuously. It records a heartbeat each minute, prunes sanit
 
 Keep the implemented per-identity and per-IP limits enabled: authentication and recovery, platform setup/MFA, church applications, invitation/ownership actions, imports, offline bootstrap, sync, notifications, and readiness probes. A browser control or CDN rule never replaces Laravel authorization or PostgreSQL RLS.
 
-The Vercel CSP deliberately excludes `unsafe-inline` and external scripts/styles. The PWA must keep code, styles, workers, manifests, and API connections same-origin; API responses remain `no-store`, and the service worker remains NetworkOnly for `/api/**`. Review both CSP and service-worker routing before adding any external origin.
+The Vercel CSP deliberately excludes `unsafe-inline` and `unsafe-eval`. Its sole external script/frame exception is `https://challenges.cloudflare.com` for the required Turnstile widget. Application code, styles, workers, manifests, and API connections remain same-origin; API responses remain `no-store`, and the service worker remains NetworkOnly for `/api/**`. Review both CSP and service-worker routing before adding any external origin.
 
 ## Rollback
 

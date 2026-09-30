@@ -2,6 +2,8 @@
 
 MinistrySprout is a secure, multi-church attendance PWA for children's ministry.
 
+Start with the [canonical system handoff](docs/qa/MSPROUT_SYSTEM_HANDOFF.md) for current runtime setup, development fixtures, qualification evidence, known limitations, and the exact next action.
+
 ## Prerequisites
 
 - Node.js 24 LTS and Corepack

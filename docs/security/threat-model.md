@@ -25,7 +25,7 @@ Trust boundaries are the browser/PWA, profile-scoped IndexedDB, Vercel reverse p
 
 Public liveness returns no build, dependency, database, queue, tenant, or record information. Readiness uses a high-entropy header secret and returns component states only. `sage.dev` health is aggregate and never returns tenant identifiers, names, birthdates, endpoints, credentials, raw exceptions, or sample rows. Retention can delete security and replay evidence only after fixed minimum windows; active device cursors block change-feed deletion; expired devices are marked for full bootstrap; tenant audit events are never deleted by the job.
 
-The strict browser policy permits only same-origin scripts, styles, connections, workers, images (plus bundled data images), and manifests. Framing, plugins, camera, microphone, geolocation, payment, and USB are denied. HTTPS and HSTS are mandatory in production.
+The strict browser policy permits same-origin application scripts, styles, connections, workers, images (plus bundled data images), and manifests. The required Turnstile widget alone permits scripts and frames from `https://challenges.cloudflare.com`; inline/evaluated scripts and all other external scripts remain denied. Framing the application, plugins, camera, microphone, geolocation, payment, and USB are denied. HTTPS and HSTS are mandatory in production.
 
 ## Residual risk and review triggers
 

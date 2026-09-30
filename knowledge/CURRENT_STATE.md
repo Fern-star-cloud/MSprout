@@ -1,29 +1,39 @@
 # Current State
 
-Verified: 2026-09-30. This is the primary development handoff.
+Verified: 2026-09-30. This is the development checkpoint index. The [canonical system handoff](../docs/qa/MSPROUT_SYSTEM_HANDOFF.md) contains current operation, fixtures, qualification, defects and commissioning limitations.
 
 ## Git state
 
 - Branch: `feat/mvp-foundation`.
 - The security-validation governance baseline is committed and pushed at `02c825aa7d59f8fb351b83e300f59960b88e0812`.
 - Task 17 is committed and pushed at `a989dd904551a26f6f7548ee0c88128f13c6933d`.
-- Task 18 is complete in the commit containing this handoff — `test: add mvp release qualification`.
+- Task 18 is committed and pushed at `ffee8ebe9e87fe096c52e23f7a0d49da9c1c0202` — `test: add mvp release qualification`.
+- The current runtime-qualification maintenance changes are validated and reviewed before their one task commit. Resolve their final commit with `git log -1 --format="%H %s" -- docs/qa/MSPROUT_SYSTEM_HANDOFF.md` and verify actual worktree/upstream state; this file does not invent a self-referential SHA.
 - Repository remotes remain `origin = https://github.com/Fern-star-cloud/MSprout.git` and `upstream = https://github.com/Frierend/ministry-sprout.git`. This differs from the roadmap preflight's original one-remote expectation; do not change remotes without explicit direction.
 
 ## Roadmap position
 
 - Tasks 1–17: **COMPLETE / COMMITTED / PUSHED** on `feat/mvp-foundation`.
-- Task 18: **COMPLETE** in the commit containing this handoff; the controlled one-church qualification pilot and all twelve acceptance criteria passed.
+- Task 18: **COMPLETE / COMMITTED / PUSHED**; the controlled automated one-church qualification rehearsal and all twelve acceptance criteria passed. It was not a human or production pilot.
 - The approved MVP roadmap ends at Task 18. Preserve Tasks 1–18; do not invent Task 19 or begin post-MVP development without a new approved scope.
 
 ## Security-validation baseline
 
-- Task 18 invalidated Task 17's baseline by changing the offline-security path and dependencies. The definitive release-candidate Semgrep OWASP scan is now the comprehensive baseline: 108 rules, 322 application targets, approximately 99.9% parsing, and zero findings.
+- The runtime qualification refreshed the comprehensive Semgrep OWASP baseline: 108 rules, 323 application targets, approximately 99.9% parsing, zero findings. The explicit final source/test/config delta also passed: 128 rules, 12 targets, approximately 100% parsing, zero findings. Five existing Vitest mock-syntax partial parse warnings were reviewed; production inputs were scanned.
 - Ordinary feature work uses focused, risk-based Semgrep coverage for changed and directly relevant application inputs while that baseline remains valid. Security-sensitive boundaries still require explicit review and appropriate scanning, escalating to the full application scan whenever focused coverage is insufficient.
-- Future production or security-coverage changes must apply the repository's risk-based invalidation rules to this Task 18 baseline.
+- Future production or security-coverage changes must apply the repository's risk-based invalidation rules to this qualification baseline.
 - Gitleaks, dependency audits, tenant/RLS and authorization requirements, and the full Semgrep scan in the configured push/pull-request security workflow are unchanged.
 
 See [ROADMAP_STATUS.md](ROADMAP_STATUS.md) for every task and commit.
+
+## Current runtime qualification
+
+- The observed login 500 was caused by stale ignored SQLite configuration and absent `security_events`, not an incorrect fixture password or failed browser connection. The previously empty PostgreSQL development DB was migrated non-destructively; the existing verified development fixture was preserved/copied once without reseeding, and its original SQLite file remains intact. Real login and applicant reads now work at `http://127.0.0.1:5173` through API port 8000.
+- Corrected origin-only stateful API recognition, required Turnstile CSP loading, protected encrypted offline lease expiry, test DB/runtime-role isolation, CI bootstrap/order, three vulnerable brace-expansion versions, and the official platform bootstrap command. Test bootstrap no longer rotates the live role credential and refuses development/migration DB collisions before connecting.
+- Current proof: **22 live HTTP checks**, **211 backend tests / 1,308 assertions**, **132 frontend tests / 34 files**, and **68 browser scenarios across four emulated targets**. Typecheck, lint, build, contract drift, Pint, strict Composer validation, frozen install, dependency audits, structure, Gitleaks, Semgrep and whitespace checks passed. Later frontend corrections invalidated and reran frontend/browser gates; unchanged backend guarantees retain the current-run aggregate result.
+- The 55-row handoff matrix reports **40 PASS, 0 FAIL, 12 BLOCKED, 3 NOT RUN**, explicitly distinguishing live runtime from mocked-API browser tests, backend tests, inspection and historical evidence. The separate 22 HTTP checks are not counted as additional product flows.
+- PostgreSQL and Mailpit are individually healthy. Host API, Vite, queue worker and scheduler were started; schema/runtime grants/forced RLS and heartbeat were verified. Development contains one tenantless verified fixture and no churches, applications or platform admin.
+- Missing real Turnstile/private platform mailbox/VAPID/readiness configuration blocks positive live onboarding/admin/provider journeys. No security bypass, arbitrary platform singleton, deployment, human pilot or physical-device claim was made. Final review has no remaining BLOCKING/SHOULD FIX item within this bounded qualification; production commissioning remains explicit next work, not a new feature.
 
 ## Committed Tasks 8–15 foundation
 

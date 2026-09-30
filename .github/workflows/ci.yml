@@ -13,7 +13,6 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
-          cache: pnpm
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm web:test
@@ -43,6 +42,12 @@ jobs:
       DB_DATABASE: ministrysprout
       DB_USERNAME: ministrysprout
       DB_PASSWORD: ''
+      # This service accepts trust authentication only inside the disposable CI job.
+      DB_MIGRATION_USERNAME: ministrysprout
+      DB_MIGRATION_PASSWORD: ci-only-placeholder
+      DB_RUNTIME_USERNAME: ministrysprout_runtime
+      DB_TEST_RUNTIME_USERNAME: ministrysprout_runtime_test
+      DB_TEST_DATABASE: ministrysprout_test
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
@@ -53,5 +58,6 @@ jobs:
       - uses: ramsey/composer-install@a8d0d959dab41457692a5e2041bd9b757a119e3f # 3.2.1
         with:
           working-directory: apps/api
-      - run: php apps/api/artisan migrate --force
+      - run: cp apps/api/.env.example apps/api/.env && php apps/api/artisan key:generate --force
+      # tests/bootstrap.php provisions the isolated role/database; feature tests migrate it.
       - run: php apps/api/artisan test

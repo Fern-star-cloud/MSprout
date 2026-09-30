@@ -35,9 +35,19 @@ $port = $setting('DB_PORT', '5432');
 $adminDatabase = $setting('DB_MIGRATION_DATABASE', $setting('DB_DATABASE', 'ministrysprout'));
 $adminUsername = $setting('DB_MIGRATION_USERNAME', $setting('DB_USERNAME', 'ministrysprout'));
 $adminPassword = $setting('DB_MIGRATION_PASSWORD', $setting('DB_PASSWORD'));
-$runtimeUsername = $setting('DB_RUNTIME_USERNAME', 'ministrysprout_runtime');
+$developmentDatabase = $setting('DB_DATABASE', 'ministrysprout');
+$developmentRuntimeUsername = $setting('DB_RUNTIME_USERNAME', 'ministrysprout_runtime');
+$runtimeUsername = $setting('DB_TEST_RUNTIME_USERNAME', $developmentRuntimeUsername.'_test');
 $testDatabase = $setting('DB_TEST_DATABASE', 'ministrysprout_test');
 $runtimePassword = bin2hex(random_bytes(32));
+
+// Test preparation must never rotate the live runtime credential or migrate user-owned data.
+if (in_array($testDatabase, [$developmentDatabase, $adminDatabase], true)) {
+    throw new RuntimeException('The test database must be separate from development and migration databases.');
+}
+if ($runtimeUsername === $developmentRuntimeUsername) {
+    throw new RuntimeException('The test runtime role must be separate from the development runtime role.');
+}
 
 foreach ([$adminDatabase, $adminUsername, $runtimeUsername, $testDatabase] as $identifier) {
     if (! is_string($identifier) || preg_match('/\A[a-z_][a-z0-9_]*\z/', $identifier) !== 1) {

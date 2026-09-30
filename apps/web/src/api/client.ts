@@ -32,6 +32,7 @@ const fetchCurrent = (...args: Parameters<typeof fetch>) => globalThis.fetch(...
 const client = createClient<paths>({
   baseUrl: new URL('/api/', origin).toString(),
   credentials: 'include',
+  referrerPolicy: 'origin',
   fetch: fetchCurrent,
 })
 
@@ -59,6 +60,7 @@ function normalizeApiError(
 async function initializeCsrf(): Promise<void> {
   const response = await fetchCurrent(new URL('/sanctum/csrf-cookie', origin), {
     credentials: 'include',
+    referrerPolicy: 'origin',
     headers: {
       'X-Correlation-Id': crypto.randomUUID(),
       'X-Requested-With': 'XMLHttpRequest',

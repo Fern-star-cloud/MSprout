@@ -34,7 +34,7 @@ export async function authRequest<T = Record<string, unknown>>(
   const headers: Record<string, string> = {
     Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-Correlation-Id': crypto.randomUUID(),
   }
-  const options = { credentials: 'same-origin', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer' } as const
+  const options = { credentials: 'same-origin', cache: 'no-store', redirect: 'error', referrerPolicy: 'origin' } as const
   if (churchId) {
     if (!/^[a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12}$/i.test(churchId)) throw new Error('Invalid workspace')
     headers['X-Church-Id'] = churchId
@@ -60,7 +60,7 @@ export async function authUpload<T>(path: string, file: File, churchId: string):
   const headers: Record<string, string> = {
     Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-Correlation-Id': crypto.randomUUID(), 'X-Church-Id': churchId,
   }
-  const options = { credentials: 'same-origin', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer' } as const
+  const options = { credentials: 'same-origin', cache: 'no-store', redirect: 'error', referrerPolicy: 'origin' } as const
   await readResponse(await fetch('/sanctum/csrf-cookie', { ...options, headers }))
   const cookie = document.cookie.split('; ').find((value) => value.startsWith('XSRF-TOKEN='))
   if (!cookie) throw new Error('CSRF initialization failed')
@@ -82,7 +82,7 @@ export async function authDownload(path: string, churchId: string): Promise<Blob
     && (!parsed.searchParams.has('ministry_id') || /^[a-f\d-]{36}$/i.test(parsed.searchParams.get('ministry_id') ?? ''))
   if (parsed.origin !== (globalThis.location?.origin ?? 'http://localhost') || (path !== '/api/imports/template' && !reportExport)) throw new Error('Invalid download request')
   const response = await fetch(path, {
-    method: 'GET', credentials: 'same-origin', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer',
+    method: 'GET', credentials: 'same-origin', cache: 'no-store', redirect: 'error', referrerPolicy: 'origin',
     headers: { Accept: 'text/csv', 'X-Requested-With': 'XMLHttpRequest', 'X-Correlation-Id': crypto.randomUUID(), 'X-Church-Id': churchId },
   })
   if (!response.ok) {

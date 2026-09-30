@@ -8,7 +8,7 @@ Verified on 2026-09-30 unless a historical milestone is explicitly identified.
 - Current status: both `msprout-postgres-1` and `msprout-mailpit-1` are healthy.
 - Frontend baseline: Node 24 LTS, pnpm 10.34.5, React 19.2, TypeScript 5.9, Vite 8.2, Vitest.
 - API baseline: PHP 8.3+, Composer, Laravel 13, Pest 4, PostgreSQL PDO.
-- The API test bootstrap requires PostgreSQL 18.x and local migration credentials. It creates or refreshes only `DB_TEST_DATABASE`, creates/updates the restricted runtime test role, and runs application queries through that role. Never run backend suites concurrently against the shared test database.
+- The API test bootstrap requires PostgreSQL 18.x and local migration credentials. It creates/refreshes only `DB_TEST_DATABASE` and provisions `DB_TEST_RUNTIME_USERNAME` (default live role plus `_test`). Before connecting it rejects a test DB equal to development/migration DB or a test role equal to the live runtime role. Application queries use that separate restricted test role; its credential rotation leaves the development role unchanged. Never run backend suites concurrently against the shared test database.
 - Secrets are supplied through local process/environment configuration and must never be printed or recorded here.
 
 ## Standard commands
@@ -39,7 +39,18 @@ Security gates also include `pnpm audit --audit-level high`, Gitleaks over track
 
 Task-specific commands and deployment boundaries are in `docs/security/task-4-authentication.md`, `docs/security/task-5-applications.md`, and the Task 5/6 QA reports. Do not infer a current pass from an older report.
 
-## Last verified results
+## Runtime qualification results — 2026-09-30
+
+- Focused collision TDD passed **3 tests / 9 assertions**; an independent disposable-role probe verified the development credential survives test bootstrap. Focused profile/sync/attendance/profile-UI proof passed **28 tests** after the expired encrypted lease/edited clear metadata regression.
+- Current-run aggregate backend passed **211 tests / 1,308 assertions**. After final frontend/offline/dependency corrections, the full frontend passed **132 tests in 34 files**, with typecheck/lint/build green. Backend inputs did not change afterward, so the backend result remains valid under effect-based invalidation.
+- Definitive Playwright passed **68/68 tests**, 17 per desktop Chrome, Pixel 7 Chrome emulation, iPhone 13 WebKit emulation and iPad WebKit emulation. API responses are largely intercepted: this proves real browser/UI/crypto/IndexedDB behavior, not live Laravel integration or physical-device operation. The preview build supplied a public dummy Turnstile key; it does not bypass/configure live server verification.
+- OpenAPI drift, Pint, Composer strict validation/audit, frozen pnpm install/audit and structure passed. Both audits report zero known vulnerabilities after narrow brace-expansion remediation. Gitleaks current source/history and final document delta found no leaks; whitespace and final review passed.
+- Full Semgrep baseline: **108 rules / 323 targets / ~99.9% parsing / zero findings**. Five existing Vitest mock-syntax partial parse warnings were reviewed. Explicit final source/test/config snapshot with empty ignore file: **128 rules / 12 targets / ~100% parsing / zero findings**. New tests and sensitive bootstrap/transport/offline/workflow inputs are covered; ignored credentials/dependencies/runtime output are excluded from snapshots.
+- **22 direct HTTP expected-status checks** passed, including real login/session/application read, stale session, authorization/CSRF/CAPTCHA denials, rate limiting and minimal health. Live browser login/application form/logout/profile empty state were observed. Missing provider/private-admin/tenant fixtures block additional positive live role journeys, as itemized in [the canonical handoff](../docs/qa/MSPROUT_SYSTEM_HANDOFF.md).
+- Ignored local API configuration now selects PostgreSQL, separate runtime/migration identities, consistent 127.0.0.1:5173 stateful origin, Mailpit SMTP1025 and debug off. APP_KEY retained; 20 migrations applied only to the previously empty development PostgreSQL DB. Known verified test@example.com fixture copied once after existence/hash checks; original SQLite preserved, no reseed. Worker/scheduler startup and heartbeat passed.
+- Default Windows bash resolves WSL without /bin/bash. Structure proof used `docker run --rm -v "${PWD}:/repo:ro" -w /repo alpine:latest sh scripts/verify-structure.sh` **from the repository root**. CI YAML/order/bootstrap were inspected; hosted execution remains NOT RUN. No global runtime/TLS reconfiguration occurred.
+
+## Historical milestone results
 
 - Committed Task 6 milestone: `pnpm run verify` passed 58 frontend tests in 12 files, frontend typecheck/build, and 95 backend tests / 513 assertions. Contract, lint, Pint, Composer checks, structure, dependency audits, Gitleaks, Semgrep, and `git diff --check` also passed. Source: `docs/qa/task-6-verification.md`.
 - Committed Task 7 (`32fad0a1735c0e2a677832252f72197252c8cd05`), final 2026-09-27 validation: focused audit/logging suite passed **37 tests / 197 assertions**; focused audit frontend passed **7 tests in 2 files**.

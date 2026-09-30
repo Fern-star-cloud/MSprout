@@ -249,8 +249,7 @@ export class LocalProfileStore {
 
   private async readLeasedBlob<T>(profileId: string, purpose: string): Promise<T> {
     const key = this.keyFor(profileId)
-    const profile = await this.db.profiles.get(profileId)
-    if (!profile || !leaseIsValid(profile, this.now())) throw new Error('The offline authorization lease has expired.')
+    await this.assertCurrentAuthorization(profileId, key)
     const blob = await this.db.encryptedBlobs.get([profileId, purpose])
     if (!blob) throw new Error('The requested offline data is unavailable.')
     this.recordActivity()
@@ -258,20 +257,39 @@ export class LocalProfileStore {
   }
 
   async isLeaseValid(profileId: string): Promise<boolean> {
+    try {
+      await this.assertCurrentAuthorization(profileId, this.keyFor(profileId))
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  private async assertCurrentAuthorization(profileId: string, key: CryptoKey): Promise<void> {
     const profile = await this.db.profiles.get(profileId)
-    return profile ? leaseIsValid(profile, this.now()) : false
+    if (!profile || !leaseIsValid(profile, this.now())) throw new Error('The offline authorization lease has expired.')
+    const blob = await this.db.encryptedBlobs.get([profileId, 'authorization'])
+    if (!blob) throw new Error('The requested offline data is unavailable.')
+    const authorization = await decryptPayload<{ actor: { id: string }; lease: OfflineBootstrap['lease'] }>(profileId, 'authorization', key, blob.encrypted)
+    assertLeaseMatchesProfile(profile, authorization.lease)
+    // Clear profile metadata is only an index. Authority comes from the authenticated encrypted lease.
+    if (authorization.actor.id !== profile.actorId
+      || profile.leaseSignature !== authorization.lease.signature
+      || !leaseIsValid({ leaseExpiresAt: authorization.lease.expires_at }, this.now())) {
+      throw new Error('The offline authorization lease has expired.')
+    }
   }
 
   async encryptLocalPayload(profileId: string, purpose: string, payload: unknown): Promise<EncryptedEnvelope> {
-    const profile = await this.db.profiles.get(profileId)
-    if (!profile || !leaseIsValid(profile, this.now())) throw new Error('The offline authorization lease has expired.')
-    return encryptPayload(profileId, purpose, this.keyFor(profileId), payload)
+    const key = this.keyFor(profileId)
+    await this.assertCurrentAuthorization(profileId, key)
+    return encryptPayload(profileId, purpose, key, payload)
   }
 
   async decryptLocalPayload<T>(profileId: string, purpose: string, envelope: EncryptedEnvelope): Promise<T> {
-    const profile = await this.db.profiles.get(profileId)
-    if (!profile || !leaseIsValid(profile, this.now())) throw new Error('The offline authorization lease has expired.')
-    return decryptPayload<T>(profileId, purpose, this.keyFor(profileId), envelope)
+    const key = this.keyFor(profileId)
+    await this.assertCurrentAuthorization(profileId, key)
+    return decryptPayload<T>(profileId, purpose, key, envelope)
   }
 
   async hasUnsafeLocalWork(): Promise<boolean> {
