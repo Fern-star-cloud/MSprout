@@ -33,4 +33,10 @@ Validated/reviewed maintenance before its single task commit: restored real Post
 
 ## Manual planning and Codebase Memory — 2026-09-30
 
+Subsequent desktop MCP verification is recorded in CODEBASE_MEMORY.md; the planning-time pending state below is historical.
+
 Planning/tooling maintenance adds the [23-phase/211-case manual roadmap](../docs/qa/MANUAL_TESTING_ROADMAP.md), separate [manual checkpoint](MANUAL_TESTING.md), and [Codebase Memory knowledge](CODEBASE_MEMORY.md). Reviewed official Windows v0.11.0 installation used skip-config; a scoped Codex entry and external cache were verified through actual stdio MCP indexing/list/architecture/symbol/call-path queries. Current desktop-chat tool visibility remains pending restart, as explicitly allowed by the request. Native Blade detection avoids speculative extension config; index-only excludes and ignored graph snapshots preserve source/data boundaries. Source review corrected stale handoff prose about synchronous Teacher invitation mail. No manual phase, product feature, application-runtime change or development data reset occurred. Validation was recorded before finalization; resolve the task commit/push from the new roadmap's Git history and actual remote state.
+
+## MT-00 environment preflight — 2026-10-01
+
+[MTQA-20260930-01](../docs/qa/manual-runs/MTQA-20260930-01/MT-00.md) completes10 PASS/0 FAIL/0 BLOCKED/0 NOT_RUN after preserving initial blocked receipts. Direct PostgreSQL/migrations/RLS/grants/services/health evidence, corrected exact-origin human storage receipt and privately configured readiness200/no-token401 proof establish the bounded preflight. No feature, reset, storage clear, credential disclosure or MT-01 execution. Result recorded before task finalization; Git history identifies the reviewed QA commit.

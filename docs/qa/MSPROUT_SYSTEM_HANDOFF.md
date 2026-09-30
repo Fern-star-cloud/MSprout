@@ -82,7 +82,7 @@ Only key names/requirements belong here. Ignored `apps/api/.env` now uses Postgr
 | VITE_TURNSTILE_SITE_KEY | Public web dev/build key; active live dev server has none |
 | TURNSTILE_SECRET_KEY,TURNSTILE_HOSTNAME | Application submission required; absent locally, fail closed |
 | WEBPUSH_VAPID_SUBJECT,WEBPUSH_VAPID_PUBLIC_KEY,WEBPUSH_VAPID_PRIVATE_KEY | Actual Web Push required; absent locally |
-| READINESS_TOKEN | Positive protected probe required; absent locally, unauthorized401 |
+| READINESS_TOKEN | Positive protected probe required; configured privately during MT-00 continuation2026-10-01. Actual authorized readiness200/all dependency checks ok; absent-header401 remains enforced. Value stays ignored/private |
 | QUEUE_LAG_WARNING_SECONDS,SCHEDULER_STALE_SECONDS | Bounded defaults300/180 |
 | LOG_CHANNEL,LOG_STACK,LOG_LEVEL | Redacted technical logging |
 

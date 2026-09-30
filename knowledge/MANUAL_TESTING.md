@@ -13,13 +13,13 @@ Concise running qualification state. The roadmap is the plan; the system handoff
 
 ## Current Manual-Test Checkpoint
 
-Baseline `df7cf6118f5f119253154ce015803fd143bb1a6c`, `feat/mvp-foundation`, `origin/feat/mvp-foundation`, initially clean/0/0. Tasks 1–18 complete; no Task 19. This checkpoint records pre-finalization planning validation; resolve the planning/tooling commit through this file's history, then verify actual Git state.
+MT-00 run `MTQA-20260930-01` against `a0a2a47706b75a442846b6c7a39971ed22bbf5ae`, `feat/mvp-foundation` / `origin/feat/mvp-foundation`, initially clean/0/0 with authenticated remote/main agreement. Tasks 1–18 complete; no Task 19. The two documentation/tooling commits after `df7cf61` explain the older planning baseline. Full [run record](../docs/qa/manual-runs/MTQA-20260930-01/MT-00.md) contains expected/actual/result/evidence/commands/blockers for every stable case ID.
 
-The 23 phases / 211 unique roadmap cases are all **NOT_RUN / NOT_RUN**. Handoff's earlier 55-row matrix remains historical: 40 PASS/0 FAIL/12 BLOCKED/3 NOT RUN, with explicit evidence classes. It is not a completed manual phase.
+**MT-00 PASS: 10 PASS / 0 FAIL / 0 BLOCKED / 0 NOT_RUN.** Initial8/0/2/0 blocked receipt retained; same-chat continuation closed MT-ENV-010 with corrected exact-origin HUMAN_MANUAL evidence and MT-ENV-008 with actual authenticated readiness. MT-01–MT-22 and their remaining201 cases remain NOT_RUN. Handoff's earlier55-row matrix stays historical. This verified result is recorded before finalization; resolve the task commit through report history and verify remote/worktree synchronization rather than assuming a self-referential SHA.
 
 ## Environment Knowledge
 
-Windows; documented process-scoped Node24/pnpm10/PHP8.3/PDO PostgreSQL/GD/ZIP. Development PostgreSQL18 is authoritative; restricted runtime and distinct test role/database. Compose PostgreSQL/Mailpit were healthy during planning reconnaissance. Host API/Vite/worker/scheduler state was not requalified. Handoff's last endpoints were 8000/5173; preview4173 has no API proxy and separate profiles. Never print ignored environment values or change APP_KEY.
+MT-00 actual runtime: documented process-scoped Node24.19.0/pnpm10.34.5/PHP8.3.33/PDO PostgreSQL/GD/ZIP. PostgreSQL18.6 authoritative; restricted non-owner runtime/no role memberships; all20 migrations applied/all25 protected tables forced RLS; canonical evidence append-only/legacy audits read-only. Test DB/role separate; migration/live share target with distinct roles. Docker/original volume and application processes retained; queue healthy/empty and heartbeat current. Preview4173 remains separate/no API proxy. SQLite and APP_KEY/DB configuration preserved; only ignored READINESS_TOKEN changed in authorized continuation, with actual readiness200 and no-token401 proof.
 
 ## Runtime Start/Stop Knowledge
 
@@ -35,23 +35,27 @@ Nothing new created in development by planning. Roadmap section 7 defines named 
 
 ## Completed Manual Phases
 
-None under this new roadmap. No historical modeled test is promoted to live PASS.
+MT-00 only, all ten PASS after continuation closure. [MTQA-20260930-01](../docs/qa/manual-runs/MTQA-20260930-01/MT-00.md) retains original blocked/intermediate receipts. Final proof uses direct runtime plus corrected operator HUMAN_MANUAL browser-storage evidence; no historical/modeled test promoted to live PASS.
 
 ## Current Active Phase
 
-None. MT-00 is next; the planning chat stops before executing it.
+**MT-00 complete; stop before MT-01.** MT-01 is next only with a new explicit prompt and its own identity/data prerequisites.
 
 ## Known Live Findings
 
-Historical handoff: PostgreSQL-backed applicant login/current status works; tenant/platform/CSRF/invalid-CAPTCHA denials observed. Public signup disabled. Live positive church application/review/Owner/Teacher/offline-to-server/provider/device journeys remain unqualified. H01 live-role mismatch, H02 workspace context and H03 date boundary candidates are suspicions, not confirmed bugs. Planning source inspection corrected the handoff's Teacher-mail description: invitation dispatch is synchronous, re-invitation revokes pending predecessors, and unassigned Teacher fixtures require clearing assignments after acceptance. No live behavior was requalified.
+MT-00: public health200/minimal/correlated; readiness401 without token and actual200 ready with privately configured token, all four dependency checks ok. Same-origin CSRF204/anonymous session401 and safe origin/cookies/debugfalse verified; no positive login journey. Actual identity census retained AP1/verified and listed domain counts0. Corrected operator Chrome receipt for127.0.0.1:5173 establishes dev-sw.js running, exact shell-only Workbox cache/no API entry, native IndexedDB10/seven empty stores and no modification. It does not assert unrelated origins/profiles are empty. Overall birthday no-dispatch metrics remain expected with zero churches and outside preflight provider scope.
+
+Historical handoff login/current-status and denial evidence remains historical. Public signup disabled; live positive onboarding/roles/offline-to-server/providers remain unqualified. H01–H03 remain suspicions. No confirmed product defect found during preflight. Missing providers and browser/tool limits are prerequisites, not defects. Stale MCP-pending/manual-NOT_RUN knowledge corrected from verified receipts.
 
 ## Confirmed Bugs
 
-No new confirmed product bug from this planning task. Handoff D01–D08 remediated in `df7cf61`; do not reopen without new evidence. Record future failures with severity/root cause/regression and AGENTS.md RED remediation. A safe workaround does not convert a confirmed defect to YELLOW.
+No new confirmed product bug from MT-00; no source correction or regression change. Handoff D01–D08 remain remediated in `df7cf61`. Record future failures with severity/root cause/regression and AGENTS.md RED remediation.
 
 ## Blockers
 
-Known commissioning prerequisites: real Turnstile keys/hostname/action, private PA mailbox/TOTP ceremony, approved method for extra synthetic applicants (no public registration), real VAPID/subscription permissions, readiness token and physical devices/approved HTTPS/provider access. Record each affected case as BLOCKED only when attempted preflight establishes the missing prerequisite; initial cases remain NOT_RUN.
+- **No unresolved MT-00 blocker. B-MT00-01 resolved:** user authorized safe local resolution; cryptographically random development READINESS_TOKEN configured privately in ignored API environment. Actual authorized readiness200/all dependency checks ok; no-token401 preserved. Original environment bytes/key/DB credentials preserved except this entry, external private backup retained, value never disclosed. Laravel serve auto-reloaded its listener; no global change or security bypass.
+- **B-MT00-02 resolved:** corrected read-only Chrome receipt for exact127.0.0.1:5173 and exact cache name `workbox-precache-v2-http://127.0.0.1:5173/ - http://127.0.0.1:5173/`; only /index.html/total1/no API entry. Native IndexedDB10 corresponds to Dexie schema1; all seven stores0. Evidence is HUMAN_MANUAL/operator-reported, not independently inspected screenshots. #34 is confined to the earlier wrong-origin localhost receipt; no build hash/observation timestamp invented. Original wrong-origin/blocked receipts retained in report.
+- Later-phase prerequisites observed: real Vite Turnstile site key/server secret/exact hostname absent; VAPID absent; private PA mailbox/TOTP, approved extra applicant creation, physical devices/HTTPS/provider access still needed. No later-phase case was executed or assigned a result.
 
 ## Provider/Physical-Device Requirements
 
@@ -71,8 +75,14 @@ Do not recreate the preserved applicant, reset development, assume SQLite author
 
 ## Next Manual-Test Action
 
-Restart Codex to load the new scoped MCP entry, verify its tool visibility (see CODEBASE_MEMORY.md), then execute **MT-00 only** using roadmap section 13's exact next-chat prompt. Record actual results and exact prerequisites, update this file, and stop at the reviewed phase checkpoint. No manual campaign was executed here.
+Stop after MT-00 validation/review and permitted GREEN finalization. Next authorized run may execute MT-01 only using the prompt below. No full-suite rerun merely for documentation, Codebase Memory restart/reindex or token disclosure is needed. Development readiness secret is already configured privately; do not generate another key or copy it into chat/Git.
+
+**Exact MT-01 prerequisite:** MT-00's ten cases PASS with no unresolved safety/evidence blocker (or separately recorded explicit bounded human progression allowed by roadmap §10, never a security/data-integrity waiver); preserved private AP credentials; running Mailpit; an agreed minimal authorized disposable DA preparation procedure for unverified/reset variants, since no public signup exists. This run grants no progression exception.
+
+**MT-01 prompt entry point, for a subsequent authorized run only:**
+
+> Read AGENTS.md, docs/qa/MSPROUT_SYSTEM_HANDOFF.md, docs/qa/MANUAL_TESTING_ROADMAP.md, knowledge/MANUAL_TESTING.md and knowledge/CODEBASE_MEMORY.md. Verify Git checkpoint/upstream/status and the completed MT-00 evidence; preserve PostgreSQL, SQLite, IndexedDB and unsynced work. Tasks 1–18 are complete; no Task 19 or new feature. Execute PHASE MT-01 — Applicant authentication ONLY, using all stable MT-AUTH case IDs and required live evidence. Confirm private AP credentials, Mailpit and the authorized disposable DA preparation procedure without recreating AP or bypassing signup/authentication/security controls. Record expected/actual/result/evidence/commands/exact blockers, follow AGENTS.md remediation/validation/finalization, update manual knowledge, and stop before MT-02. If MT-00 prerequisites remain unresolved, record the blocker and do not start MT-01.
 
 ## Last Updated
 
-2026-09-30, Asia/Taipei; planning/tooling scope only. Git history identifies finalization; no self-referential commit SHA claim.
+2026-10-01, Asia/Taipei; run began2026-09-30, MT-00 only, all ten cases PASS after continuation. Initial YELLOW receipts retained; current result recorded before permitted GREEN finalization. No MT-01 execution.
