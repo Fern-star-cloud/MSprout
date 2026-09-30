@@ -37,7 +37,7 @@ CBM_CACHE_DIR=C:\Users\MARYJANE S. ATILLO\.cache\codebase-memory-mcp
 
 Only project `MSprout` was indexed/listed. Root containment limits **indexing**, not an OS sandbox or blanket isolation of every query from all future account-wide caches. Do not index unrelated personal directories or point other clients at broader roots. Recheck cache/project scope when adding other clients.
 
-Verified runtime settings in `_config.db`: `auto_index=false`, `auto_watch=false`, `watcher_enabled=false`, `ui_enabled=false`. Manual indexing is deliberate; no standing watcher/UI needed. Upstream supports automatic indexing and Git polling, but this installation keeps them off. `watcher_enabled` is read when daemon starts; changing it requires retiring only owned CBM sessions/daemon before reconnecting. MCP/CLI may use a temporary exact-build coordination/index worker even with watching disabled; this is unrelated to MSprout queue/scheduler processes.
+Verified runtime settings in `_config.db`: `auto_index=false`, `auto_watch=false`, `watcher_enabled=false`; external `config.json` holds `ui_enabled=false`. Manual indexing is deliberate; no standing watcher/UI needed. Upstream supports automatic indexing and Git polling, but this installation keeps them off. `watcher_enabled` is read when daemon starts; changing it requires retiring only owned CBM sessions/daemon before reconnecting. MCP/CLI may use a temporary exact-build coordination/index worker even with watching disabled; this is unrelated to MSprout queue/scheduler processes.
 
 ## Cache Location
 
@@ -94,7 +94,7 @@ Remove only this user MCP entry with the compatible desktop CLI `mcp remove code
 
 ## Known Limitations
 
-- **Current chat cannot see a dynamically registered CBM tool.** Restart/reopen Codex after saving configuration, open a fresh MSprout chat, confirm tool visibility, then repeat listed smoke queries. Do not restart the app automatically during this work. Desktop-client invocation remains PENDING; standalone actual stdio MCP verification is separate and passed.
+- **Desktop integration verified in a fresh session on 2026-09-30.** All 17 CBM tools are visible and actual desktop MCP queries passed; see the checkpoint receipt below. Future configuration changes still require client reload and fresh verification. Do not restart the app automatically.
 - Initial full graph: six partial parses, zero unusable files. One starter CSS file uses Tailwind `@source/@theme`; five existing Vitest files use generic async mock syntax. These are advisory graph coverage gaps, not product/scanner failures; actual source/tests remain authority.
 - Qualified names are graph-specific, e.g. `MSprout.apps.api.app.Domain.Sync.ApplySyncBatch.ApplySyncBatch.handle`. An initially guessed trace name failed; searching the exact name then tracing succeeded. Heuristic call edges may include false positives such as framework `app()` resolution; inspect source.
 - Root containment is not a general-purpose runtime/filesystem/egress sandbox. Third-party release signatures were not independently cryptographically verified. Generic server auto-refresh instructions do not reflect disabled local watching.
@@ -114,9 +114,20 @@ Planning task 2026-09-30; actual tool installation/inspection only, no manual qu
 | Call-path | Search `handle` in ApplySyncBatch, then `trace_path` exact qualified name/outbound/depth2 PASS; eight reachable callees, source checked |
 | Allowed root | Actual out-of-root temporary-directory request denied with exit1; no project created; PASS for intended containment |
 | Cache/privacy/scope | External cache; no repository snapshot, source-only excludes and indexed-path inspection; final secret/diff/path validation in testing environment |
-| Desktop loaded tools | NOT_RUN/PENDING restart; unavailable in this chat's active tool inventory, never claimed successful |
+| Planning desktop loaded tools | NOT_RUN/PENDING at planning; superseded by the fresh-session checkpoint receipt below |
 
-The user's request explicitly allows installed/configured tooling with desktop verification pending restart. That deferred client smoke step is reported separately; it does not fabricate full integration success or authorize the manual campaign.
+The planning request allowed installed/configured tooling with desktop verification pending restart. That historical deferred state is now superseded below; neither installation nor this verification authorizes the manual campaign.
+
+## Fresh Desktop Verification Checkpoint
+
+2026-09-30, Asia/Taipei; verification-only against `4fb1428f3f321d9491e6248b092fc6fbaf4ad97d` (`docs: establish manual testing roadmap and codebase memory`). Branch/upstream `feat/mvp-foundation` / `origin/feat/mvp-foundation`, clean worktree, no staged changes, ahead/behind 0/0. Authenticated remote read matched HEAD; remote/local `origin/main` remained `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f`.
+
+- All 17 tools are visible in the fresh Codex session. Actual MCP `list_projects` returns only `MSprout`, the documented repository root and feature branch, 2,563 nodes / 7,656 edges. `index_status` is ready, full-index generation `2026-09-30T15:24:21Z`, six known partial parses and zero unusable files.
+- `get_architecture` returns the api/web packages, PHP/TypeScript topology and frontend entry points. `search_graph` finds `TenantContext` at `apps/api/app/Support/Tenancy/TenantContext.php:16–115`. Exact-name outbound depth-2 `trace_path` for `MSprout.apps.api.app.Domain.Sync.ApplySyncBatch.ApplySyncBatch.handle` returns eight callees; source confirms its direct `apply` call. Low-confidence heuristic edges remain advisory: a separate TenantContext trace incorrectly resolves `Auth::id()` to `CorrelationContext.id`; source inspection rejects that interpretation.
+- Read-only user TOML inspection confirms the executable, repository cwd, startup timeout and exact allowed-root/external-cache settings above. Read-only cache inspection confirms indexing/watching disabled and UI disabled in `config.json`; only the MSprout project is listed. All 383 indexed File paths omit the excluded environment/private-key/runtime/dependency/runner artifacts; all four Blade templates remain indexed. No repository graph snapshot exists. Root-denial execution evidence remains the planning receipt, not a new out-of-root indexing attempt.
+- `check_index_coverage` reports `metadata_changed` for the two queried PHP paths despite matching cached/current SHA-256, size and nanosecond mtime. Reviewed v0.11.0 `mcp.c` uses second-resolution Windows `stat` for this comparison, explaining the false stale signal. All 390 unchanged existing cached inputs match SHA-256; only `CODEBASE_MEMORY.md` and `TESTING_ENVIRONMENT.md` differ following final planning documentation edits. Three `.semantic-input` records are virtual inputs, not missing application files. The source graph is current for these queries; documentation content in the graph is older and must be read from Git. No reindex was performed.
+
+**Desktop MCP verification PASS.** This receipt supersedes planning-time desktop-pending notes in the current-state/testing-environment documents without changing their historical validation evidence. Only this knowledge file is updated. No application code, configuration, development data or manual run record changed; MT-00 and every later phase remain NOT_RUN. Documentation-only validation does not invalidate the existing application/security baseline or require product gates to be rerun.
 
 ## Last Updated
 
