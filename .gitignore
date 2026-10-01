@@ -4,3 +4,6 @@ node_modules/
 
 # Local Codebase Memory graph snapshots are disposable, never application data.
 .codebase-memory/
+
+# Owner-private manual-QA credentials, configuration and disposable test output.
+/.manual-qa/

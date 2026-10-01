@@ -76,6 +76,8 @@ Verify the current directory is this repository before assigning the root. CLI i
 
 ## Security Notes
 
+Operator-mode maintenance adds `/.manual-qa/` to the repository's Git and indexer exclusions for private DPAPI credential/configuration and runner output. Do not index/decrypt/upload that directory. No graph reindex, cache update or automatic watcher change was performed; graph content does not establish current governance. Read [the operator protocol](../docs/qa/AUTONOMOUS_LOCAL_OPERATOR.md) from source.
+
 Installer was downloaded and read before execution; tagged script matches checksum-authenticated release script. Mandatory installer SHA-256/archive namespace checks passed. Archive SHA-256 `6eb6beaf261b19e419766e78baf93cbc3cf1c6338cff8fb7c0234859f96d1685` matches published `checksums.txt` and GitHub asset digest. Extracted executable SHA-256 `7edcd3807ebcfd85ec1968985964080f2589748da2fc3c7ce9261eebab31ff04` matches upstream Windows selection table; that exact object's published VirusTotal verdict is clean. These are provenance/checksum comparisons, not our own independent antivirus analysis or source reproducible build.
 
 Upstream provides Sigstore bundles and SLSA verification commands (signer workflow `_build.yml`). Bundle was downloaded/reviewed; no independent Sigstore/SLSA verifier was available here, so **signature/attestation cryptographic verification is not claimed**. Windows Authenticode reports NotSigned; Sigstore is a separate mechanism. TLS remained enabled, antivirus unchanged; binary installed and executed without an observed block. If a future antivirus verdict blocks any artifact, stop and report exact path/hash/verdict; never automatically create broad exclusions or override it.

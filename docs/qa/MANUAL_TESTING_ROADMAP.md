@@ -22,6 +22,8 @@ Planning baseline, 2026-09-30 Asia/Taipei:
 
 ## 4. Testing Principles
 
+For a separately authorized phase, [Autonomous Local Operator Mode](AUTONOMOUS_LOCAL_OPERATOR.md) permits reviewed local probes and explicitly designated new synthetic/disposable identities within AGENTS.md section 16. It does not convert existing AP/DA/PA, authorize a later phase, waive human evidence/takeover, or change any case/prerequisite/exit requirement. Missing credentials/authorization or uncertain preservation/isolation remains YELLOW/BLOCKED. This addition executes no case; the planning baseline above remains historical.
+
 Use live evidence when an integration is under test. Record human interaction, direct runtime, live browser, modeled browser automation, automated tests, source inspection and historical documentation separately. Existing automated PASS never satisfies a new live case by itself. No bypass of authentication, MFA, RLS, CSRF, CAPTCHA, audit or offline authority; no hand-set assurance flags or fabricated signed lease.
 
 Preserve development data, APP_KEY, database credentials, existing browser profiles and unsynchronized work. Use named disposable data for adversarial/time/retention cases. Configuration changes must be explicit, limited to the authorized environment, recorded by key names only, and reverted safely; never mutate production-like settings invisibly. Record expected versus actual and reproducible failure steps. Every confirmed defect needs severity, source-grounded root cause, remediation status and regression evidence if fixed. Every blocked case names its exact missing prerequisite and human/external owner.

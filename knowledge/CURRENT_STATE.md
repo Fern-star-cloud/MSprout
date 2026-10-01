@@ -5,6 +5,7 @@ Verified: 2026-10-01 (MT-00 run began 2026-09-30). This is the development check
 ## Git state
 
 - Branch: `feat/mvp-foundation`.
+- MT-01 committed/pushed at `3dba978b97fff590ec1b814b66b103344843c19a` (`fix: qualify MT-01 applicant authentication`); this operator-mode run verified clean starting checkout/tracking 0/0 and TLS-verified remote feature/main agreement. `origin/main` remains `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f`. Earlier pre-finalization wording below is historical.
 - The security-validation governance baseline is committed and pushed at `02c825aa7d59f8fb351b83e300f59960b88e0812`.
 - Task 17 is committed and pushed at `a989dd904551a26f6f7548ee0c88128f13c6933d`.
 - Task 18 is committed and pushed at `ffee8ebe9e87fe096c52e23f7a0d49da9c1c0202` — `test: add mvp release qualification`.
@@ -19,6 +20,8 @@ Verified: 2026-10-01 (MT-00 run began 2026-09-30). This is the development check
 - The approved MVP roadmap ends at Task 18. Preserve Tasks 1–18; do not invent Task 19 or begin post-MVP development without a new approved scope.
 
 ## Manual planning and local tooling
+
+Autonomous Local Manual-Test Operator Mode is implemented, validated and separately approved by the user for finalization under AGENTS.md section 14. GREEN for this bounded governance/tooling change; this receipt is recorded before the single approved `chore: establish autonomous local QA operator mode` commit and normal feature-branch push. Resolve its SHA and synchronization from Git history/status. [Protocol](../docs/qa/AUTONOMOUS_LOCAL_OPERATOR.md) and repository PowerShell helper add an ignored owner-only Windows DPAPI credential store, synthetic-only new identity registration and phase/case/local-origin/preservation preflight. No live identity/session/fixture, credential replacement, product change or manual-phase execution is part of this run. AP/MT-01 DA/PA remain excluded. Actual tooling/security validation is recorded in [TESTING_ENVIRONMENT.md](TESTING_ENVIRONMENT.md); no designated autonomous identity or initialized operator credential file exists. Missing credentials remain a fail-closed future execution prerequisite, not an instruction to create an account. MT-02 requires separate authorization and its existing provider/fixture prerequisites; all phase cases/evidence remain untouched.
 
 Current completed result: **MT-01 all ten PASS/0 FAIL/0 BLOCKED/0 NOT_RUN**; [run report](../docs/qa/manual-runs/MTQA-20260930-02/MT-01.md). Legitimate AP/DA authentication, mail verification/reset/replay/natural expiry, CSRF/stale-session/correlation boundaries and explicitly approved isolated live offline/server-failure proof complete. F-MT01-01–04 corrected; current backend223 tests/1,376 assertions and frontend136 tests/34 files plus applicable gates PASS. Operator confirms AP signed out and isolated Incognito closed; owned fault fixture stopped/5181 absent04:14:39 UTC. Final read-only04:15:33 UTC AP row/current DA password/expired token/SQLite/API environment equality PASS, users2/domain counts0. Main Codex anonymous login retained; private mail and canonical evidence preserved. Shared services remain healthy. Stop before MT-02; real Turnstile/exact-origin/action and further fixture authorization remain future prerequisites. The dated intermediate snapshots below preserve history and do not override this result.
 
