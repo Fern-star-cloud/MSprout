@@ -6,11 +6,13 @@ Canonical developer/operator/manual-testing orientation for the current implemen
 
 Qualification sequencing now lives in [MANUAL_TESTING_ROADMAP.md](MANUAL_TESTING_ROADMAP.md); current phase/findings/blockers live in [manual knowledge](../../knowledge/MANUAL_TESTING.md). [Codebase Memory knowledge](../../knowledge/CODEBASE_MEMORY.md) covers advisory graph tools. These distinct layers do not alter the historical results below or AGENTS.md authority.
 
+Current manual checkpoint2026-10-01: MT-00 completed/synchronized40525fbe; [MT-01](manual-runs/MTQA-20260930-02/MT-01.md) completes all ten real cases with legitimate mail/recovery and approved isolated offline/failure evidence. Four qualification findings corrected with applicable validation; AP signed-out/unchanged, DA retained, temporary fixture stopped, preserved database/files/browser work. MT-02–MT-22 remain untouched. Sections2/31/41 describe the earlier runtime qualification, not new manual-campaign results.
+
 ## 2. Repository Checkpoint
 
 Qualification date: **2026-09-30, Asia/Taipei**; handoff assembled at **21:54:06 +08:00**. Starting HEAD `ffee8ebe9e87fe096c52e23f7a0d49da9c1c0202`, `test: add mvp release qualification`. Branch/upstream: `feat/mvp-foundation` / `origin/feat/mvp-foundation`; initially clean, unstaged, 0/0 ahead/behind. Authenticated remote read agreed. `origin/main`: `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f`, unchanged. Existing `upstream` remote was not used/modified.
 
-Tasks **1–18 are complete, committed and pushed**; no Task19 exists. This explicitly requested qualification is maintenance/QA, not a new feature. Task18's historical GO concerns its controlled automated rehearsal, not a deployed church. This run corrected additional defects. **GREEN for the bounded qualification/remediation scope:** applicable current gates passed and no BLOCKING/SHOULD FIX review item remains. Positive provider/admin journeys and physical-device commissioning remain explicitly unqualified; this is not an unconditional production-release decision. Resolve the qualification commit with `git log -1 --format="%H %s" -- docs/qa/MSPROUT_SYSTEM_HANDOFF.md`, then verify actual status/upstream. Ignored local configuration and disposable runner output are not commit candidates.
+Tasks **1–18 are complete, committed and pushed**; no Task19 exists. This explicitly requested qualification is maintenance/QA, not a new feature. Task18's historical GO concerns its controlled automated rehearsal, not a deployed church. The earlier runtime qualification corrected additional defects and was GREEN for its bounded scope at `df7cf6118f5f119253154ce015803fd143bb1a6c`; sections below retain that historical evidence. Positive provider/admin journeys and physical-device commissioning remain explicitly unqualified. Resolve the current MT-01 finalization commit from its run report's Git history, then verify actual status/upstream. Ignored local configuration and disposable runner output are not commit candidates.
 
 ## 3. Product Summary
 
@@ -144,15 +146,15 @@ SELECT count(*) FROM churches;
 SELECT count(*) FROM platform_admins;
 ```
 
-Current development: **1 user,0 churches,0 applications,0 platform admins**. Six sampled protected tables have enabled/forced RLS; no enabled-but-unforced application table found. Security-event runtime grants SELECT/INSERT only. Full tenancy suite proves same-church/cross-church/no-context and exactly-one-Owner behavior.
+Historical runtime-qualification census: **1 user,0 churches,0 applications,0 platform admins**. Current MT-01 final read-only census2026-10-01: **2 verified tenantless users (preserved AP and approved DA),0 churches/applications/memberships/platform admins**. DA verification/password changes used supported mail flows; no recreation/reseed. Six historically sampled protected tables have enabled/forced RLS; no enabled-but-unforced application table found. Security-event runtime grants SELECT/INSERT only. Full tenancy suite proves same-church/cross-church/no-context and exactly-one-Owner behavior.
 
 ## 13. Seeders, Factories, Fixtures and Test Identities
 
-**DEVELOPMENT/TEST ONLY — NEVER PRODUCTION.** Only DatabaseSeeder creates **Test User**, **test@example.com**, intentional development password **password**, through UserFactory. Verified by default; **no tenant, role, application or MFA**. Present in original SQLite and now local PostgreSQL. Seeder was not rerun; it is non-idempotent and conflicts on existing email. It is not complete manual-test data or suitable production bootstrap.
+**DEVELOPMENT/TEST ONLY — NEVER PRODUCTION.** Only DatabaseSeeder creates **Test User**, **test@example.com**, an intentional development-only fixture credential (retrieve privately; do not copy it into chat or evidence), through UserFactory. Verified by default; **no tenant, role, application or MFA**. Present in original SQLite and now local PostgreSQL. Seeder was not rerun; it is non-idempotent and conflicts on existing email. It is not complete manual-test data or suitable production bootstrap.
 
 | Mechanism | Purpose / identity / assurance | Existence / recreate policy |
 |---|---|---|
-| UserFactory | Faker safe-email church users; default password; unverified state; no automatic tenant/MFA | Isolated tests; individual tests override random passwords; only known live fixture above |
+| UserFactory | Faker safe-email church users; default password; unverified state; no automatic tenant/MFA | Isolated tests; individual tests override random passwords; AP alone came from the earlier fixture; approved live DA used validated CreateNewUser once |
 | PlatformAdminFactory | Faker handle/recovery mailbox; pending default; active() random password/TOTP, verified/MFA/recovery acknowledged; no church membership | No live admin; tests only, not official bootstrap substitute |
 | AuditEventFactory | Synthetic platform/system audit event; no credential | Isolated test evidence |
 | tests/Support/ChurchScenario | Synthetic Owner/church and Teacher memberships via admin connection; random identities; explicit assurance as required | Disposable test DB only; not live onboarding |
@@ -462,8 +464,8 @@ No dev migrate:fresh/volume delete/reseed/SQLite delete/history discard/broad pr
 
 ## 47. Exact Next Action
 
-Verify qualification commit `df7cf6118f5f119253154ce015803fd143bb1a6c` and the subsequent planning commit/worktree/upstream. Follow [roadmap entry point](MANUAL_TESTING_ROADMAP.md): MT-00 preflight first, then its ordered commissioning and qualification phases. Read [manual state](../../knowledge/MANUAL_TESTING.md) before each run. Real Turnstile/private administrator mailbox/MFA/provider/device prerequisites remain explicit; no phase was executed by planning and no next product feature is authorized.
+MT-00 and MT-01 are complete; stop before MT-02. Verify the latest reviewed phase commit/worktree/upstream through its report and [manual state](../../knowledge/MANUAL_TESTING.md). MT-02 requires a separate explicit request, real configured Turnstile for the exact origin/action and approved additional applicant preparation under the [roadmap](MANUAL_TESTING_ROADMAP.md). Preserve AP/DA, mail, canonical evidence and unsynced work. Provider/admin/device commissioning remains unqualified; no next phase or product feature is authorized.
 
-## 48. Continuation Prompt
+## 48. Historical MT-00 Entry Prompt
 
 > Read AGENTS.md, docs/qa/MSPROUT_SYSTEM_HANDOFF.md, docs/qa/MANUAL_TESTING_ROADMAP.md, knowledge/MANUAL_TESTING.md and knowledge/CODEBASE_MEMORY.md. Verify checkpoint/status/upstream and preserve work. Tasks 1–18 are complete; no new feature/Task 19. Execute MT-00 only, record actual expected/actual/result/evidence and exact prerequisites, update manual knowledge and stop at the reviewed checkpoint. Distinguish live runtime, modeled browser, automated tests, inspection and historical evidence. Preserve PostgreSQL/RLS, MFA/CSRF/CAPTCHA/audit, protected leases and unsynced work. Use documented process-scoped Windows tools; never reset/reseed development or weaken security. Verify scoped MCP visibility after restart if pending; source/tests remain authoritative. Follow AGENTS.md remediation/validation/finalization.

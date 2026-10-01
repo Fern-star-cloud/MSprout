@@ -55,6 +55,51 @@ it('resets passwords once using emailed tokens', function () {
     });
 });
 
+it('rejects reset passwords outside the contract length without consuming the token', function (int $length) {
+    Notification::fake();
+    $user = User::factory()->create();
+    $originalHash = $user->password;
+    $this->postJson('/forgot-password', ['email' => $user->email])->assertOk();
+
+    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user, $originalHash, $length) {
+        $password = Str::password($length);
+        $this->postJson('/reset-password', [
+            'email' => $user->email,
+            'token' => $notification->token,
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertUnprocessable()->assertJsonValidationErrors('password', 'field_errors');
+
+        expect(hash_equals($originalHash, $user->fresh()->password))->toBeTrue();
+        $this->assertDatabaseHas('password_reset_tokens', ['email' => $user->email]);
+        $this->assertGuest();
+
+        return true;
+    });
+})->with([8, 11, 129]);
+
+it('accepts reset passwords at the contract length boundaries', function (int $length) {
+    Notification::fake();
+    $user = User::factory()->create();
+    $this->postJson('/forgot-password', ['email' => $user->email])->assertOk();
+
+    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user, $length) {
+        $password = Str::password($length);
+        $this->postJson('/reset-password', [
+            'email' => $user->email,
+            'token' => $notification->token,
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertOk();
+
+        expect(Hash::check($password, $user->fresh()->password))->toBeTrue();
+        $this->assertDatabaseMissing('password_reset_tokens', ['email' => $user->email]);
+        $this->assertGuest();
+
+        return true;
+    });
+})->with([12, 128]);
+
 it('enrolls confirmed church TOTP and consumes a recovery code once', function () {
     $password = Str::password(32);
     $user = User::factory()->create(['password' => $password]);

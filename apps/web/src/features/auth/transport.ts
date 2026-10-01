@@ -2,6 +2,9 @@ import { ApiError } from '../../api/client'
 
 export function safeAuthMessage(error: unknown): string {
   const status = typeof error === 'object' && error !== null && 'status' in error ? error.status : 0
+  if (typeof status === 'number' && status >= 500 && status < 600) {
+    return 'The service is temporarily unavailable. Please try again later.'
+  }
   switch (status) {
     case 401: return 'Please sign in again to continue.'
     case 403: return 'This action is unavailable. Check your verification and account access.'

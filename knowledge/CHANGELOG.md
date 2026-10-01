@@ -40,3 +40,7 @@ Planning/tooling maintenance adds the [23-phase/211-case manual roadmap](../docs
 ## MT-00 environment preflight — 2026-10-01
 
 [MTQA-20260930-01](../docs/qa/manual-runs/MTQA-20260930-01/MT-00.md) completes10 PASS/0 FAIL/0 BLOCKED/0 NOT_RUN after preserving initial blocked receipts. Direct PostgreSQL/migrations/RLS/grants/services/health evidence, corrected exact-origin human storage receipt and privately configured readiness200/no-token401 proof establish the bounded preflight. No feature, reset, storage clear, credential disclosure or MT-01 execution. Result recorded before task finalization; Git history identifies the reviewed QA commit.
+
+## MT-01 applicant authentication qualification — 2026-10-01
+
+[MTQA-20260930-02](../docs/qa/manual-runs/MTQA-20260930-02/MT-01.md) completes all ten real MT-AUTH cases with legitimate mail verification/reset/replay/natural expiry, session/CSRF/correlation boundaries and approved isolated offline/server-failure evidence. Corrected headless denial500, new-password contract bounds, misleading5xx advice and a transitive dependency advisory. Current223 backend tests/1,376 assertions and136 frontend tests/34 files plus applicable gates passed. AP unchanged/signed out, approved DA/mail/canonical evidence retained, temporary fault server/window closed; PostgreSQL/SQLite/configuration/browser work preserved. No MT-02 or new feature. Result recorded before finalization; Git history identifies the one reviewed phase commit and actual upstream synchronization.

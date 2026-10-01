@@ -40,6 +40,15 @@ it('shows generic rate-limit messages and never reflects arbitrary server text',
   expect(safeAuthMessage(new Error('private account detail'))).not.toContain('private account detail')
 })
 
+it.each([500, 502, 503, 504])('identifies HTTP %s as a service failure without reflecting server details', async (status) => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ message: 'private account detail' }, { status })))
+  await expect(authRequest('/auth/session')).rejects.toMatchObject({
+    status,
+    message: 'The service is temporarily unavailable. Please try again later.',
+  })
+  expect(safeAuthMessage({ status })).toBe('The service is temporarily unavailable. Please try again later.')
+})
+
 it('accepts only same-origin signed links for the expected endpoint', () => {
   const path = '/platform/setup/11111111-1111-4111-8111-111111111111?expires=123&signature=abc'
   expect(signedInvitation(encodeURIComponent(location.origin + path), 'platform')).toBe(path)

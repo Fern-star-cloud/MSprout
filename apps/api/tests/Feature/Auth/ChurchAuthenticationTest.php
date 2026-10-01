@@ -16,6 +16,13 @@ it('requires a church session for account metadata', function (): void {
     $this->getJson('/api/me')->assertUnauthorized();
 });
 
+it('returns a safe authentication denial without a JSON accept header', function (string $path): void {
+    $this->get($path, ['Accept' => 'text/html'])
+        ->assertUnauthorized()
+        ->assertJsonPath('code', 'unauthenticated')
+        ->assertHeader('Cache-Control', 'no-store, private');
+})->with(['/auth/session', '/api/church-applications/current', '/api/me']);
+
 it('authenticates through the Fortify session flow without returning a token', function (): void {
     $plainPassword = Str::password(32);
     $user = User::factory()->create([
@@ -43,6 +50,26 @@ it('rejects unverified church users before resolving tenant access', function ()
         ->withHeader('X-Church-Id', $church->id)
         ->getJson('/api/me')
         ->assertForbidden();
+});
+
+it('returns a safe verification denial for API reads regardless of the accept header', function (string $accept): void {
+    $user = User::factory()->unverified()->create();
+
+    $response = $this->actingAs($user, 'web')
+        ->get('/api/church-applications/current', ['Accept' => $accept]);
+
+    $response->assertForbidden()
+        ->assertJsonPath('code', 'forbidden')
+        ->assertJsonMissingPath('application')
+        ->assertHeader('Cache-Control', 'no-store, private');
+    expect(Str::isUuid($response->json('correlation_id')))->toBeTrue();
+})->with(['text/html', '*/*', 'application/json']);
+
+it('allows verified applicant API reads without requiring a JSON accept header', function (): void {
+    $this->actingAs(User::factory()->create(), 'web')
+        ->get('/api/church-applications/current', ['Accept' => 'text/html'])
+        ->assertOk()
+        ->assertExactJson(['application' => null]);
 });
 
 it('returns only allowlisted account and current membership metadata', function (): void {

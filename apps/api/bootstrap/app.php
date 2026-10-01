@@ -5,6 +5,7 @@ use App\Http\Middleware\AuditAuthentication;
 use App\Http\Middleware\AuthResponseHeaders;
 use App\Http\Middleware\CorrelationId;
 use App\Http\Middleware\RequireConfirmedOwnerMfa;
+use App\Http\Middleware\RequireVerifiedApiEmail;
 use App\Http\Middleware\ResolveChurchMembership;
 use App\Http\Middleware\TenantDatabaseTransaction;
 use App\Http\Middleware\UsePlatformSessionCookie;
@@ -40,11 +41,13 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
+        $middleware->redirectGuestsTo(null);
         $middleware->prepend(CorrelationId::class);
         $middleware->append(AuthResponseHeaders::class);
         $middleware->web(append: [AuditAuthentication::class]);
 
         $middleware->alias([
+            'verified' => RequireVerifiedApiEmail::class,
             'owner.mfa' => RequireConfirmedOwnerMfa::class,
             'tenant.resolve' => ResolveChurchMembership::class,
             'tenant.transaction' => TenantDatabaseTransaction::class,
