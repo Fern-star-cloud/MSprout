@@ -1,5 +1,15 @@
 # Current State
 
+## Pending platform setup recovery — 2026-10-07
+
+The authorized bug fix adds `platform:reissue-admin-setup --handle=sage.dev` for an existing eligible pending administrator. Reissue changes only invitation metadata, sends to the stored email and transactionally queues canonical correlated platform/security evidence plus one database mail job. Generation binding revokes older links and unfinished sessions; activation still requires TOTP and recovery acknowledgement. See [verification and deployment limits](../docs/qa/platform-setup-reissue-verification.md) and [operations procedure](../docs/operations/deployment.md#recovering-an-unfinished-platform-setup).
+
+Validated implementation is in the isolated `codex/pending-platform-setup` worktree, starting at `0416c2f3d0785e82afd497e214fd948bf0015bee`, tracking the existing `origin/feat/mvp-foundation`. This receipt precedes the single fix commit/push; resolve final commit evidence through Git using subject `fix: recover stranded pending platform administrator setup`. The original Desktop checkout remains at its original HEAD with its five modified paths, untracked MT-02 evidence and empty staging preserved. No account, live database, mail delivery, service/browser/offline-data operation or manual phase was performed.
+
+Focused recovery proof passed 21 tests / 122 assertions. Final backend regression passed 244 tests / 1,498 assertions; frontend passed 136 tests in 34 files with typecheck/lint/build and contract drift green. Pint, strict Composer validation/audit, frozen pnpm install/audit, structure, initial source Gitleaks and comprehensive plus focused OWASP scans passed. Final source review closed the generation-1 rollout gap and all SHOULD FIX/BLOCKING findings. Documentation-only synchronization does not invalidate those application results; final documentation/secret/whitespace checks precede staging.
+
+Live commissioning is deliberately pending: serve the matching code, apply the additive migration through the existing migration connection and restart the matching queue worker before issuing a new invitation. Do not run the new command against the old running API. Tasks 1–18 and all historical manual results remain intact; no next feature or manual-testing phase is started.
+
 ## Current manual QA policy — 2026-10-07
 
 By explicit user decision, MT-00 through MT-22 are optional, risk-based references for exploration, bug reproduction, correction and fix validation. Sequential completion of all 211 cases is not required for development, merging, deployment or release. Incomplete, BLOCKED, NOT_RUN or deferred cases do not automatically block those activities. Applicable automated tests, security controls, authorization boundaries, CI requirements, deployment safeguards and unresolved release-critical defects remain release criteria. Confirmed bugs require severity-based triage, correction in an authorized scope and focused regression validation. Deferred tests remain accurately BLOCKED or NOT_RUN; never represent them as PASS.

@@ -42,10 +42,24 @@ Production requires `APP_ENV=production`, `APP_DEBUG=false`, HTTPS, secure cooki
 
 Run `php artisan platform:bootstrap-admin --handle=sage.dev --email=<private-recovery-email>` only in the isolated migration/administrative job using the private recovery email. The command creates a pending identity and a short-lived signed setup link; setup still requires email possession, password creation, MFA confirmation, and recovery-code acknowledgement. Remove the bootstrap job and any one-time delivery secret immediately afterward. To disable access, set the platform administrator status to `disabled`, revoke its sessions, rotate affected credentials if compromise is suspected, and preserve the audit evidence. Never convert a church identity into `sage.dev` or give `sage.dev` a church membership.
 
+## Recovering an unfinished platform setup
+
+Deploy the generation migration and matching API/web code first. Apply only pending migrations through the existing migration connection; never run `migrate:fresh`, reseed, recreate the administrator or edit account fields directly. Migration adds generation/issuance/redemption metadata without removing identities or credentials. Pre-upgrade pending invitations and unfinished sessions become invalid; active accounts continue normally.
+
+From `apps/api`, use the documented process-scoped PHP runtime if needed:
+
+```text
+php artisan platform:reissue-admin-setup --handle=sage.dev
+```
+
+The command sends only to the already-stored recovery email and refuses activated/disabled accounts. Keep the private SMTP/mail transport and PostgreSQL database queue on the runtime connection; a running queue worker delivers the invitation. Wait at least five minutes between issues. Open the newest private invitation, create the password, enroll the newly supplied authenticator key, save the newly supplied recovery codes, and complete TOTP/acknowledgement within the configured 1–30 minute lifetime. Older mail and unfinished setup sessions cannot finish activation. Never paste the invitation or enrollment material into logs or support chat.
+
+If the command fails, retain its correlation UUID and investigate eligibility, cooldown, mail/queue configuration and canonical evidence. Do not reset records or extend timestamps manually. A failed audit or database queue insert rolls back issuance; SMTP delivery happens later and is handled by the existing queue operations. Prefer a forward fix, retaining generation metadata and generation-aware controllers/workers. Never roll back to controllers that ignore revoked generations or remove their metadata while unfinished sessions may exist. Preserve audit and identity records. Any destructive rollback requires a separately reviewed recovery plan and explicit authorization.
+
 ## Key rotation
 
 - Rotate `APP_KEY` by placing the previous key in `APP_PREVIOUS_KEYS`, deploying all services, re-encrypting active encrypted fields through a reviewed one-off job, then removing the old key after the maximum session/device transition window. A lost key makes encrypted push endpoints and other ciphertext unrecoverable; keep it in the encrypted secret backup.
-- Rotate the platform setup path by expiring the pending setup record and issuing a new bootstrap invitation. Never reuse a signed URL.
+- Rotate an unfinished platform setup through `platform:reissue-admin-setup --handle=sage.dev` as documented above. Never edit expiry directly, rerun bootstrap for an existing identity, or reuse a signed URL.
 - Rotate Web Push VAPID keys deliberately. Existing subscriptions may need to be revoked and re-enrolled; send only the generic count payload throughout the transition.
 - Rotate `READINESS_TOKEN`, database, mail, CAPTCHA, and provider credentials independently. Restart all consumers after rotation and confirm logs do not contain old or new values.
 

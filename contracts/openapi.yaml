@@ -3153,7 +3153,7 @@ paths:
       - url: /
     get:
       operationId: getPlatformSetup
-      description: Short-lived signed invitation for a pending admin.
+      description: Short-lived signed invitation for an eligible pending admin. Requires the current unredeemed generation; superseded, used and generationless invitations are rejected.
       security: []
       responses:
         "200":
@@ -3185,7 +3185,7 @@ paths:
             type: string
     post:
       operationId: beginPlatformSetup
-      description: Signed invitation proves recovery-email possession. Set password and return enrollment material once; session-bound confirmation is required.
+      description: Signed current-generation invitation proves recovery-email possession. Redeem once, set or replace unfinished password and encrypted MFA material, and bind confirmation to this generation and isolated session. Superseded or used invitations are rejected.
       security: []
       responses:
         "200":
@@ -3233,6 +3233,13 @@ paths:
         required: true
         schema: *a2
       - in: query
+        name: generation
+        required: true
+        description: Current invitation generation bound into the signature.
+        schema:
+          type: integer
+          minimum: 1
+      - in: query
         name: expires
         required: true
         schema:
@@ -3247,7 +3254,7 @@ paths:
       - url: /
     post:
       operationId: confirmPlatformSetup
-      description: Requires the same setup session, unexpired invitation, valid TOTP and explicit recovery-code acknowledgement. Activates admin and invalidates setup invitation.
+      description: Requires the same setup session bound to the current redeemed generation, an unexpired invitation, valid TOTP and explicit recovery-code acknowledgement. Reissue invalidates older unfinished sessions. Activates admin and invalidates setup invitation.
       security: []
       responses:
         "204":

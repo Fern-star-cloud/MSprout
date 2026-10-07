@@ -14,7 +14,7 @@ beforeEach(function () {
 
 it('requires signed invitation password TOTP and recovery acknowledgement before activation', function () {
     $admin = PlatformAdmin::factory()->create();
-    $url = URL::temporarySignedRoute('platform.setup.show', now()->addMinutes(20), ['platformAdmin' => $admin->id]);
+    $url = URL::temporarySignedRoute('platform.setup.show', now()->addMinutes(20), ['platformAdmin' => $admin->id, 'generation' => $admin->setup_generation]);
     $enrollment = $this->postJson($url, ['password' => $this->password, 'password_confirmation' => $this->password])
         ->assertOk()->assertJsonStructure(['secret', 'qr_code', 'recovery_codes'])->json();
     expect($admin->fresh()->status)->toBe('pending');

@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\PlatformAdmin;
+use Carbon\CarbonImmutable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -15,7 +16,16 @@ final class PlatformAdminSetupMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public readonly PlatformAdmin $admin) {}
+    // Scalars survive SerializesModels rehydration; old jobs keep generation zero.
+    public int $generation = 0;
+
+    public int $expires = 0;
+
+    public function __construct(public readonly PlatformAdmin $admin)
+    {
+        $this->generation = $admin->setup_generation;
+        $this->expires = $admin->setup_expires_at->timestamp;
+    }
 
     public function envelope(): Envelope
     {
@@ -34,8 +44,8 @@ final class PlatformAdminSetupMail extends Mailable implements ShouldQueue
     {
         return URL::temporarySignedRoute(
             'platform.setup.show',
-            $this->admin->setup_expires_at,
-            ['platformAdmin' => $this->admin->getKey()],
+            CarbonImmutable::createFromTimestamp($this->expires),
+            ['platformAdmin' => $this->admin->getKey(), 'generation' => $this->generation],
         );
     }
 }

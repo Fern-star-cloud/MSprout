@@ -20,7 +20,7 @@ it('requires the platform challenge before displaying the platform session', asy
 })
 
 it('requires recovery acknowledgement before completing signed setup', async () => {
-  const invitation = '/platform/setup/11111111-1111-4111-8111-111111111111?expires=123&signature=abc'
+  const invitation = '/platform/setup/11111111-1111-4111-8111-111111111111?generation=2&expires=123&signature=abc'
   vi.mocked(authRequest).mockImplementation(async (path, method) => {
     if (path === invitation && method === 'POST') return { secret: 'test-setup-key', qr_code: '', recovery_codes: ['test-recovery-code'] }
     if (path === '/platform/me') return { handle: 'sage.dev', online_only: true }

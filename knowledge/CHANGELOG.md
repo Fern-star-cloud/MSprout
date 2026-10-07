@@ -1,5 +1,7 @@
 # Development Changelog
 
+2026-10-07 — Pending `sage.dev` recovery fix: operator-only reissue to the stored recovery email; generation-bound one-time links/sessions; five-minute cooldown; captured mail generation/expiry; transactional audit/security/queue evidence; preserved mandatory TOTP/recovery acknowledgement and initial password gate. Focused 21-case proof and full application/security gates passed; narrow source-map-js security patch applied. See [verification](../docs/qa/platform-setup-reissue-verification.md). This entry precedes the single authorized fix commit; no live administrator invitation/activation, deployment or manual phase is claimed.
+
 2026-10-07 — Manual QA governance update: replaced mandatory sequential qualification with optional bug-driven, risk-based MT-00…MT-22 references. Preserved 211 stable cases and historical results/blockers, required release/security gates and all four pending applications. Recorded human-observed Pending review overflow for reproduction/severity assessment; no product fix, manual case or new phase executed. Focused validation is recorded in [TESTING_ENVIRONMENT.md](TESTING_ENVIRONMENT.md). The user separately authorized the reviewed governance-only commit and normal feature-branch push while preserving earlier work unstaged/uncommitted. Resolve the resulting `docs: make manual QA risk-based and non-blocking` commit and actual synchronization through Git; this receipt precedes finalization.
 
 Meaningful completed milestones only. This is a concise index, not a replacement for Git history or QA reports.

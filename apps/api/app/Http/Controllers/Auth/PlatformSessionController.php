@@ -23,7 +23,7 @@ final class PlatformSessionController extends Controller
 
         return DB::transaction(function () use ($request, $platformAdmin, $data) {
             $admin = PlatformAdmin::query()->lockForUpdate()->findOrFail($platformAdmin->id);
-            abort_unless($admin->status === 'pending' && $admin->setup_expires_at?->isFuture() && $admin->password === null, 410);
+            abort_unless($this->invitationAvailable($request, $admin), 410);
             $provider = app(TwoFactorAuthenticationProvider::class);
             $secret = $provider->generateSecretKey();
             $codes = array_map(fn () => RecoveryCode::generate(), range(1, 8));
@@ -31,9 +31,11 @@ final class PlatformSessionController extends Controller
                 'password' => $data['password'], 'email_verified_at' => now(),
                 'two_factor_secret' => Fortify::currentEncrypter()->encrypt($secret),
                 'two_factor_recovery_codes' => Fortify::currentEncrypter()->encrypt(json_encode($codes)),
+                'setup_redeemed_at' => now(),
             ])->save();
             $request->session()->regenerate();
             $request->session()->put('platform.setup_id', $admin->id);
+            $request->session()->put('platform.setup_generation', $admin->setup_generation);
 
             return response()->json(['secret' => $secret, 'qr_code' => $provider->qrCodeUrl(config('app.name'), $admin->handle, $secret), 'recovery_codes' => $codes]);
         });
@@ -45,7 +47,8 @@ final class PlatformSessionController extends Controller
         DB::transaction(function () use ($request, $platformAdmin, $data) {
             $admin = PlatformAdmin::query()->lockForUpdate()->findOrFail($platformAdmin->id);
             abort_unless($request->session()->get('platform.setup_id') === $admin->id, 403);
-            abort_unless($admin->status === 'pending' && $admin->setup_expires_at?->isFuture(), 410);
+            abort_unless($request->session()->get('platform.setup_generation') === $admin->setup_generation, 403);
+            abort_unless($admin->eligibleForSetup() && $admin->setup_redeemed_at && $admin->setup_expires_at?->isFuture(), 410);
             $this->verifyCode($admin, $data);
             $admin->forceFill(['status' => 'active', 'two_factor_confirmed_at' => now(), 'recovery_codes_acknowledged_at' => now(), 'setup_expires_at' => null])->save();
             $this->authenticate($request, $admin);
@@ -106,7 +109,7 @@ final class PlatformSessionController extends Controller
 
     private function authenticate(Request $request, PlatformAdmin $admin): void
     {
-        $request->session()->forget(['platform.setup_id', 'platform.challenge_id', 'platform.challenge_expires']);
+        $request->session()->forget(['platform.setup_id', 'platform.setup_generation', 'platform.challenge_id', 'platform.challenge_expires']);
         Auth::guard('platform')->login($admin);
         $request->session()->regenerate();
         $request->session()->put('platform.mfa', true);
@@ -122,13 +125,19 @@ final class PlatformSessionController extends Controller
         return response()->noContent();
     }
 
-    public function setupStatus(PlatformAdmin $platformAdmin): JsonResponse
+    private function invitationAvailable(Request $request, PlatformAdmin $admin): bool
     {
-        abort_unless(
-            $platformAdmin->status === 'pending'
-                && $platformAdmin->setup_expires_at?->isFuture(),
-            410,
-        );
+        $generation = $request->query('generation');
+
+        return is_string($generation) && $generation === (string) $admin->setup_generation
+            && $admin->eligibleForSetup() && $admin->setup_expires_at?->isFuture()
+            && ($admin->setup_generation > 1 || $admin->password === null)
+            && $admin->setup_redeemed_at === null;
+    }
+
+    public function setupStatus(Request $request, PlatformAdmin $platformAdmin): JsonResponse
+    {
+        abort_unless($this->invitationAvailable($request, $platformAdmin), 410);
 
         return response()->json([
             'handle' => $platformAdmin->handle,

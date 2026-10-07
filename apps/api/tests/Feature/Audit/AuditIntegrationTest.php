@@ -96,7 +96,7 @@ it('rolls back password reset including the one use proof on audit failure', fun
 
 it('rolls back platform setup and never establishes a session on audit failure', function () {
     $admin = PlatformAdmin::factory()->create();
-    $url = URL::temporarySignedRoute('platform.setup.show', now()->addMinutes(20), ['platformAdmin' => $admin->id]);
+    $url = URL::temporarySignedRoute('platform.setup.show', now()->addMinutes(20), ['platformAdmin' => $admin->id, 'generation' => $admin->setup_generation]);
     $this->mock(SecurityEventWriter::class)->shouldReceive('record')->andThrow(new RuntimeException('private-marker'));
     $password = Str::password(32);
     $this->postJson($url, ['password' => $password, 'password_confirmation' => $password])->assertStatus(500);

@@ -15,6 +15,8 @@ final class PlatformAdmin extends Authenticatable
 
     protected $table = 'platform_admins';
 
+    protected $attributes = ['setup_generation' => 1];
+
     protected $fillable = [
         'handle',
         'recovery_email',
@@ -35,7 +37,18 @@ final class PlatformAdmin extends Authenticatable
             'two_factor_confirmed_at' => 'datetime',
             'recovery_codes_acknowledged_at' => 'datetime',
             'setup_expires_at' => 'datetime',
+            'setup_generation' => 'integer',
+            'setup_redeemed_at' => 'datetime',
+            'setup_issued_at' => 'datetime',
             'last_authenticated_at' => 'datetime',
         ];
+    }
+
+    public function eligibleForSetup(): bool
+    {
+        return $this->status === 'pending'
+            && $this->two_factor_confirmed_at === null
+            && $this->recovery_codes_acknowledged_at === null
+            && $this->last_authenticated_at === null;
     }
 }

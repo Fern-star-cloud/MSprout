@@ -40,6 +40,7 @@ final class BootstrapPlatformAdmin extends Command
             $admin->forceFill([
                 'status' => 'pending',
                 'password' => null,
+                'setup_issued_at' => now(),
                 'setup_expires_at' => now()->addMinutes((int) config('auth.platform_setup_lifetime', 30)),
             ])->save();
         } catch (QueryException) {

@@ -28,6 +28,18 @@ Open the private invitation in the browser. It proves access to the recovery ema
 
 Email links carry their signed/reset values in the frontend URL fragment; the frontend removes that fragment from browser history after capturing it in memory. Signed API URLs must match the current origin and the expected endpoint. Enrollment keys and recovery codes are displayed only during the explicit setup flow and are never saved in local storage or IndexedDB.
 
+### Stranded pending setup
+
+After deploying the generation migration and matching API/web code, an authorized operator may run `php artisan platform:reissue-admin-setup --handle=sage.dev` from `apps/api`. This command exists only in the console, accepts no email/password/identity override, and refuses missing, active, disabled or previously activated records. It sends only to the stored recovery email. Wait five minutes after the last invitation; reissued links last `PLATFORM_SETUP_LIFETIME` minutes, bounded to 1–30 minutes. The private mail transport and PostgreSQL database queue must be configured; the queue connection must use the application's transactional database connection.
+
+Reissue locks the existing record, increments its generation, clears only the redemption marker and renews issuance/expiry. Existing unfinished credentials remain intact until a fresh signed link is redeemed. Redemption replaces unfinished password/TOTP/recovery material once and binds the rotated platform session to the generation. Confirmation checks both account ID and generation plus eligibility, redemption, expiry, valid TOTP and explicit recovery acknowledgement. Old links, redeemed links and superseded sessions fail closed. No pending identity can sign in or bypass activation.
+
+Queued mail captures its original generation and expiry as scalar values, rather than taking new values from a rehydrated model. Stale mail therefore cannot become a new invitation. Pre-upgrade links have no generation and are rejected; pre-upgrade queued messages default to generation zero, which is rejected. Existing active administrators are unaffected. A pending pre-upgrade administrator must receive a new invitation through the operator command.
+
+Generation 1 also retains the original null-password gate, including for pre-migration unfinished enrollment without a redemption timestamp. Only an operator-issued later generation permits replacement of unfinished credentials. Rollout must keep generation-aware controllers and workers together; prefer a forward fix and never roll back to controllers that ignore generation revocation.
+
+Generation changes, `platform.setup_reissued` platform/security evidence and the database queue insert share one transaction. Audit or queue failure rolls everything back. The operator is recorded as `system`, never as an authenticated administrator; evidence and the queued job share the generated correlation UUID. Output contains only a safe status and correlation ID. Private email, signed URLs, passwords, MFA material and raw exceptions are excluded. Existing signed-link, CSRF, throttle, encryption, guard/cookie isolation and no-store controls remain mandatory.
+
 ## Verification
 
 From `apps/api`, run `php artisan test tests/Feature/Auth tests/Feature/Platform`, then `php artisan test` and `vendor/bin/pint --test`. The test bootstrap requires PostgreSQL 18 and local migration credentials, creates/refreshes only `DB_TEST_DATABASE`, and executes application queries as a restricted role without RLS bypass. Do not run concurrent backend suites against that same test database.

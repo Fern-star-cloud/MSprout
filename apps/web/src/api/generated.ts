@@ -952,6 +952,8 @@ export interface paths {
     "/platform/setup/{platformAdmin}": {
         parameters: {
             query: {
+                /** @description Current invitation generation bound into the signature. */
+                generation: number;
                 expires: number;
                 signature: string;
             };
@@ -961,10 +963,10 @@ export interface paths {
             };
             cookie?: never;
         };
-        /** @description Short-lived signed invitation for a pending admin. */
+        /** @description Short-lived signed invitation for an eligible pending admin. Requires the current unredeemed generation; superseded, used and generationless invitations are rejected. */
         get: operations["getPlatformSetup"];
         put?: never;
-        /** @description Signed invitation proves recovery-email possession. Set password and return enrollment material once; session-bound confirmation is required. */
+        /** @description Signed current-generation invitation proves recovery-email possession. Redeem once, set or replace unfinished password and encrypted MFA material, and bind confirmation to this generation and isolated session. Superseded or used invitations are rejected. */
         post: operations["beginPlatformSetup"];
         delete?: never;
         options?: never;
@@ -983,7 +985,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Requires the same setup session, unexpired invitation, valid TOTP and explicit recovery-code acknowledgement. Activates admin and invalidates setup invitation. */
+        /** @description Requires the same setup session bound to the current redeemed generation, an unexpired invitation, valid TOTP and explicit recovery-code acknowledgement. Reissue invalidates older unfinished sessions. Activates admin and invalidates setup invitation. */
         post: operations["confirmPlatformSetup"];
         delete?: never;
         options?: never;
@@ -3873,6 +3875,8 @@ export interface operations {
     getPlatformSetup: {
         parameters: {
             query: {
+                /** @description Current invitation generation bound into the signature. */
+                generation: number;
                 expires: number;
                 signature: string;
             };
@@ -3904,6 +3908,8 @@ export interface operations {
     beginPlatformSetup: {
         parameters: {
             query: {
+                /** @description Current invitation generation bound into the signature. */
+                generation: number;
                 expires: number;
                 signature: string;
             };
