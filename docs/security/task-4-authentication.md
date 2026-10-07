@@ -18,6 +18,8 @@ Production must use HTTPS, `APP_DEBUG=false`, secure HttpOnly SameSite session c
 
 `PlatformAdmin` records use the `platform` guard and `ministrysprout_platform_session` cookie scoped to `/platform`. Church sessions do not authorize platform routes; platform sessions do not authorize church routes. `/platform/me` rechecks activation, email verification, confirmed MFA, recovery acknowledgement, and session MFA assurance. Platform access is online-only, and its UI and transport do not cache account data.
 
+The database session handler explicitly associates `sessions.user_id` with the church `web` guard. This nullable integer metadata column is null on platform requests; the platform UUID remains in the separate platform guard key inside the session payload. Selecting `auth:platform` must never write a UUID into church session metadata. Standard database persistence, optional payload encryption, cookie encryption and session rotation remain in Laravel's session implementation. This correction requires an API restart with matching code, without a schema or account change.
+
 Mutations require CSRF. Church forms initialize `/sanctum/csrf-cookie` and send the decoded `XSRF-TOKEN` cookie as `X-XSRF-TOKEN`. Platform forms obtain their own in-memory token from `/platform/csrf-token` before every mutation and send `X-CSRF-TOKEN`. Login and MFA completion rotate sessions. Recovery, login, and MFA attempts are rate limited, with generic recovery responses that do not reveal account existence.
 
 ## One-time platform setup
@@ -43,6 +45,8 @@ Generation changes, `platform.setup_reissued` platform/security evidence and the
 ## Verification
 
 From `apps/api`, run `php artisan test tests/Feature/Auth tests/Feature/Platform`, then `php artisan test` and `vendor/bin/pint --test`. The test bootstrap requires PostgreSQL 18 and local migration credentials, creates/refreshes only `DB_TEST_DATABASE`, and executes application queries as a restricted role without RLS bypass. Do not run concurrent backend suites against that same test database.
+
+`tests/Feature/Platform/PlatformDatabaseSessionTest.php` covers password → TOTP → `/platform/me` with a new application per request, real encrypted response cookies, database sessions with both payload-encryption settings and enforced CSRF. It also checks cookie scope, rotation, disabled-session denial, church integer metadata, simultaneous independent church/platform sessions, cross-guard CSRF denial and isolated logout. See [session restoration evidence](../qa/platform-session-restoration-verification.md).
 
 From the root, run:
 

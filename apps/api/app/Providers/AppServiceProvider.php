@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Domain\Audit\CorrelationContext;
+use App\Support\Auth\GuardAwareDatabaseSessionHandler;
 use App\Support\Captcha\CaptchaVerifier;
 use App\Support\Captcha\TurnstileVerifier;
 use App\Support\Notifications\PushSender;
@@ -34,6 +35,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->app->make('session')->extend('database', fn ($app) => new GuardAwareDatabaseSessionHandler(
+            $app->make('db')->connection($app['config']->get('session.connection')),
+            $app['config']->get('session.table'),
+            $app['config']->get('session.lifetime'),
+            $app,
+        ));
         Event::listen(PasswordReset::class, function ($event) {
             request()->attributes->set('audit.auth_actor', $event->user->getAuthIdentifier());
         });

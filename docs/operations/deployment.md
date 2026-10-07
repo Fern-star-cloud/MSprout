@@ -56,6 +56,12 @@ The command sends only to the already-stored recovery email and refuses activate
 
 If the command fails, retain its correlation UUID and investigate eligibility, cooldown, mail/queue configuration and canonical evidence. Do not reset records or extend timestamps manually. A failed audit or database queue insert rolls back issuance; SMTP delivery happens later and is handled by the existing queue operations. Prefer a forward fix, retaining generation metadata and generation-aware controllers/workers. Never roll back to controllers that ignore revoked generations or remove their metadata while unfinished sessions may exist. Preserve audit and identity records. Any destructive rollback requires a separately reviewed recovery plan and explicit authorization.
 
+## Platform session persistence update
+
+For the platform `/me` session-save correction, restart the API from the checkout containing `fix: preserve platform database session restoration`. Keep the existing environment, `APP_KEY`, PostgreSQL session driver and database. This patch changes the session handler registration and needs no migration or administrator mutation. The prior pending-setup generation migration remains a separate prerequisite when upgrading from older code.
+
+Locally, stop the existing API listener on `127.0.0.1:8000` using its owning terminal, then run `php artisan serve --host=127.0.0.1 --port=8000` from the fixed checkout's `apps/api` directory using the documented process-scoped PHP runtime. Keep the existing frontend proxy/origin. No frontend rebuild, session deletion, browser storage clearing or credential rotation is required. Retry normal platform password/TOTP sign-in with the existing active account; do not reissue setup for an active administrator. In deployment, roll the matching API image through the established restart procedure.
+
 ## Key rotation
 
 - Rotate `APP_KEY` by placing the previous key in `APP_PREVIOUS_KEYS`, deploying all services, re-encrypting active encrypted fields through a reviewed one-off job, then removing the old key after the maximum session/device transition window. A lost key makes encrypted push endpoints and other ciphertext unrecoverable; keep it in the encrypted secret backup.
