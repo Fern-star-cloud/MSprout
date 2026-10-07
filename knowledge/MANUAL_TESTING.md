@@ -1,5 +1,23 @@
 # Manual Testing Knowledge
 
+## Current manual QA policy — 2026-10-07
+
+By explicit user decision, MT-00 through MT-22 are optional, risk-based references for exploration, bug reproduction, correction and fix validation. Sequential completion of all 211 cases is not required for development, merging, deployment or release. Incomplete, BLOCKED, NOT_RUN or deferred cases do not automatically block those activities. Applicable automated tests, security controls, authorization boundaries, CI requirements, deployment safeguards and unresolved release-critical defects remain release criteria. Confirmed bugs require severity-based triage, correction in an authorized scope and focused regression validation. Deferred tests remain accurately BLOCKED or NOT_RUN; never represent them as PASS.
+
+Preserve existing results, evidence and known blockers. Phase exit rules describe proof needed to claim a phase passed, not unconditional release prerequisites. See [AGENTS.md](../AGENTS.md) section 16 and the [manual roadmap](../docs/qa/MANUAL_TESTING_ROADMAP.md). Older dated qualification, progression, next-action and no-finalization receipts below describe their historical run scopes; they do not reinstate mandatory sequential qualification.
+
+Current evidence checkpoint: Tasks 1–18 are complete; MT-00 and MT-01 passed and remain preserved. MT-02 is partial: the latest cleanup receipt records 2 PASS / 0 FAIL / 3 BLOCKED / 5 NOT_RUN. MT-APP-003 has five passing subchecks; City121 denial remains BLOCKED with its payload/reproduction uncertainty. MT-APP-004 remains BLOCKED on fresh-fixture authorization; AUTO-MTAPP004 was proposed, not created or designated. Response correlation ID and click count for the combined at-limit acceptance remain unconfirmed. Known blockers and older counts remain in the retained run history; no results are promoted by this policy change.
+
+The earlier request to prepare MT-APP-004 is deferred. This governance run authorizes no manual case, fixture preparation or product fix: do not rerun completed cases or start MT-03 or another phase. Preserve all four existing pending church applications, PostgreSQL/SQLite, APP_KEY, credentials, browser/offline storage, drafts, conflicts, outbox events, cursors, unsynced work and prior evidence. No synthetic user, application submission, record deletion, database reset or storage clearing is authorized. Authentication, CAPTCHA, MFA, RLS, CSRF and other protections remain intact. These are preservation requirements, not a new runtime census or browser inspection.
+
+## Observed issue O-QA-20261007-01 — Pending review horizontal overflow
+
+The user reports that a long synthetic church name causes horizontal page overflow on the Pending review screen. Evidence classification: HUMAN_MANUAL observation supplied in the governance request; no independent reproduction was performed in this run. Status: observed issue requiring reproduction and severity assessment, not a confirmed root cause. Severity, affected viewport/browser range, accessibility/core-workflow impact and root cause are unassessed. No CSS, layout or input-validation cause is asserted and no fix or regression PASS is claimed.
+
+A separately scoped investigation should use the preserved pending application and existing evidence, record viewport/browser and expected versus actual layout, assess severity and release impact, and add a focused regression before correcting a confirmed defect. Do not create an applicant, resubmit, delete a pending application or clear storage to reproduce it. This observation alone is not evidence of a release-critical defect; any such impact discovered later remains a release blocker.
+
+## Preserved historical receipts
+
 ## Purpose
 
 Concise running qualification state. The roadmap is the plan; the system handoff is the reference; this file records what actually ran and what is next. Planning does not constitute a manual campaign.

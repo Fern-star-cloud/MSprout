@@ -1,12 +1,14 @@
 # MinistrySprout Knowledge Index
 
+MT-00…MT-22 are optional risk-based QA references; sequential completion of 211 cases is not required for development, merging, deployment or release. Preserve results and blockers without promoting deferred coverage to PASS. Applicable automated/security/authorization/CI/deployment gates and unresolved release-critical defects remain release criteria; see [AGENTS.md](../AGENTS.md) section 16.
+
 Always begin with [CURRENT_STATE.md](CURRENT_STATE.md). Then read only what the task needs:
 
 | Need | Document |
 |---|---|
-| Current MVP operation, fixtures, runtime/manual qualification, defects and next action | [Canonical system handoff](../docs/qa/MSPROUT_SYSTEM_HANDOFF.md) |
-| Ordered live/manual qualification cases and phase exit rules | [Manual testing roadmap](../docs/qa/MANUAL_TESTING_ROADMAP.md) |
-| Current manual phase, findings, blockers, evidence and next action | [MANUAL_TESTING.md](MANUAL_TESTING.md) |
+| Current MVP operation, preserved fixtures/evidence, optional QA policy and defects | [Canonical system handoff](../docs/qa/MSPROUT_SYSTEM_HANDOFF.md) |
+| Optional risk-based manual QA references and evidence rules | [Manual testing roadmap](../docs/qa/MANUAL_TESTING_ROADMAP.md) |
+| Recorded manual results, deferred coverage, observed issues and blockers | [MANUAL_TESTING.md](MANUAL_TESTING.md) |
 | Autonomous synthetic local QA, private store, approved probes and human takeover | [Local operator protocol](../docs/qa/AUTONOMOUS_LOCAL_OPERATOR.md) |
 | Scoped local graph tooling, installation, verification and rollback | [CODEBASE_MEMORY.md](CODEBASE_MEMORY.md) |
 | Product purpose, terminology, business or security invariants | [PROJECT_BRAIN.md](PROJECT_BRAIN.md) |

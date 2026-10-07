@@ -1,5 +1,7 @@
 # Technical Decisions
 
+Manual QA governance decision — 2026-10-07, explicit user direction: retain MT-00…MT-22/211 cases as optional risk-based references for exploration and bug reproduction/correction/validation. Sequential completion is not a development, merge, deployment or release prerequisite; incomplete/BLOCKED/NOT_RUN coverage alone is non-blocking and never relabeled PASS. Preserve historical evidence and known blockers. Confirmed bugs require severity triage, authorized correction and focused regression proof; applicable automated/security/authorization/CI/deployment requirements and unresolved release-critical defects remain release criteria. This changes QA governance, not MVP product scope or security protections. See [AGENTS.md](../AGENTS.md) section 16 and [manual roadmap](../docs/qa/MANUAL_TESTING_ROADMAP.md).
+
 Only decisions established by the approved design, roadmap, committed implementation, or a validated current worktree belong here.
 
 ## Repository and delivery

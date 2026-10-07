@@ -1,5 +1,7 @@
 # One-church pilot runbook and evidence
 
+Current policy (2026-10-07): the MT-00…MT-22 manual roadmap is an optional risk-based reference, not a mandatory release sequence. A new human pilot is not required solely to complete that roadmap. This runbook retains Task 18 historical evidence and the safety preconditions for any actually authorized pilot. Deferred coverage never becomes PASS; automated/security/CI gates, deployment safeguards and unresolved release-critical defects remain release criteria. See [release checklist](release-checklist.md) and [AGENTS.md](../../AGENTS.md) section 16.
+
 This runbook is the privacy-safe Task 18 pilot record. Do not record child names, birthdates, roster exports, contact details, cookies, tokens, push endpoints, raw requests, or production secrets here. Actual operator names and direct contact details belong in the approved private operations channel, not Git.
 
 ## Release roles and escalation

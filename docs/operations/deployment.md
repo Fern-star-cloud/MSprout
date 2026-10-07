@@ -1,5 +1,7 @@
 # Production deployment
 
+Current manual QA policy (2026-10-07): Tasks 1–18 are complete. MT-00 through MT-22 and all 211 cases are optional risk-based references; sequential completion and manual phase PASS are not unconditional rollout prerequisites. Incomplete, BLOCKED, NOT_RUN or deferred manual cases do not automatically block deployment and remain accurately recorded, never relabeled PASS. Applicable automated tests, security controls, authorization boundaries, CI requirements, the safeguards in this runbook and unresolved release-critical defects remain release criteria. This policy does not authorize a deployment or waive an operational prerequisite. See [release checklist](../qa/release-checklist.md) and [AGENTS.md](../../AGENTS.md) section 16.
+
 Task 17 defines the deployable topology; Task 18 performs release qualification and the pilot. Do not point production at a release until Task 18 is complete.
 
 ## Topology and separation

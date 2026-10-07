@@ -1,5 +1,17 @@
 # Testing Environment
 
+## Current manual QA policy — 2026-10-07
+
+By explicit user decision, MT-00 through MT-22 are optional, risk-based references for exploration, bug reproduction, correction and fix validation. Sequential completion of all 211 cases is not required for development, merging, deployment or release. Incomplete, BLOCKED, NOT_RUN or deferred cases do not automatically block those activities. Applicable automated tests, security controls, authorization boundaries, CI requirements, deployment safeguards and unresolved release-critical defects remain release criteria. Confirmed bugs require severity-based triage, correction in an authorized scope and focused regression validation. Deferred tests remain accurately BLOCKED or NOT_RUN; never represent them as PASS.
+
+Preserve existing results, evidence and known blockers. Phase exit rules describe proof needed to claim a phase passed, not unconditional release prerequisites. See [AGENTS.md](../AGENTS.md) section 16 and the [manual roadmap](../docs/qa/MANUAL_TESTING_ROADMAP.md). Older dated qualification, progression, next-action and no-finalization receipts below describe their historical run scopes; they do not reinstate mandatory sequential qualification.
+
+This governance update changes Markdown policy/knowledge only. No application, contract, dependency, scanner configuration, CI workflow, authentication or data input is changed by this run. Applicable validation is focused policy/link/checklist/evidence consistency, preservation, repository structure, secret scanning of complete changed document inputs and whitespace review. Application suites, builds, dependency audits, Semgrep and manual cases are not rerun for this documentation-only scope; earlier results remain dated evidence, not new runs or manual PASS claims.
+
+Focused governance validation — 2026-10-07: consistency checks passed for 14 policy documents and 189 local links; all 23 phases and 211 ordered unique case IDs remain, 209 case rows are unchanged and only MT-RELEASE-001/002 expectations were revised for optional coverage and severity-based triage. Existing handoff/knowledge bodies are retained (one handoff routing phrase updated); AGENTS.md sections 1–15 are unchanged. SHA-256 checks passed for the existing environment-example edit and all four manual-run/procedure documents, including untracked MT-02 evidence. `bash scripts/verify-structure.sh` using existing Git for Windows Bash and `git diff --check` passed. Existing Gitleaks 8.30.0 scanned the complete 14-document snapshot (~583,144 bytes), then the final receipt snapshot (~584,954 bytes), with zero leaks; ignored credentials/runtime/build data were not included. Final diff/source review found no remaining BLOCKING or SHOULD FIX documentation issue. No application suite, audit, Semgrep, manual case or runtime/data/browser operation was performed; those inputs were unaffected. The user subsequently supplied section 14 post-review finalization authorization, including normal feature-branch push with earlier work preserved unstaged/uncommitted. Selective staging excludes earlier MT-02 evidence changes even in shared policy files; staging/preservation and final receipt secret/whitespace checks apply without invalidating application gates.
+
+## Preserved historical validation receipts
+
 Verified on 2026-10-01; dated intermediate and earlier milestone receipts below are historical.
 
 ## Autonomous local operator-mode validation — 2026-10-01

@@ -1,5 +1,11 @@
 # MVP release checklist
 
+## Current manual QA policy — 2026-10-07
+
+By explicit user decision, MT-00 through MT-22 are optional, risk-based references for exploration, bug reproduction, correction and fix validation. Sequential completion of all 211 cases is not required for development, merging, deployment or release. Incomplete, BLOCKED, NOT_RUN or deferred cases do not automatically block those activities. Applicable automated tests, security controls, authorization boundaries, CI requirements, deployment safeguards and unresolved release-critical defects remain release criteria. Confirmed bugs require severity-based triage, correction in an authorized scope and focused regression validation. Deferred tests remain accurately BLOCKED or NOT_RUN; never represent them as PASS.
+
+Preserve existing results, evidence and known blockers. Phase exit rules describe proof needed to claim a phase passed, not unconditional release prerequisites. See [AGENTS.md](../../AGENTS.md) section 16 and the [manual roadmap](MANUAL_TESTING_ROADMAP.md). Older dated qualification, progression, next-action and no-finalization receipts below describe their historical run scopes; they do not reinstate mandatory sequential qualification.
+
 Decision date: 2026-09-30. Candidate branch: `feat/mvp-foundation`. Starting checkpoint: Task 17 commit `a989dd904551a26f6f7548ee0c88128f13c6933d`.
 
 ## Twelve acceptance criteria

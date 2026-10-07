@@ -1,10 +1,24 @@
 # MSprout System Handoff
 
+## Current manual QA policy — 2026-10-07
+
+By explicit user decision, MT-00 through MT-22 are optional, risk-based references for exploration, bug reproduction, correction and fix validation. Sequential completion of all 211 cases is not required for development, merging, deployment or release. Incomplete, BLOCKED, NOT_RUN or deferred cases do not automatically block those activities. Applicable automated tests, security controls, authorization boundaries, CI requirements, deployment safeguards and unresolved release-critical defects remain release criteria. Confirmed bugs require severity-based triage, correction in an authorized scope and focused regression validation. Deferred tests remain accurately BLOCKED or NOT_RUN; never represent them as PASS.
+
+Preserve existing results, evidence and known blockers. Phase exit rules describe proof needed to claim a phase passed, not unconditional release prerequisites. See [AGENTS.md](../../AGENTS.md) section 16 and the [manual roadmap](MANUAL_TESTING_ROADMAP.md). Older dated qualification, progression, next-action and no-finalization receipts below describe their historical run scopes; they do not reinstate mandatory sequential qualification.
+
+Current evidence checkpoint: Tasks 1–18 are complete; MT-00 and MT-01 passed and remain preserved. MT-02 is partial: the latest cleanup receipt records 2 PASS / 0 FAIL / 3 BLOCKED / 5 NOT_RUN. MT-APP-003 has five passing subchecks; City121 denial remains BLOCKED with its payload/reproduction uncertainty. MT-APP-004 remains BLOCKED on fresh-fixture authorization; AUTO-MTAPP004 was proposed, not created or designated. Response correlation ID and click count for the combined at-limit acceptance remain unconfirmed. Known blockers and older counts remain in the retained run history; no results are promoted by this policy change.
+
+The earlier request to prepare MT-APP-004 is deferred. This governance run authorizes no manual case, fixture preparation or product fix: do not rerun completed cases or start MT-03 or another phase. Preserve all four existing pending church applications, PostgreSQL/SQLite, APP_KEY, credentials, browser/offline storage, drafts, conflicts, outbox events, cursors, unsynced work and prior evidence. No synthetic user, application submission, record deletion, database reset or storage clearing is authorized. Authentication, CAPTCHA, MFA, RLS, CSRF and other protections remain intact. These are preservation requirements, not a new runtime census or browser inspection.
+
+Observed issue O-QA-20261007-01: human reports horizontal page overflow on Pending review with a long synthetic church name. Reproduction, severity, release impact and root cause remain unassessed; no fix or regression PASS is claimed. See [manual knowledge](../../knowledge/MANUAL_TESTING.md). No application/browser/database operation was performed for this governance update.
+
+## Preserved historical receipts and runtime handoff
+
 ## 1. Purpose
 
 Canonical developer/operator/manual-testing orientation for the current implemented MVP. A new session should read this file and `AGENTS.md` first. Repository authority still applies; this operational summary does not approve product expansion. Evidence distinguishes live runtime, modeled browser scenarios, automated backend tests, inspection and historical reports.
 
-Qualification sequencing now lives in [MANUAL_TESTING_ROADMAP.md](MANUAL_TESTING_ROADMAP.md); current phase/findings/blockers live in [manual knowledge](../../knowledge/MANUAL_TESTING.md). [Codebase Memory knowledge](../../knowledge/CODEBASE_MEMORY.md) covers advisory graph tools. These distinct layers do not alter the historical results below or AGENTS.md authority.
+Optional risk-based coverage selection now lives in [MANUAL_TESTING_ROADMAP.md](MANUAL_TESTING_ROADMAP.md); current phase/findings/blockers live in [manual knowledge](../../knowledge/MANUAL_TESTING.md). [Codebase Memory knowledge](../../knowledge/CODEBASE_MEMORY.md) covers advisory graph tools. These distinct layers do not alter the historical results below or AGENTS.md authority.
 
 Current manual checkpoint2026-10-01: MT-00 completed/synchronized40525fbe; [MT-01](manual-runs/MTQA-20260930-02/MT-01.md) completes all ten real cases with legitimate mail/recovery and approved isolated offline/failure evidence. Four qualification findings corrected with applicable validation; AP signed-out/unchanged, DA retained, temporary fixture stopped, preserved database/files/browser work. MT-02–MT-22 remain untouched. Sections2/31/41 describe the earlier runtime qualification, not new manual-campaign results.
 
