@@ -48,6 +48,8 @@ From `apps/api`, run `php artisan test tests/Feature/Auth tests/Feature/Platform
 
 `tests/Feature/Platform/PlatformDatabaseSessionTest.php` covers password → TOTP → `/platform/me` with a new application per request, real encrypted response cookies, database sessions with both payload-encryption settings and enforced CSRF. It also checks cookie scope, rotation, disabled-session denial, church integer metadata, simultaneous independent church/platform sessions, cross-guard CSRF denial and isolated logout. See [session restoration evidence](../qa/platform-session-restoration-verification.md).
 
+`tests/Feature/Platform/PlatformHttpRuntimeTest.php` additionally starts real `artisan serve` processes on owned ephemeral loopback ports against the protected test database. Database sessions are selected in the environment before console/HTTP provider boot; no `refreshApplication()` or post-boot session configuration is used for the HTTP sequence. Real encrypted browser cookies, CSRF, password/TOTP, next-request `/platform/me`, null platform metadata and church-route denial are checked for both payload-encryption settings. `--no-reload` keeps the isolated test database environment in Laravel's child process. Tests stop only their own process trees and never emit credentials, cookies, CSRF/TOTP values or process output. This proves the HTTP boot lifecycle, while listener/checkout identity remains an operational prerequisite.
+
 From the root, run:
 
 ```sh

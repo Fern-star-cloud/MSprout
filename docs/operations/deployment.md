@@ -62,6 +62,19 @@ For the platform `/me` session-save correction, restart the API from the checkou
 
 Locally, stop the existing API listener on `127.0.0.1:8000` using its owning terminal, then run `php artisan serve --host=127.0.0.1 --port=8000` from the fixed checkout's `apps/api` directory using the documented process-scoped PHP runtime. Keep the existing frontend proxy/origin. No frontend rebuild, session deletion, browser storage clearing or credential rotation is required. Retry normal platform password/TOTP sign-in with the existing active account; do not reissue setup for an active administrator. In deployment, roll the matching API image through the established restart procedure.
 
+On this Windows host, two PHP servers were observed listening on the same loopback address/port. A new worktree server did not replace the earlier Desktop server; both reported platform failures were recorded in the Desktop log. Verify every listener using `netstat -ano -p TCP`, rather than assuming the current terminal's Git HEAD identifies the process receiving browser requests. Stop only the verified API owners before restarting; retain queue/scheduler processes, databases and all user data. The 2026-10-07 continuation stopped the confirmed stale Desktop API PID 11208 and verified the fixed worktree API was the sole listener. PIDs are historical evidence, not reusable stop targets.
+
+After stopping the current API in its owning terminal, run this preflight from the fixed checkout's `apps/api` in PowerShell, then start the API using the existing process-scoped PHP:
+
+```powershell
+$listeners = @(netstat -ano -p TCP | Select-String '^\s*TCP\s+127\.0\.0\.1:8000\s+\S+\s+LISTENING\s+\d+\s*$')
+if ($listeners.Count -ne 0) { throw 'Port 8000 is occupied; identify and stop the existing API owner first.' }
+$env:PHP_INI_SCAN_DIR = "$env:TEMP\msprout-task9-php-config"
+& "$env:TEMP\msprout-php-8.3\php.exe" artisan serve --host=127.0.0.1 --port=8000 --tries=1
+```
+
+In another terminal, verify exactly one `127.0.0.1:8000` LISTENING row and confirm its process/router belongs to the fixed checkout before retrying sign-in. `--tries=1` alone does not prevent this conflict because Windows allowed both servers to bind successfully. No further restart is needed solely for the test/document continuation; the existing fixed server remains running.
+
 ## Key rotation
 
 - Rotate `APP_KEY` by placing the previous key in `APP_PREVIOUS_KEYS`, deploying all services, re-encrypting active encrypted fields through a reviewed one-off job, then removing the old key after the maximum session/device transition window. A lost key makes encrypted push endpoints and other ciphertext unrecoverable; keep it in the encrypted secret backup.
