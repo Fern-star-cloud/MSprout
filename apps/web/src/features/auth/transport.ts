@@ -29,6 +29,16 @@ async function readResponse(response: Response): Promise<unknown> {
   return payload
 }
 
+function invalidateWorkspace(status: number, churchId?: string): void {
+  globalThis.dispatchEvent?.(new CustomEvent('church-workspace-invalidated', { detail: { status, churchId } }))
+}
+
+function invalidateDeniedRequest(error: unknown, churchId?: string): void {
+  if (error instanceof ApiError && ([401, 419].includes(error.status) || (error.status === 403 && churchId))) {
+    invalidateWorkspace(error.status, churchId)
+  }
+}
+
 export async function authRequest<T = Record<string, unknown>>(
   path: string, method: 'GET' | 'POST' | 'DELETE' | 'PUT' = 'GET', body?: Record<string, unknown>, churchId?: string,
 ): Promise<T> {
@@ -42,19 +52,30 @@ export async function authRequest<T = Record<string, unknown>>(
     if (!/^[a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12}$/i.test(churchId)) throw new Error('Invalid workspace')
     headers['X-Church-Id'] = churchId
   }
-  if (method !== 'GET') {
-    if (path.startsWith('/platform/')) {
-      const csrf = await readResponse(await fetch('/platform/csrf-token', { ...options, headers })) as { csrf_token: string }
-      headers['X-CSRF-TOKEN'] = csrf.csrf_token
-    } else {
-      await readResponse(await fetch('/sanctum/csrf-cookie', { ...options, headers }))
-      const cookie = document.cookie.split('; ').find((value) => value.startsWith('XSRF-TOKEN='))
-      if (!cookie) throw new Error('CSRF initialization failed')
-      headers['X-XSRF-TOKEN'] = decodeURIComponent(cookie.slice('XSRF-TOKEN='.length))
+  try {
+    if (method !== 'GET') {
+      if (path.startsWith('/platform/')) {
+        const csrf = await readResponse(await fetch('/platform/csrf-token', { ...options, headers })) as { csrf_token: string }
+        headers['X-CSRF-TOKEN'] = csrf.csrf_token
+      } else {
+        await readResponse(await fetch('/sanctum/csrf-cookie', { ...options, headers }))
+        const cookie = document.cookie.split('; ').find((value) => value.startsWith('XSRF-TOKEN='))
+        if (!cookie) throw new Error('CSRF initialization failed')
+        headers['X-XSRF-TOKEN'] = decodeURIComponent(cookie.slice('XSRF-TOKEN='.length))
+      }
+      headers['Content-Type'] = 'application/json'
     }
-    headers['Content-Type'] = 'application/json'
+    const result = await readResponse(await fetch(path, { ...options, method, headers, body: body ? JSON.stringify(body) : undefined })) as T
+    if (!path.startsWith('/platform/') && method !== 'GET') {
+      if (path === '/logout' || path === '/api/ownership-transfer') invalidateWorkspace(401)
+      else if (['/login', '/two-factor-challenge', '/user/confirmed-two-factor-authentication', '/user/profile-information', '/user/password'].includes(path)
+        || /^\/api\/teachers\//.test(path)) invalidateWorkspace(0)
+    }
+    return result
+  } catch (error) {
+    if (!path.startsWith('/platform/')) invalidateDeniedRequest(error, churchId)
+    throw error
   }
-  return await readResponse(await fetch(path, { ...options, method, headers, body: body ? JSON.stringify(body) : undefined })) as T
 }
 
 export async function authUpload<T>(path: string, file: File, churchId: string): Promise<T> {
@@ -64,14 +85,19 @@ export async function authUpload<T>(path: string, file: File, churchId: string):
     Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-Correlation-Id': crypto.randomUUID(), 'X-Church-Id': churchId,
   }
   const options = { credentials: 'same-origin', cache: 'no-store', redirect: 'error', referrerPolicy: 'origin' } as const
-  await readResponse(await fetch('/sanctum/csrf-cookie', { ...options, headers }))
-  const cookie = document.cookie.split('; ').find((value) => value.startsWith('XSRF-TOKEN='))
-  if (!cookie) throw new Error('CSRF initialization failed')
-  headers['X-XSRF-TOKEN'] = decodeURIComponent(cookie.slice('XSRF-TOKEN='.length))
-  const body = new FormData()
-  body.set('file', file)
+  try {
+    await readResponse(await fetch('/sanctum/csrf-cookie', { ...options, headers }))
+    const cookie = document.cookie.split('; ').find((value) => value.startsWith('XSRF-TOKEN='))
+    if (!cookie) throw new Error('CSRF initialization failed')
+    headers['X-XSRF-TOKEN'] = decodeURIComponent(cookie.slice('XSRF-TOKEN='.length))
+    const body = new FormData()
+    body.set('file', file)
 
-  return await readResponse(await fetch(path, { ...options, method: 'POST', headers, body })) as T
+    return await readResponse(await fetch(path, { ...options, method: 'POST', headers, body })) as T
+  } catch (error) {
+    invalidateDeniedRequest(error, churchId)
+    throw error
+  }
 }
 
 export async function authDownload(path: string, churchId: string): Promise<Blob> {
@@ -89,7 +115,8 @@ export async function authDownload(path: string, churchId: string): Promise<Blob
     headers: { Accept: 'text/csv', 'X-Requested-With': 'XMLHttpRequest', 'X-Correlation-Id': crypto.randomUUID(), 'X-Church-Id': churchId },
   })
   if (!response.ok) {
-    await readResponse(response)
+    try { await readResponse(response) }
+    catch (error) { invalidateDeniedRequest(error, churchId); throw error }
     throw new Error('Download failed')
   }
 

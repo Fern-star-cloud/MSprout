@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { churchId, expectNoSeriousAccessibilityIssues, json, ministryId, mockCsrf, ownerAccount } from './support'
+import { churchId, expectNoSeriousAccessibilityIssues, json, ministryId, mockCsrf, mockOwner } from './support'
 
 test.use({ serviceWorkers: 'block' })
 
@@ -60,7 +60,7 @@ test('verified application, platform approval, Owner MFA, roster setup, and Teac
 
   let ministries = [{ id: ministryId, name: 'Primary', status: 'active', version: 1 }]
   let students: Record<string, unknown>[] = []
-  await context.route('**/api/me', route => json(route, ownerAccount))
+  await mockOwner(context)
   await context.route('**/api/ministries**', async route => {
     if (route.request().method() === 'POST') ministries = [...ministries, { id: '00000000-0000-4000-8000-000000000021', name: 'Preschool', status: 'active', version: 1 }]
     await json(route, route.request().method() === 'POST' ? ministries.at(-1) : { data: ministries })

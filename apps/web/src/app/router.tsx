@@ -19,6 +19,7 @@ import { ConnectivityStatus } from '../components/ConnectivityStatus'
 import { pwaUpdateController, usePwaUpdate } from '../pwa/update-controller'
 import { PhoneLayout } from './layouts/PhoneLayout'
 import { WideLayout } from './layouts/WideLayout'
+import { ChurchWorkspaceBoundary } from './ChurchWorkspaceBoundary'
 
 export interface NavigationItem {
   label: string
@@ -39,6 +40,7 @@ const navigationItems: NavigationItem[] = [
 ]
 
 const shellPages = new Set(['dashboard', 'attendance', 'conflicts', 'reports', 'birthdays', 'ministries', 'students', 'teachers', 'imports', 'audit'])
+const workspacePages = new Set(['conflicts', 'reports', 'birthdays', 'ministries', 'students', 'imports'])
 const authPages: AuthPage[] = ['login', 'verify-email', 'forgot-password', 'reset-password', 'mfa']
 
 function Dashboard() {
@@ -81,19 +83,22 @@ function screenFor(page: string, fragment: string, navigate: (path: string) => v
 export function AppRouter() {
   const [entry, setEntry] = useState(() => ({
     path: globalThis.location?.pathname ?? '/',
+    search: globalThis.location?.search ?? '',
     fragment: globalThis.location?.hash.slice(1) ?? '',
   }))
   useEffect(() => {
-    const update = () => setEntry({ path: globalThis.location.pathname, fragment: globalThis.location.hash.slice(1) })
+    const update = () => setEntry({ path: globalThis.location.pathname, search: globalThis.location.search, fragment: globalThis.location.hash.slice(1) })
     globalThis.addEventListener('popstate', update)
     return () => globalThis.removeEventListener('popstate', update)
   }, [])
   const navigate = (path: string) => {
     globalThis.history.pushState(null, '', path)
-    setEntry({ path, fragment: '' })
+    setEntry({ path, search: '', fragment: '' })
   }
   const page = entry.path.split('/').filter(Boolean).pop() ?? 'profiles'
   const screen = screenFor(page, entry.fragment, navigate)
+  const churchHint = new URLSearchParams(entry.search).get('church')
+  const items = churchHint ? navigationItems.map(item => ({ ...item, href: `${item.href}?church=${encodeURIComponent(churchHint)}` })) : navigationItems
 
   if (!shellPages.has(page)) {
     return (
@@ -108,12 +113,14 @@ export function AppRouter() {
   return (
     <div className="application-layout">
       <a className="skip-link" href="#main-content">Skip to content</a>
-      <PhoneLayout items={navigationItems} activePath={entry.path} />
-      <WideLayout items={navigationItems} activePath={entry.path} />
+      <PhoneLayout items={items} activePath={entry.path} />
+      <WideLayout items={items} activePath={entry.path} />
       <div className="application-content">
         <div className="phone-status"><ConnectivityStatus /></div>
         <UpdateNotice />
-        <main id="main-content" tabIndex={-1}>{screen}</main>
+        <main id="main-content" tabIndex={-1}>{workspacePages.has(page)
+          ? <ChurchWorkspaceBoundary key={entry.path + entry.search} allowOffline={page === 'birthdays'}>{screen}</ChurchWorkspaceBoundary>
+          : screen}</main>
       </div>
     </div>
   )

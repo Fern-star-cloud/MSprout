@@ -97,7 +97,7 @@ it('persists church integer metadata and isolates both authenticated browser coo
     $request = $this->browserRequest;
     $request('GET', '/sanctum/csrf-cookie')->assertNoContent();
     $request('POST', '/login', ['email' => $user->email, 'password' => $password], session()->token())->assertOk();
-    $request('GET', '/auth/session')->assertOk()->assertExactJson(['email_verified' => true, 'mfa_confirmed' => false]);
+    $request('GET', '/auth/session')->assertOk()->assertExactJson(['id' => $user->id, 'email_verified' => true, 'mfa_confirmed' => false, 'workspaces' => []]);
     $churchCsrf = session()->token();
     $churchId = session()->getId();
     expect((int) DB::table('sessions')->where('id', $churchId)->value('user_id'))->toBe($user->id);

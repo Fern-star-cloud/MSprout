@@ -4,6 +4,36 @@ import { authDownload, authRequest, authUpload, safeAuthMessage, signedInvitatio
 
 afterEach(() => { vi.unstubAllGlobals(); document.cookie = 'XSRF-TOKEN=; Max-Age=0' })
 
+it.each([401, 419, 403])('invalidates church workspace on protected request HTTP %s', async status => {
+  const invalidated = vi.fn()
+  window.addEventListener('church-workspace-invalidated', invalidated)
+  try {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({}, { status })))
+    const church = crypto.randomUUID()
+    await expect(authRequest('/api/students', 'GET', undefined, church)).rejects.toMatchObject({ status })
+    expect(invalidated).toHaveBeenCalledTimes(1)
+    expect((invalidated.mock.calls[0][0] as CustomEvent).detail).toEqual({ status, churchId: church })
+  } finally { window.removeEventListener('church-workspace-invalidated', invalidated) }
+})
+
+it('clears church workspace after logout and leaves it untouched by platform logout or denials', async () => {
+  const invalidated = vi.fn()
+  window.addEventListener('church-workspace-invalidated', invalidated)
+  try {
+    document.cookie = 'XSRF-TOKEN=csrf-value'
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async path => path === '/platform/csrf-token'
+      ? Response.json({ csrf_token: 'platform-only' }) : new Response(null, { status: 204 })))
+    await authRequest('/platform/logout', 'POST')
+    expect(invalidated).not.toHaveBeenCalled()
+    await authRequest('/logout', 'POST')
+    expect(invalidated).toHaveBeenCalledTimes(1)
+    expect((invalidated.mock.calls[0][0] as CustomEvent).detail.status).toBe(401)
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({}, { status: 403 })))
+    await expect(authRequest('/platform/me')).rejects.toMatchObject({ status: 403 })
+    expect(invalidated).toHaveBeenCalledTimes(1)
+  } finally { window.removeEventListener('church-workspace-invalidated', invalidated) }
+})
+
 it('initializes church CSRF and sends the decoded token with same-origin credentials', async () => {
   const fetcher = vi.fn().mockImplementationOnce(async () => {
     document.cookie = 'XSRF-TOKEN=csrf%3Dvalue'

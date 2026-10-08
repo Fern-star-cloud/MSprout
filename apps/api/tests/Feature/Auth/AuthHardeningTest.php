@@ -24,9 +24,10 @@ it('returns generic recovery responses and frontend reset links', function () {
     });
 });
 
-it('exposes only enrollment state without tenant selection and disables registration', function () {
-    $this->actingAs(User::factory()->unverified()->create())->getJson('/auth/session')
-        ->assertExactJson(['email_verified' => false, 'mfa_confirmed' => false]);
+it('exposes enrollment state with no workspace discovery for unverified users and disables registration', function () {
+    $user = User::factory()->unverified()->create();
+    $this->actingAs($user)->getJson('/auth/session')
+        ->assertExactJson(['id' => $user->id, 'email_verified' => false, 'mfa_confirmed' => false, 'workspaces' => []]);
     $this->postJson('/register', [])->assertNotFound();
 });
 

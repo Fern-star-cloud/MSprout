@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useWorkspaceChurchId } from '../../app/workspace-context'
 import type { components } from '../../api/generated'
 import { authRequest, safeAuthMessage } from '../auth/transport'
 
 type Ministry = components['schemas']['Ministry']
 
 export function MinistriesScreen() {
-  const [church, setChurch] = useState(() => new URLSearchParams(location.search).get('church') ?? '')
-  const [selectedChurch, setSelectedChurch] = useState(church)
+  const church = useWorkspaceChurchId(new URLSearchParams(location.search).get('church') ?? '')
   const [rows, setRows] = useState<Ministry[]>([])
   const [owner, setOwner] = useState(false)
   const [error, setError] = useState('')
@@ -42,7 +42,6 @@ export function MinistriesScreen() {
   }
   return <section className="auth-card roster-card" aria-labelledby="ministries-heading">
     <p className="eyebrow">Church workspace · Online only</p><h2 id="ministries-heading">Ministries</h2>
-    {!church && <form onSubmit={event => { event.preventDefault(); setChurch(selectedChurch) }}><label htmlFor="ministry-church">Church workspace ID</label><input id="ministry-church" required value={selectedChurch} onChange={event => setSelectedChurch(event.target.value)} /><button>Open workspace</button></form>}
     {error && <p role="alert">{error}</p>}
     {owner && <form className="roster-form" aria-label="Create ministry" onSubmit={event => void save(event)}><label htmlFor="new-ministry">New ministry</label><input id="new-ministry" name="name" maxLength={120} required /><button>Add ministry</button></form>}
     <ul className="roster-list">{rows.map(row => <li key={row.id}><span>{row.name}{row.status === 'archived' && <small> · Archived</small>}

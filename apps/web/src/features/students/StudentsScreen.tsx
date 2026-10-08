@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useWorkspaceChurchId } from '../../app/workspace-context'
 import type { components } from '../../api/generated'
 import { authRequest, safeAuthMessage } from '../auth/transport'
 import { avatarForGender } from './avatar'
@@ -7,8 +8,7 @@ type Student = components['schemas']['Student']
 type Ministry = components['schemas']['Ministry']
 
 export function StudentsScreen() {
-  const [church, setChurch] = useState(() => new URLSearchParams(location.search).get('church') ?? '')
-  const [selectedChurch, setSelectedChurch] = useState(church)
+  const church = useWorkspaceChurchId(new URLSearchParams(location.search).get('church') ?? '')
   const [students, setStudents] = useState<Student[]>([])
   const [ministries, setMinistries] = useState<Ministry[]>([])
   const [owner, setOwner] = useState(false)
@@ -59,7 +59,6 @@ export function StudentsScreen() {
   }
   return <section className="auth-card roster-card" aria-labelledby="students-heading">
     <p className="eyebrow">Church workspace · Online only</p><h2 id="students-heading">Students</h2>
-    {!church && <form onSubmit={event => { event.preventDefault(); setChurch(selectedChurch) }}><label htmlFor="student-church">Church workspace ID</label><input id="student-church" required value={selectedChurch} onChange={event => setSelectedChurch(event.target.value)} /><button>Open workspace</button></form>}
     {error && <p role="alert">{error}</p>}
     {owner && <label className="archive-toggle"><input type="checkbox" checked={includeArchived} onChange={event => setIncludeArchived(event.target.checked)} /> Show archived students</label>}
     {owner && <form className="roster-form student-form" aria-label="Add student" onSubmit={event => void create(event)}>

@@ -10,6 +10,7 @@ export const studentIds = [
 ]
 
 export const ownerAccount = {
+  id: 11,
   active_session: { email_verified: true, mfa_confirmed: true },
   memberships: [{ church_id: churchId, role: 'owner', status: 'active' }],
 }
@@ -27,6 +28,10 @@ export async function expectNoSeriousAccessibilityIssues(page: Page) {
 }
 
 export async function mockOwner(context: BrowserContext) {
+  await context.route('**/auth/session', route => json(route, {
+    id: 11, email_verified: true, mfa_confirmed: true,
+    workspaces: [{ church_id: churchId, name: 'Pilot Church', role: 'owner' }],
+  }))
   await context.route('**/api/me', route => json(route, ownerAccount))
 }
 

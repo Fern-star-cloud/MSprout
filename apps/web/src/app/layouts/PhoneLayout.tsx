@@ -24,7 +24,7 @@ export function PhoneLayout({ items, activePath }: { items: NavigationItem[]; ac
       </header>
       <nav className="phone-navigation" aria-label="Phone navigation">
         {items.map((item) => (
-          <a key={item.href} href={item.href} aria-current={activePath === item.href ? 'page' : undefined}>
+          <a key={item.href} href={item.href} aria-current={activePath === item.href.split('?')[0] ? 'page' : undefined}>
             <NavigationIcon name={item.icon} />
             <span>{item.label}</span>
           </a>

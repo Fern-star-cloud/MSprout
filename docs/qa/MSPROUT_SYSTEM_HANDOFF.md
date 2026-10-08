@@ -1,5 +1,11 @@
 # MSprout System Handoff
 
+## Shared workspace maintenance fix — 2026-10-08
+
+Review, Reports, Birthdays, Ministries, Students and Import now share authenticated workspace discovery and scoped authorization preflight, automatic single-membership context, explicit multi-membership selection, and fail-closed invalidation across navigation/refresh. [The verification receipt](shared-workspace-context-verification.md) records passing regression/browser/security gates, reconciliation recovery, source review and rollout ordering. Live migration/rollout and a new manual retest are NOT RUN; historical manual evidence and counts retain their status.
+
+The initial five dirty tracked and two untracked QA files were preserved under recovery stash `9b89c9fc47931b76af19bb9c7dd2699a1f806196`, then reconciled with the three upstream commits using fast-forward only. Both local observations and upstream findings remain. The user-reported approved MTQA A application, Owner MFA and Teacher management state is attributed, not newly verified. No live data/account decision/profile was changed, and unrelated UI findings and subsequent roadmap work remain excluded.
+
 ## Current manual QA policy — 2026-10-07
 
 By explicit user decision, MT-00 through MT-22 are optional, risk-based references for exploration, bug reproduction, correction and fix validation. Sequential completion of all 211 cases is not required for development, merging, deployment or release. Incomplete, BLOCKED, NOT_RUN or deferred cases do not automatically block those activities. Applicable automated tests, security controls, authorization boundaries, CI requirements, deployment safeguards and unresolved release-critical defects remain release criteria. Confirmed bugs require severity-based triage, correction in an authorized scope and focused regression validation. Deferred tests remain accurately BLOCKED or NOT_RUN; never represent them as PASS.

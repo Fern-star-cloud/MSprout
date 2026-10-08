@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useWorkspaceChurchId } from '../../app/workspace-context'
 import { authRequest, safeAuthMessage } from '../auth/transport'
 import { NotificationSettings } from '../notifications/NotificationSettings'
 import { loadOfflineBirthdays } from './offline-birthdays'
@@ -15,8 +16,7 @@ interface BirthdayProjection {
 export function BirthdayScreen({
   initialChurchId = new URLSearchParams(globalThis.location?.search ?? '').get('church') ?? '',
 }: { initialChurchId?: string }) {
-  const [churchId, setChurchId] = useState(initialChurchId)
-  const [workspace, setWorkspace] = useState(initialChurchId)
+  const churchId = useWorkspaceChurchId(initialChurchId)
   const [birthdays, setBirthdays] = useState<BirthdayProjection | null>(null)
   const [loading, setLoading] = useState(Boolean(initialChurchId))
   const [error, setError] = useState('')
@@ -49,11 +49,6 @@ export function BirthdayScreen({
 
   return <section className="birthday-screen" aria-labelledby="birthday-heading">
     <header><p className="eyebrow">Church workspace · Today</p><h1 id="birthday-heading">Today&apos;s Birthdays</h1></header>
-    {!churchId && <form onSubmit={(event) => { event.preventDefault(); setChurchId(workspace) }}>
-      <label htmlFor="birthday-church">Church workspace ID</label>
-      <input id="birthday-church" required value={workspace} onChange={(event) => setWorkspace(event.target.value)} />
-      <button>Open birthdays</button>
-    </form>}
     {error && <p role="alert">{error}</p>}
     {loading && <p role="status">Loading today&apos;s birthdays…</p>}
     {birthdays && <>

@@ -262,12 +262,32 @@ components:
       type: object
       additionalProperties: false
       required:
+        - id
         - email_verified
         - mfa_confirmed
+        - workspaces
       properties:
+        id:
+          type: integer
         email_verified: &a1
           type: boolean
         mfa_confirmed: *a1
+        workspaces:
+          type: array
+          description: Verified actor's active memberships in active churches, ordered by church_id. Discovery grants no operational authority; each tenant request revalidates membership, role and current-session Owner MFA.
+          items:
+            type: object
+            additionalProperties: false
+            required: [church_id, name, role]
+            properties:
+              church_id:
+                type: string
+                format: uuid
+              name:
+                type: string
+              role:
+                type: string
+                enum: [owner, teacher]
     ChurchAccount:
       type: object
       additionalProperties: false
@@ -2209,7 +2229,7 @@ paths:
       - url: /
     get:
       operationId: getAccountSession
-      description: Safe enrollment state, available before verification/MFA or tenant selection.
+      description: Safe enrollment state and workspace discovery, available before MFA or tenant selection. Unverified actors receive an empty workspace list. No church header is required; caller-supplied actor or church parameters are ignored. Operational tenant access still requires verified active membership and current-session Owner MFA.
       security:
         - ChurchSession: []
       responses:

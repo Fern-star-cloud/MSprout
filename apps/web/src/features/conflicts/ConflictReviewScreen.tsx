@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useWorkspaceChurchId } from '../../app/workspace-context'
 import { authRequest, safeAuthMessage } from '../auth/transport'
 
 interface ConflictSide {
@@ -52,8 +53,7 @@ function evidence(label: string, side: ConflictSide) {
 export function ConflictReviewScreen({
   initialChurchId = new URLSearchParams(globalThis.location?.search ?? '').get('church') ?? '',
 }: { initialChurchId?: string }) {
-  const [churchId, setChurchId] = useState(initialChurchId)
-  const [workspace, setWorkspace] = useState(initialChurchId)
+  const churchId = useWorkspaceChurchId(initialChurchId)
   const [conflicts, setConflicts] = useState<AttendanceConflict[]>([])
   const [guests, setGuests] = useState<PendingGuest[]>([])
   const [students, setStudents] = useState<StudentOption[]>([])
@@ -139,11 +139,6 @@ export function ConflictReviewScreen({
   return <section className="auth-card conflict-review" aria-labelledby="conflict-heading">
     <p className="eyebrow">Church workspace · Online only</p>
     <h1 id="conflict-heading">Attendance review</h1>
-    {!churchId && <form onSubmit={(event) => { event.preventDefault(); setChurchId(workspace) }}>
-      <label htmlFor="conflict-church">Church workspace ID</label>
-      <input id="conflict-church" required value={workspace} onChange={(event) => setWorkspace(event.target.value)} />
-      <button>Open review queue</button>
-    </form>}
     {error && <p role="alert">{error}</p>}
     {loading && <p role="status">Loading review queue…</p>}
     {teacherNotice && <div className="review-notice" role="status"><strong>Needs Owner Review</strong><p>An Owner must review the conflicting attendance. No other teacher or device details are shown.</p></div>}

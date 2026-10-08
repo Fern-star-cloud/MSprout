@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test'
-import { churchId, expectNoSeriousAccessibilityIssues, json } from './support'
+import { churchId, expectNoSeriousAccessibilityIssues, json, mockOwner } from './support'
 
 test.use({ serviceWorkers: 'block' })
 
 test('authorized birthday fallback shows names only in-app and notification permission is deliberate and privacy-safe', async ({ page, context }) => {
+  await mockOwner(context)
   await page.addInitScript(() => {
     Object.defineProperty(window, 'Notification', { configurable: true, value: {
       permission: 'default', requestPermission: async () => 'denied',

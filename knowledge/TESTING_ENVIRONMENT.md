@@ -1,5 +1,11 @@
 # Testing Environment
 
+## Shared workspace-context verification — 2026-10-08
+
+Final isolated backend suite: **257 passed / 1,764 assertions**. Focused stabilization: 64 / 423; final workspace/platform-session focused proof: 11 / 240. Frontend: **166 passed / 35 files**; workspace/transport focused rerun: 42. Browser: **15 passed** across desktop, Pixel 7 Chrome emulation and existing offline/profile coverage. Browser API interception is automated UI evidence; live rollout/manual cases are NOT RUN.
+
+Typecheck, lint, production build, API drift, Pint, structure, Composer strict validation/audit, pnpm audit and diff whitespace checks passed. Gitleaks history/source scans found no leaks. Comprehensive OWASP Semgrep: 108 rules / 333 targets / zero findings, with five reviewed existing test partial-parse warnings; final changed/relevant scan: 123 rules / 39 targets / complete parsing / zero findings. The initial backend stale exact-session expectation was corrected to the new contract and the aggregate suite rerun. Process-scoped documented runtimes and the existing trusted CA bundle were used with TLS verification enabled; no global host reconfiguration. [Full receipt and invalidation reasoning](../docs/qa/shared-workspace-context-verification.md).
+
 ## Platform live-runtime continuation — 2026-10-07
 
 - Verified two Windows PHP listeners on `127.0.0.1:8000` with `netstat`; the continued failure's exact correlation was in the original Desktop log. The fixed worktree and Desktop HTTP boots respectively resolve custom/built-in database handlers without cached configuration. Read-only schema inspection confirmed `sessions.user_id` is `bigint`. Historical log entries contain no class/SQLSTATE; no historical exception detail is invented. Identity-checked stale API PID 11208 was stopped, leaving the fixed API as the sole listener. No live sign-in, account/database-record/browser mutation or manual phase occurred.

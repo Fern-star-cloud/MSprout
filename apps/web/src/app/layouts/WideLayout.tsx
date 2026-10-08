@@ -10,7 +10,7 @@ export function WideLayout({ items, activePath }: { items: NavigationItem[]; act
       </a>
       <nav className="wide-navigation" aria-label="Main navigation">
         {items.map((item) => (
-          <a key={item.href} href={item.href} aria-current={activePath === item.href ? 'page' : undefined}>
+          <a key={item.href} href={item.href} aria-current={activePath === item.href.split('?')[0] ? 'page' : undefined}>
             <span aria-hidden="true" className="navigation-dot" />
             <span>{item.label}</span>
           </a>

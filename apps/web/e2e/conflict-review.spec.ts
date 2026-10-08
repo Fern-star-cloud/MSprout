@@ -1,10 +1,11 @@
 import { expect, test } from '@playwright/test'
-import { churchId, expectNoSeriousAccessibilityIssues, json, ministryId, mockCsrf } from './support'
+import { churchId, expectNoSeriousAccessibilityIssues, json, ministryId, mockCsrf, mockOwner } from './support'
 
 test.use({ serviceWorkers: 'block' })
 
 test('an Owner sees both immutable submissions, resolves the conflict, and reports the revision-effective count', async ({ page, context }) => {
   await mockCsrf(context)
+  await mockOwner(context)
   const conflictId = '00000000-0000-4000-8000-000000000080'
   let open = true
   await context.route('**/api/sync-conflicts**', async route => {

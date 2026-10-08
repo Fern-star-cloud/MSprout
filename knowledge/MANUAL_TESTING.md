@@ -1,5 +1,11 @@
 # Manual Testing Knowledge
 
+## Shared workspace finding — automated fix evidence, 2026-10-08
+
+The missing church-context finding across Review, Reports, Birthdays, Ministries, Students and Import now has a shared authenticated boundary and [automated regression/security/browser evidence](../docs/qa/shared-workspace-context-verification.md). Single-membership navigation/refresh inherits context; multi-membership users explicitly choose an authorized church; revoked/expired context gates child loaders. Live migration/rollout and a new human manual retest are NOT RUN. Historical manual cases, counts, blockers and attribution remain unchanged.
+
+The user's approved MTQA A / Approved application status, confirmed Owner MFA and reachable Teacher management are preserved as human-reported observations. The original local QA edits and untracked MT-02/second-attempt evidence were recovered from verified stash `9b89c9fc47931b76af19bb9c7dd2699a1f806196` after fast-forward reconciliation and remain outside this fix's commit. Unrelated UI findings are excluded; no synthetic application decision or live data was altered.
+
 ## Current manual QA policy — 2026-10-07
 
 By explicit user decision, MT-00 through MT-22 are optional, risk-based references for exploration, bug reproduction, correction and fix validation. Sequential completion of all 211 cases is not required for development, merging, deployment or release. Incomplete, BLOCKED, NOT_RUN or deferred cases do not automatically block those activities. Applicable automated tests, security controls, authorization boundaries, CI requirements, deployment safeguards and unresolved release-critical defects remain release criteria. Confirmed bugs require severity-based triage, correction in an authorized scope and focused regression validation. Deferred tests remain accurately BLOCKED or NOT_RUN; never represent them as PASS.

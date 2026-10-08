@@ -591,7 +591,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Safe enrollment state, available before verification/MFA or tenant selection. */
+        /** @description Safe enrollment state and workspace discovery, available before MFA or tenant selection. Unverified actors receive an empty workspace list. No church header is required; caller-supplied actor or church parameters are ignored. Operational tenant access still requires verified active membership and current-session Owner MFA. */
         get: operations["getAccountSession"];
         put?: never;
         post?: never;
@@ -1530,8 +1530,17 @@ export interface components {
             lease: components["schemas"]["OfflineLease"];
         };
         AccountSession: {
+            id: number;
             email_verified: boolean;
             mfa_confirmed: boolean;
+            /** @description Verified actor's active memberships in active churches, ordered by church_id. Discovery grants no operational authority; each tenant request revalidates membership, role and current-session Owner MFA. */
+            workspaces: {
+                /** Format: uuid */
+                church_id: string;
+                name: string;
+                /** @enum {string} */
+                role: "owner" | "teacher";
+            }[];
         };
         ChurchAccount: {
             id: number;

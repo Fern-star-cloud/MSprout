@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useWorkspaceChurchId } from '../../app/workspace-context'
 import type { components } from '../../api/generated'
 import { AttendanceHistory } from '../history/AttendanceHistory'
 import { pendingLocalAttendanceCount } from '../history/pending-local'
@@ -35,8 +36,7 @@ export function ReportScreen({
   initialTo?: string
   pendingLocalCount?: (churchId: string) => Promise<number>
 }) {
-  const [churchId, setChurchId] = useState(initialChurchId)
-  const [workspace, setWorkspace] = useState(initialChurchId)
+  const churchId = useWorkspaceChurchId(initialChurchId)
   const [from, setFrom] = useState(initialFrom)
   const [to, setTo] = useState(initialTo)
   const [ministryId, setMinistryId] = useState('')
@@ -100,11 +100,6 @@ export function ReportScreen({
       <div><p className="eyebrow">Church workspace · Online only</p><h1 id="report-heading">Attendance reports</h1></div>
       {report?.can_export && <button type="button" disabled={downloading} onClick={() => void download()}>{downloading ? 'Preparing CSV…' : 'Download CSV'}</button>}
     </header>
-    {!churchId && <form className="report-workspace" onSubmit={(event) => { event.preventDefault(); setChurchId(workspace) }}>
-      <label htmlFor="report-church">Church workspace ID</label>
-      <input id="report-church" required value={workspace} onChange={(event) => setWorkspace(event.target.value)} />
-      <button>Open reports</button>
-    </form>}
     {churchId && <form className="report-filters" onSubmit={(event) => {
       event.preventDefault()
       setApplied({ from, to, ministryId })

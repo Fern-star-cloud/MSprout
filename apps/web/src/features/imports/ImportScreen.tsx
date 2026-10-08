@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useWorkspaceChurchId } from '../../app/workspace-context'
 import type { components } from '../../api/generated'
 import { authDownload, authRequest, authUpload, safeAuthMessage } from '../auth/transport'
 import { csvCell } from './csv'
@@ -17,8 +18,7 @@ function saveBlob(blob: Blob, name: string) {
 }
 
 export function ImportScreen() {
-  const [church, setChurch] = useState(() => new URLSearchParams(location.search).get('church') ?? '')
-  const [selectedChurch, setSelectedChurch] = useState(church)
+  const church = useWorkspaceChurchId(new URLSearchParams(location.search).get('church') ?? '')
   const [owner, setOwner] = useState(false)
   const [ministries, setMinistries] = useState<Ministry[]>([])
   const [preview, setPreview] = useState<Preview | null>(null)
@@ -104,7 +104,6 @@ export function ImportScreen() {
 
   return <section className="auth-card import-card" aria-labelledby="imports-heading">
     <p className="eyebrow">Church workspace · Owner · Online only</p><h2 id="imports-heading">Import students</h2>
-    {!church && <form onSubmit={event => { event.preventDefault(); setChurch(selectedChurch) }}><label htmlFor="import-church">Church workspace ID</label><input id="import-church" required value={selectedChurch} onChange={event => setSelectedChurch(event.target.value)} /><button>Open workspace</button></form>}
     {error && <p role="alert">{error}</p>}
     {church && owner && <>
       <div className="import-actions"><button className="secondary" type="button" onClick={() => void downloadTemplate()}>Download CSV template</button></div>

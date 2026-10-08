@@ -1,0 +1,127 @@
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import type { components } from '../api/generated'
+import { authRequest } from '../features/auth/transport'
+import { profileStore } from '../offline/profile-store'
+import type { OfflineBootstrap } from '../offline/schema'
+import { ChurchWorkspaceContext, type ChurchWorkspace } from './workspace-context'
+
+type State = { kind: 'loading' } | { kind: 'error'; message: string; signIn?: boolean; mfa?: boolean }
+  | { kind: 'select'; workspaces: ChurchWorkspace[] }
+  | { kind: 'ready'; workspace: ChurchWorkspace; workspaces: ChurchWorkspace[]; actorId: number }
+
+function failureState(error: unknown): State {
+  const status = typeof error === 'object' && error !== null && 'status' in error ? error.status : 0
+  if (status === 401 || status === 419) return { kind: 'error', message: 'Please sign in again to open your church workspace.', signIn: true }
+  if (status === 403) return { kind: 'error', message: 'This church workspace is unavailable. Check your membership and current-session MFA.', mfa: true }
+  return { kind: 'error', message: 'The church workspace could not be loaded. Connect and try again.' }
+}
+
+export function ChurchWorkspaceBoundary({ children, allowOffline = false }: { children: ReactNode; allowOffline?: boolean }) {
+  const [state, setState] = useState<State>({ kind: 'loading' })
+  const [revision, setRevision] = useState(0)
+  const generation = useRef(0)
+  const selection = useRef(new URLSearchParams(location.search).get('church'))
+  const currentChurch = state.kind === 'ready' ? state.workspace.church_id : null
+
+  useEffect(() => {
+    let active = true
+    const run = ++generation.current
+    const apply = (value: State) => { if (active && run === generation.current) setState(value) }
+    void (async () => {
+      try {
+        if (!navigator.onLine) {
+          if (!allowOffline) throw new Error('Online workspace required')
+          const profile = await profileStore.activeProfile()
+          if (!profile?.churchId) throw new Error('Unlocked profile required')
+          // This decrypting read enforces the encrypted actor/church/device binding and lease.
+          const authorization = await profileStore.readEncryptedAuthorization<Pick<OfflineBootstrap, 'actor' | 'lease'>>(profile.id)
+          if (authorization.lease.church_id !== profile.churchId || (selection.current && selection.current !== profile.churchId)) throw new Error('Profile workspace mismatch')
+          apply({ kind: 'ready', actorId: Number(authorization.actor.id), workspace: { church_id: profile.churchId, name: 'Church workspace', role: 'teacher' }, workspaces: [] })
+          return
+        }
+        const session = await authRequest<components['schemas']['AccountSession']>('/auth/session')
+        if (!active || run !== generation.current) return
+        if (!session.email_verified) { apply({ kind: 'error', message: 'Verify your email before opening a church workspace.' }); return }
+        const workspaces = session.workspaces
+        if (!workspaces.length) { apply({ kind: 'error', message: 'No active church workspace is available for your account.' }); return }
+        const workspace = selection.current
+          ? workspaces.find(item => item.church_id === selection.current)
+          : workspaces.length === 1 ? workspaces[0] : undefined
+        if (!workspace) {
+          apply(selection.current ? { kind: 'error', message: 'This church workspace is unavailable for your account.' } : { kind: 'select', workspaces })
+          return
+        }
+        const account = await authRequest<components['schemas']['ChurchAccount']>('/api/me', 'GET', undefined, workspace.church_id)
+        if (account.id !== session.id || !account.memberships.some(item => item.church_id === workspace.church_id && item.status === 'active' && item.role === workspace.role)) {
+          apply({ kind: 'error', message: 'Your church membership changed. Reload your workspace.' }); return
+        }
+        if (workspace.role === 'owner' && !account.active_session.mfa_confirmed) {
+          apply(failureState({ status: 403 })); return
+        }
+        apply({ kind: 'ready', actorId: session.id, workspace, workspaces })
+      } catch (error) { apply(failureState(error)) }
+    })()
+    return () => { active = false }
+  }, [allowOffline, revision])
+
+  useEffect(() => {
+    const refresh = () => {
+      generation.current++
+      setState({ kind: 'loading' })
+      setRevision(value => value + 1)
+    }
+    const visible = () => {
+      if (document.visibilityState === 'visible') refresh()
+      else { generation.current++; setState({ kind: 'loading' }) }
+    }
+    const invalidate = (event: Event) => {
+      const detail = (event as CustomEvent<{ status: number; churchId?: string }>).detail
+      if (detail?.status === 403 && detail.churchId && detail.churchId !== currentChurch) return
+      generation.current++
+      if (detail?.status === 0) refresh()
+      else setState(failureState(detail))
+    }
+    window.addEventListener('church-workspace-invalidated', invalidate)
+    window.addEventListener('focus', refresh)
+    window.addEventListener('online', refresh)
+    window.addEventListener('offline', refresh)
+    document.addEventListener('visibilitychange', visible)
+    return () => {
+      window.removeEventListener('church-workspace-invalidated', invalidate)
+      window.removeEventListener('focus', refresh)
+      window.removeEventListener('online', refresh)
+      window.removeEventListener('offline', refresh)
+      document.removeEventListener('visibilitychange', visible)
+    }
+  }, [currentChurch])
+
+  function selectChurch(churchId: string) {
+    selection.current = churchId || null
+    const url = new URL(location.href)
+    if (churchId) url.searchParams.set('church', churchId)
+    else url.searchParams.delete('church')
+    history.replaceState(null, '', url.pathname + url.search + url.hash)
+    window.dispatchEvent(new PopStateEvent('popstate'))
+    generation.current++
+    setState({ kind: 'loading' }); setRevision(value => value + 1)
+  }
+
+  if (state.kind === 'loading') return <p role="status">Loading church workspace…</p>
+  if (state.kind === 'error') return <section>
+    <p role="alert">{state.message}</p>
+    {state.signIn && <a href="/account/login">Sign in</a>}
+    {state.mfa && <a href="/account/mfa">Check MFA</a>}
+    <button onClick={() => { setState({ kind: 'loading' }); setRevision(value => value + 1) }}>Retry workspace</button>
+  </section>
+  const selector = state.workspaces.length > 1 && <label>Church workspace
+    <select value={state.kind === 'ready' ? state.workspace.church_id : ''} onChange={event => selectChurch(event.target.value)}>
+      <option value="">Choose a church</option>
+      {state.workspaces.map(item => <option key={item.church_id} value={item.church_id}>{item.name}</option>)}
+    </select>
+  </label>
+  if (state.kind === 'select') return <section>{selector}</section>
+  return <ChurchWorkspaceContext.Provider value={state.workspace}>
+    {selector}
+    <div key={`${state.actorId}:${state.workspace.church_id}:${revision}`}>{children}</div>
+  </ChurchWorkspaceContext.Provider>
+}

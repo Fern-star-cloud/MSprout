@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { churchId, expectNoSeriousAccessibilityIssues, json, ministryId, mockCsrf, ownerAccount } from './support'
+import { churchId, expectNoSeriousAccessibilityIssues, json, ministryId, mockCsrf, mockOwner } from './support'
 
 test.use({ serviceWorkers: 'block' })
 
@@ -10,7 +10,7 @@ test('Owner preview excludes duplicates and commits only explicitly approved val
   const duplicateRow = '00000000-0000-4000-8000-000000000092'
   let commits = 0
   let commitKey = ''
-  await context.route('**/api/me', route => json(route, ownerAccount))
+  await mockOwner(context)
   await context.route('**/api/ministries', route => json(route, { data: [{ id: ministryId, name: 'Primary', status: 'active', version: 1 }] }))
   await context.route('**/api/imports/students/preview', route => json(route, {
     id: batchId, state: 'previewed', expires_at: '2099-10-01T00:00:00Z',

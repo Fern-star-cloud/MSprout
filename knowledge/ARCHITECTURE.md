@@ -1,5 +1,11 @@
 # Architecture
 
+## Shared authenticated church workspace — 2026-10-08
+
+Review, Reports, Birthdays, Ministries, Students and Import share one authenticated route boundary. `/auth/session` discovers only the verified web actor's active memberships in active churches through a narrow SQL capability; scoped `/api/me` remains the operational authorization and Owner current-session MFA preflight. Single membership selects automatically; multiple memberships require explicit selection. URL hints are revalidated, loaders wait for context, and authentication/denial/focus/connectivity changes invalidate or recheck it.
+
+Forced tenant RLS and role/ministry enforcement remain server-owned. Platform identity stays separate. Attendance/sync retain their existing offline flow; offline Birthdays requires an unlocked encrypted profile authorization and valid lease. See [implementation and verification](../docs/qa/shared-workspace-context-verification.md), including the additive migration and live rollout prerequisite.
+
 ## Topology
 
 ```text
