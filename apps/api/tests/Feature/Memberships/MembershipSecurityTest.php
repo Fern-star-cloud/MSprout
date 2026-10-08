@@ -84,7 +84,7 @@ it('rejects unverified users cross church headers and real CSRF failures', funct
     $this->postJson('/api/teacher-invitations', ['email' => $teacher->email, 'ministry_ids' => [MembershipScenario::ministry($this->church->id)]])->assertCreated();
     $proof = MembershipScenario::proof();
     $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->password]);
-    $this->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertStatus(410);
+    $this->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertForbidden();
     $teacher->markEmailAsVerified();
     $this->withHeader('X-Church-Id', (string) Str::uuid())->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertStatus(410);
     $this->app->instance('env', 'local');
@@ -189,7 +189,7 @@ it('normalizes the acceptance email and rechecks verified identity under lock', 
     $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->password]);
     // A concurrent account update must not leave the earlier in-memory identity trusted.
     User::whereKey($teacher->id)->update(['email_verified_at' => null]);
-    $this->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertStatus(410);
+    $this->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertForbidden();
     User::whereKey($teacher->id)->update(['email_verified_at' => now()]);
     $this->postJson('/api/teacher-invitations/accept', $proof + ['email' => ' '.strtoupper($teacher->email).' '])->assertOk();
 });

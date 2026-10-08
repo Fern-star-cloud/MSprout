@@ -34,10 +34,15 @@ export function TeacherInvitationScreen({ fragment }: { fragment: string }) {
       try {
         await authRequest('/api/teacher-invitations/accept', 'POST', body)
         setProof(null); setAccepted(true)
-      } catch (failure) { setError(safeAuthMessage(failure)) }
+      } catch (failure) {
+        const status = typeof failure === 'object' && failure !== null && 'status' in failure ? failure.status : 0
+        setError(status === 403
+          ? 'Use the invited account to accept this invitation. For a new account, reopen the original email link in a separate signed-out browser profile. For an existing account, sign in with the invited email and verify it, then reopen the link.'
+          : safeAuthMessage(failure))
+      }
       finally { form.reset(); setBusy(false) }
     }}>
-      <p>Use the invited email address. If you already have an account, sign in and verify your email, then reopen this invitation.</p>
+      <p>Use the invited email address. To create an account, open the original email link in a separate signed-out browser profile. If you already have an account, sign in with the invited email and verify it, then reopen this invitation.</p>
       <label htmlFor="invited-email">Invited email</label><input id="invited-email" name="email" type="email" maxLength={254} autoComplete="email" required disabled={busy} />
       <label className="teacher-choice"><input type="checkbox" checked={newAccount} disabled={busy} onChange={event => setNewAccount(event.target.checked)} />Create my invited account</label>
       {newAccount && <>

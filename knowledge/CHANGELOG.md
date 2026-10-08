@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-08 — Teacher invitation identity denial correction
+
+A valid Teacher invitation opened under the Owner session was mislabeled expired/used. Preserve the identity restriction, return 403 for a different/unverified authenticated account, and guide new invitees to reopen the original email in a separate signed-out profile. Signed proofs, expiry, replay, account/password preservation, RLS, MFA and audit atomicity remain intact. Frontend 202/backend 261+1,811 and required gates pass; no live invitation/data operation. [Confirmed state, security and validation](../docs/qa/teacher-invitation-identity-verification.md).
+
 ## 2026-10-08 — Shared workspace sidebar lifecycle correction
 
 Replaced full document navigation only between the six church modules and retained the boundary by selected church. Same-church transitions reuse verified state with mandatory background preflight; fresh entry/church switches and incompatible offline authorization remain gated. Focused76/frontend198/backend257+1,764 and13 browser checks pass with required validation and reviewed security coverage. Human observations and historical QA are preserved; no live data or excluded UI changes. [Root cause, evidence and finalization subject](../docs/qa/workspace-navigation-lifecycle-verification.md).

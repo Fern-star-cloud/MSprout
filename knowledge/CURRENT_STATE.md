@@ -1,5 +1,11 @@
 # Current State
 
+## Teacher invitation identity correction — 2026-10-08
+
+Maintenance from synchronized `feat/mvp-foundation` / `3a76bfe` is GREEN. Human confirmation and read-only state establish that the existing Owner session caused a valid Teacher invitation to return 410; the frontend mislabeled that identity denial as expired/used. The identity restriction remains strict, now returning 403 with fixed guidance to use the invited verified account or reopen the email in a separate signed-out browser profile. Contract/client are synchronized. [Root cause, persisted outcome, security and review](../docs/qa/teacher-invitation-identity-verification.md).
+
+The live invitation remains pending, unexpired and unconsumed until 2026-10-15 15:41:37 Asia/Taipei; no invitee account/membership exists. Music assignment, domain/audit fingerprints and original QA are preserved. Human retest is NOT RUN and needs no fresh invitation while pending/unexpired. Focused membership 29+identity 4/frontend 31, full frontend 202/backend 261+1,811 and required validation/security gates pass. No live acceptance, fixture, migration/reset/reseed, unrelated UI, next task or renewed background readiness. This receipt precedes one authorized commit/push under `fix: distinguish teacher invitation identity denials`; recover original QA edits afterward and stop.
+
 ## Workspace navigation lifecycle correction — 2026-10-08
 
 Maintenance from synchronized `feat/mvp-foundation` / `bec364e` is GREEN. The sidebar performed document navigation and the router keyed the shared boundary by full route URL. Ordinary transitions among the six church modules now preserve the document/sidebar and reuse the verified boundary by selected church; every route still revalidates session/scoped account in the background. Cold entry/reload, actual church switches, auth invalidation and incompatible offline sources remain gated. Import initialization and excluded flows remain unchanged. [Definitive review, security and evidence](../docs/qa/workspace-navigation-lifecycle-verification.md).

@@ -1,5 +1,11 @@
 # MSprout System Handoff
 
+## Teacher invitation identity handoff — 2026-10-08
+
+The human-confirmed active Owner session prevented new Teacher registration; the valid proof was incorrectly reported expired/used. The scoped GREEN correction returns 403 for a different/unverified authenticated identity and gives safe account/profile instructions, retaining all authorization, single-use and transaction controls. [Persisted outcome, proof, validation and review](teacher-invitation-identity-verification.md).
+
+The invitation remains pending/unexpired until October 15, 2026 at 15:41:37 Asia/Taipei; no invitee account/membership was created. Human retest is NOT RUN: use the original email in a separate signed-out browser profile; no fresh invitation needed while pending/unexpired. frontend 202/backend 261+1,811 and mandatory gates pass. No live data operation, invitation consumption, unrelated UI or renewed service readiness. This receipt precedes the single authorized commit/push under `fix: distinguish teacher invitation identity denials`; prior uncommitted QA/environment observations remain separately preserved and restored. Stop afterward.
+
 ## Shared workspace sidebar lifecycle handoff — 2026-10-08
 
 The six-module context and tab-return fixes are HUMAN_MANUAL confirmed at bec364e; Import authorization loading is expected. Remaining sidebar loading traced to document navigation and full-route boundary keys. The new scoped GREEN correction retains the sidebar and same-church workspace through internal navigation while performing mandatory background session/scoped-account preflight. Cold entry/reload, church switches, denial and incompatible offline authorization remain gated. [Root cause, definitive review and evidence](workspace-navigation-lifecycle-verification.md).

@@ -1,5 +1,11 @@
 # Testing Environment
 
+## Teacher invitation identity validation — 2026-10-08
+
+Failing-then-passing Owner-session/identity-message regressions establish the original 410 misclassification. Focused memberships: 29/243 assertions, followed by final identity cases 4/47; teacher/auth transport 31/4 files. Final root verify passes frontend 202/36 files, typecheck/build and serial isolated PostgreSQL backend 261/1,811. An initial unchanged attendance timeout passes focused 4 and aggregate retry; a new mock type/parse correction passes current typecheck, scoped lint and aggregate verification. No test weakening or timeout change.
+
+Full lint/Pint/actual contract check/structure/whitespace, strict Composer validation and both dependency audits pass. Gitleaks history/source zero leaks. OWASP full 108 rules/334 targets/zero findings/~99.9% parsing; five unchanged mock parser and three unchanged React convergence warnings reviewed. Final direct 98 rules/12 targets/zero findings/100% parsing/no warnings explicitly includes changed/new PHP tests. Documentation-only sync preserves these gates. [Detailed proof, security and preservation](../docs/qa/teacher-invitation-identity-verification.md). Live investigation was READ ONLY; six relevant domain/audit tables remain identical. No invitation consumption, live synthetic record or readiness renewal; human retest NOT RUN.
+
 ## Workspace navigation lifecycle validation — 2026-10-08
 
 Focused workspace/Import/auth-transport: **76 passed**. Root aggregate verify: **198 frontend /35 files**, typecheck/build and serial isolated PostgreSQL **257 backend /1,764 assertions** passed. **13 browser checks** pass: eight six-module navigation/Import/denial checks across desktop/mobile Chrome and five existing offline/profile/quota/tenant checks. Two mobile harness failures came from querying hidden desktop navigation; visible-sidebar correction and scoped mobile rerun pass, with focused ESLint. Concurrent initial browser runners collided in their ignored trace directory; the final mobile run uses a separate ignored Git-local output. No production inputs changed after comprehensive validation.

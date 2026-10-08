@@ -1236,7 +1236,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Public, rate-limited, CSRF-protected POST of the signed proof from the email URL fragment. Proof expires after seven days and is single use. Exact normalized email required. Existing accounts must sign in and verify their email. New invitees supply name and a password (12+ characters with upper/lowercase, number and symbol); the emailed proof verifies their address. No raw proof is persisted. No account session is created by acceptance; sign in afterward. */
+        /** @description Public, rate-limited, CSRF-protected POST of the signed proof from the email URL fragment. Proof expires after seven days and is single use. Exact normalized email required. Existing accounts must sign in and verify their email. A valid proof submitted by a different or unverified signed-in identity returns 403 without consuming the invitation; invalid, expired, revoked or used proofs return 410. New invitees must be signed out and supply name and a password (12+ characters with upper/lowercase, number and symbol); the emailed proof verifies their address. No raw proof is persisted. No account session is created by acceptance; sign in afterward. */
         post: operations["acceptTeacherInvitation"];
         delete?: never;
         options?: never;

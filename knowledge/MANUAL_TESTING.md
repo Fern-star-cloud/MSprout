@@ -1,5 +1,11 @@
 # Manual Testing Knowledge
 
+## Human Teacher invitation acceptance finding — 2026-10-08
+
+HUMAN_MANUAL reported expired/used after one registration submit for the Music invitation. The human confirmed the same Chrome profile still held the MTQA A Owner session. Source and isolated regression establish identity denial incorrectly classified 410. Read-only DB/Mailpit proof and one API request at 15:46:26 confirm a fresh pending invitation issued at 15:41:37, expiring October 15 at 15:41:37 Asia/Taipei, with no created invitee account/membership or acceptance audit. Email URL/proof/Music assignment are intact.
+
+The scoped correction keeps identity/verification rules and maps the denial to 403 with safe invited-account/separate signed-out-profile guidance. [Automated validation and preservation](../docs/qa/teacher-invitation-identity-verification.md). Human retest is NOT RUN; reopen the original email in a separate signed-out browser profile, without a fresh invitation while pending/unexpired. No live consume/resend/revoke/replacement, fixture preparation, subsequent manual phase or unrelated UI change. Historical results and attribution stay intact.
+
 ## Workspace sidebar observation and scoped correction — 2026-10-08
 
 HUMAN_MANUAL confirms all six modules inherit church context and that returning to an existing tab preserves the page at bec364e. Import Checking import authorization is expected initialization. Sidebar Students → Ministries still showed workspace-level loading; source and failing regression identify full document anchors plus route-keyed boundary remounting. The scoped correction preserves the sidebar/context across all six with mandatory background preflight and fail-closed invalidation. [Automated evidence and review](../docs/qa/workspace-navigation-lifecycle-verification.md).

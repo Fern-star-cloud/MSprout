@@ -124,3 +124,23 @@ it('rejects malformed invitation fragments without a request', () => {
   expect(screen.getByRole('alert')).toBeTruthy()
   expect(request).not.toHaveBeenCalled()
 })
+
+it('explains an invitation identity denial without discarding the in-memory proof', async () => {
+  const proof = { church_id: church, invitation_id: '87654321-4321-4321-8321-210987654321', token: 'a'.repeat(64), signature: 'b'.repeat(64), expires: 2000000000 }
+  const fragment = encodeURIComponent(JSON.stringify(proof))
+  history.replaceState(null, '', '/account/teacher-invitation#' + fragment)
+  request.mockRejectedValueOnce({ status: 403, message: 'unsafe server content' }).mockResolvedValueOnce({ status: 'accepted' })
+  const user = userEvent.setup()
+  render(<TeacherInvitationScreen fragment={fragment} />)
+  await user.type(screen.getByLabelText('Invited email'), 'invited@example.test')
+  await user.click(screen.getByRole('button', { name: 'Accept invitation' }))
+  expect(await screen.findByRole('alert')).toHaveProperty('textContent', expect.stringContaining('separate signed-out browser profile'))
+  expect(screen.queryByText(/expired or has already been used/)).toBeNull()
+  expect(screen.queryByText('unsafe server content')).toBeNull()
+  expect(location.hash).toBe('')
+  await user.clear(screen.getByLabelText('Invited email'))
+  await user.type(screen.getByLabelText('Invited email'), 'invited@example.test')
+  await user.click(screen.getByRole('button', { name: 'Accept invitation' }))
+  await screen.findByText(/Invitation accepted/)
+  expect(request).toHaveBeenNthCalledWith(2, '/api/teacher-invitations/accept', 'POST', { ...proof, email: 'invited@example.test' })
+})

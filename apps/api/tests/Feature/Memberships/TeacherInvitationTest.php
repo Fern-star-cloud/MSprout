@@ -67,7 +67,7 @@ it('rejects altered expired revoked and cross email invitation proofs', function
     }
     $this->postJson('/api/teacher-invitations/accept', $proof + ['email' => 'unrelated@example.test'])->assertStatus(410);
     $other = User::factory()->create();
-    $this->actingAs($other, 'web')->withSession(['password_hash_web' => $other->getAuthPassword()])->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertStatus(410);
+    $this->actingAs($other, 'web')->withSession(['password_hash_web' => $other->getAuthPassword()])->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertForbidden();
     $this->actingAs($this->owner, 'web')->withSession(['password_hash_web' => $this->owner->getAuthPassword()])->deleteJson('/api/teacher-invitations/'.$id)->assertNoContent();
     $this->getJson('/api/teacher-invitations')->assertJsonPath('data.0.status', 'revoked');
     $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()])->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertStatus(410);

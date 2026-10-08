@@ -33,7 +33,9 @@ final class AcceptTeacherInvitation
                 $user = Auth::guard('web')->user();
                 if ($user) {
                     $user = User::query()->lockForUpdate()->findOrFail($user->id);
-                    abort_unless($user->hasVerifiedEmail() && hash_equals(Str::lower(trim($user->email)), $email), 410);
+                    // A valid unused proof does not authorize a different or unverified identity.
+                    // Keep the proof usable; this is an access denial, not token expiry.
+                    abort_unless($user->hasVerifiedEmail() && hash_equals(Str::lower(trim($user->email)), $email), 403);
                 } else {
                     // Possession of the emailed signed proof verifies this specific address.
                     // Existing identities must sign in; never reset their credentials from an invitation.
