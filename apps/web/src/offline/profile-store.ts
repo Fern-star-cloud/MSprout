@@ -42,6 +42,8 @@ interface SwitchOptions {
 export class LocalProfileStore {
   private active: { profileId: string; key: CryptoKey } | null = null
   private autoLockTimer: ReturnType<typeof setTimeout> | null = null
+  private leaseLockTimer: ReturnType<typeof setTimeout> | null = null
+  private readonly lockListeners = new Set<(profileId: string) => void>()
   private readonly now: () => Date
   private readonly idleTimeoutMs: number
   private readonly createKeyMaterial: NonNullable<StoreOptions['createKeyMaterial']>
@@ -106,9 +108,18 @@ export class LocalProfileStore {
   }
 
   private lockAllProfiles(): void {
+    const profileId = this.active?.profileId
     this.active = null
     if (this.autoLockTimer) clearTimeout(this.autoLockTimer)
     this.autoLockTimer = null
+    if (this.leaseLockTimer) clearTimeout(this.leaseLockTimer)
+    this.leaseLockTimer = null
+    if (profileId) for (const listener of this.lockListeners) listener(profileId)
+  }
+
+  onLock(listener: (profileId: string) => void): () => void {
+    this.lockListeners.add(listener)
+    return () => { this.lockListeners.delete(listener) }
   }
 
   isUnlocked(profileId: string): boolean {
@@ -278,6 +289,12 @@ export class LocalProfileStore {
       || !leaseIsValid({ leaseExpiresAt: authorization.lease.expires_at }, this.now())) {
       throw new Error('The offline authorization lease has expired.')
     }
+    // Use the authenticated encrypted expiry, never the editable clear index, to expire an open view.
+    if (this.active?.profileId === profileId) {
+      if (this.leaseLockTimer) clearTimeout(this.leaseLockTimer)
+      this.leaseLockTimer = setTimeout(() => this.lockProfile(profileId),
+        Math.min(Date.parse(authorization.lease.expires_at) - this.now().getTime(), 2 ** 31 - 1))
+    }
   }
 
   async encryptLocalPayload(profileId: string, purpose: string, payload: unknown): Promise<EncryptedEnvelope> {
@@ -321,6 +338,7 @@ export class LocalProfileStore {
 
   dispose(): void {
     this.lockAllProfiles()
+    this.lockListeners.clear()
     if (typeof globalThis.removeEventListener === 'function') {
       for (const event of ['pointerdown', 'keydown', 'touchstart']) globalThis.removeEventListener(event, this.activityHandler)
       globalThis.removeEventListener('visibilitychange', this.visibilityHandler)

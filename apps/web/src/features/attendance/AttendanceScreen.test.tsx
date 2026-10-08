@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it, vi } from 'vitest'
 import type { AttendanceDraft, AttendanceState, CreateAttendanceDraftInput } from './domain'
@@ -36,6 +36,7 @@ it('supports search, individual and bulk marking, counts, and safe finalization'
     }),
   }
   const store = {
+    onLock: vi.fn(() => () => undefined),
     activeProfile: vi.fn(async () => ({ id: 'profile-a', churchId: 'church-a' })),
     readEncryptedMinistries: vi.fn(async () => [{ id: 'ministry-a', name: 'Primary', version: 1 }]),
     readEncryptedRoster: vi.fn(async () => [
@@ -88,6 +89,7 @@ it('keeps the responsive controls usable with text labels and student avatars', 
     addGuest: vi.fn(),
   }
   const store = {
+    onLock: vi.fn(() => () => undefined),
     activeProfile: vi.fn(async () => ({ id: 'profile-a', churchId: 'church-a' })),
     readEncryptedMinistries: vi.fn(async () => [{ id: 'ministry-a', name: 'Primary', version: 1 }]),
     readEncryptedRoster: vi.fn(async () => [{ id: 'student-a', display_name: 'Ana Sprout', gender: 'female' as const, ministry_ids: ['ministry-a'] }]),
@@ -117,6 +119,7 @@ it('removes stale child data from memory after synchronization revokes the assig
     addGuest: vi.fn(),
   }
   const store = {
+    onLock: vi.fn(() => () => undefined),
     activeProfile: vi.fn(async () => ({ id: 'profile-a', churchId: 'church-a' })),
     readEncryptedMinistries: vi.fn(async () => assigned ? [{ id: 'ministry-a', name: 'Primary', version: 1 }] : []),
     readEncryptedRoster: vi.fn(async () => assigned
@@ -149,6 +152,7 @@ it('clears protected roster state when reconnect requires online reauthenticatio
     addGuest: vi.fn(),
   }
   const store = {
+    onLock: vi.fn(() => () => undefined),
     activeProfile: vi.fn(async () => ({ id: 'profile-a', churchId: 'church-a' })),
     readEncryptedMinistries: vi.fn(async () => {
       if (invalid) throw new Error('expired')
@@ -168,4 +172,91 @@ it('clears protected roster state when reconnect requires online reauthenticatio
   await waitFor(() => expect(screen.queryByText('Ana Sprout')).toBeNull())
   expect(screen.getByRole('alert').textContent).toContain('authenticate this profile')
   expect((screen.getByLabelText('Ministry') as HTMLSelectElement).options).toHaveLength(0)
+})
+
+it('preserves unsaved guest input and never shows a save receipt when storage fails', async () => {
+  const draft: AttendanceDraft = {
+    id: 'draft-a', profileId: 'profile-a', churchId: 'church-a', ministryId: 'ministry-a', ministryName: 'Music',
+    attendanceDate: '2026-10-08', status: 'draft', version: 1, updatedAt: '2026-10-08T10:20:00Z', entries: [], guests: [],
+  }
+  const repository = {
+    findDraft: vi.fn(async () => draft), createDraft: vi.fn(async () => draft), countPending: vi.fn(async () => 1),
+    markStudent: vi.fn(), bulkMark: vi.fn(), finalizeDraft: vi.fn(),
+    addGuest: vi.fn(async () => { throw new DOMException('Full', 'QuotaExceededError') }),
+  }
+  const store = {
+    onLock: vi.fn(() => () => undefined),
+    activeProfile: vi.fn(async () => ({ id: 'profile-a', churchId: 'church-a' })),
+    readEncryptedMinistries: vi.fn(async () => [{ id: 'ministry-a', name: 'Music', version: 1 }]),
+    readEncryptedRoster: vi.fn(async () => []),
+  }
+  render(<AttendanceScreen repository={repository} store={store} initialDate="2026-10-08" />)
+  await screen.findByText(/1 pending/)
+  const user = userEvent.setup()
+  await user.type(screen.getByLabelText('Display name'), 'MTQA Offline Guest')
+  await user.selectOptions(screen.getByLabelText('Gender (optional)'), 'female')
+  await user.click(screen.getByRole('button', { name: 'Add guest as present' }))
+  expect(await screen.findByRole('alert')).toBeTruthy()
+  expect((screen.getByLabelText('Display name') as HTMLInputElement).value).toBe('MTQA Offline Guest')
+  expect((screen.getByLabelText('Gender (optional)') as HTMLSelectElement).value).toBe('female')
+  expect(screen.queryByText(/Saved on this device$/)).toBeNull()
+})
+
+it('clears plaintext on lock and does not restore it when an in-flight guest save finishes', async () => {
+  const draft: AttendanceDraft = {
+    id: 'draft-a', profileId: 'profile-a', churchId: 'church-a', ministryId: 'ministry-a', ministryName: 'Music',
+    attendanceDate: '2026-10-08', status: 'draft', version: 1, updatedAt: '2026-10-08T10:20:00Z', entries: [], guests: [],
+  }
+  let locked = () => undefined as void
+  let finish: (draft: AttendanceDraft) => void = () => undefined
+  const repository = {
+    findDraft: vi.fn(async () => draft), createDraft: vi.fn(async () => draft), countPending: vi.fn(async () => 1),
+    markStudent: vi.fn(), bulkMark: vi.fn(), finalizeDraft: vi.fn(),
+    addGuest: vi.fn(() => new Promise<AttendanceDraft>(resolve => { finish = resolve })),
+  }
+  const store = {
+    onLock: (listener: (profileId: string) => void) => { locked = () => listener('profile-a'); return () => undefined },
+    activeProfile: vi.fn(async () => ({ id: 'profile-a', churchId: 'church-a' })),
+    readEncryptedMinistries: vi.fn(async () => [{ id: 'ministry-a', name: 'Music', version: 1 }]),
+    readEncryptedRoster: vi.fn(async () => []),
+  }
+  render(<AttendanceScreen repository={repository} store={store} initialDate="2026-10-08" />)
+  await screen.findByText(/1 pending/)
+  const user = userEvent.setup()
+  await user.type(screen.getByLabelText('Display name'), 'MTQA Offline Guest')
+  await user.click(screen.getByRole('button', { name: 'Add guest as present' }))
+  act(() => locked())
+  expect(await screen.findByRole('link', { name: 'Choose a device profile' })).toBeTruthy()
+  await act(async () => finish({ ...draft, guests: [{ id: 'guest-a', displayName: 'MTQA Offline Guest', gender: 'unspecified', state: 'present', status: 'pending' }] }))
+  expect(screen.queryByText('MTQA Offline Guest')).toBeNull()
+  expect(screen.queryByLabelText('Display name')).toBeNull()
+  expect(screen.queryByText(/Saved on this device$/)).toBeNull()
+})
+
+it('does not label a durable guest save as unsaved when only refreshing the pending count fails', async () => {
+  const draft: AttendanceDraft = {
+    id: 'draft-a', profileId: 'profile-a', churchId: 'church-a', ministryId: 'ministry-a', ministryName: 'Music',
+    attendanceDate: '2026-10-08', status: 'draft', version: 1, updatedAt: '2026-10-08T10:20:00Z', entries: [], guests: [],
+  }
+  const savedDraft: AttendanceDraft = { ...draft, guests: [{ id: 'guest-a', displayName: 'MTQA Offline Guest', gender: 'unspecified', state: 'present', status: 'pending' }] }
+  const repository = {
+    findDraft: vi.fn(async () => draft), createDraft: vi.fn(async () => draft),
+    countPending: vi.fn(async () => 1).mockResolvedValueOnce(1).mockRejectedValueOnce(new Error('Count unavailable')),
+    markStudent: vi.fn(), bulkMark: vi.fn(), finalizeDraft: vi.fn(), addGuest: vi.fn(async () => savedDraft),
+  }
+  const store = {
+    onLock: vi.fn(() => () => undefined),
+    activeProfile: vi.fn(async () => ({ id: 'profile-a', churchId: 'church-a' })),
+    readEncryptedMinistries: vi.fn(async () => [{ id: 'ministry-a', name: 'Music', version: 1 }]),
+    readEncryptedRoster: vi.fn(async () => []),
+  }
+  render(<AttendanceScreen repository={repository} store={store} initialDate="2026-10-08" />)
+  await screen.findByText(/1 pending/)
+  const user = userEvent.setup()
+  await user.type(screen.getByLabelText('Display name'), 'MTQA Offline Guest')
+  await user.click(screen.getByRole('button', { name: 'Add guest as present' }))
+  expect(await screen.findByText(/Saved on this device$/)).toBeTruthy()
+  expect(screen.getByText('MTQA Offline Guest')).toBeTruthy()
+  expect(screen.getByRole('alert').textContent).toContain('pending count')
+  expect(screen.queryByText(/This change was not saved/)).toBeNull()
 })

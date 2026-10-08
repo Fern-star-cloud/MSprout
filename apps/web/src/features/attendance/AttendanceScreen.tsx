@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { avatarForGender } from '../students/avatar'
 import { profileStore } from '../../offline/profile-store'
 import { attendanceRepository, type AttendanceRepository } from './attendance-repository'
@@ -18,6 +18,7 @@ interface OfflineRosterStudent {
 }
 
 interface AttendanceStore {
+  onLock(listener: (profileId: string) => void): () => void
   activeProfile(): Promise<{ id: string; churchId: string | null } | null>
   readEncryptedMinistries(profileId: string): Promise<OfflineMinistry[]>
   readEncryptedRoster(profileId: string): Promise<OfflineRosterStudent[]>
@@ -82,29 +83,51 @@ export function AttendanceScreen({
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const accessGeneration = useRef(0)
+
+  useEffect(() => store.onLock(() => {
+    // Locking removes the in-memory key. Discard the corresponding plaintext view too,
+    // and prevent an earlier asynchronous load/save from putting it back.
+    accessGeneration.current += 1
+    setProfile(null)
+    setMinistries([])
+    setRoster([])
+    setMinistryId('')
+    setDraft(null)
+    setGuestName('')
+    setGuestGender('unspecified')
+    setSearch('')
+    setPending(0)
+    setSaved(false)
+    setBusy(false)
+    setLoading(false)
+    setError('This device profile is locked. Unlock the existing profile to continue. If its authorization has expired, reconnect and refresh authorization after sign-in.')
+  }), [store])
 
   useEffect(() => {
     let active = true
+    const generation = accessGeneration.current
     void store.activeProfile().then(async (current) => {
       if (!current?.churchId) return null
       const [availableMinistries, availableRoster] = await Promise.all([
         store.readEncryptedMinistries(current.id),
         store.readEncryptedRoster(current.id),
       ])
-      if (!active) return null
+      if (!active || generation !== accessGeneration.current) return null
       setProfile({ id: current.id, churchId: current.churchId })
       setMinistries(availableMinistries)
       setRoster(availableRoster)
       setMinistryId(availableMinistries[0]?.id ?? '')
       return null
-    }).catch(() => { if (active) setError('Unlock a current device profile with a valid offline authorization before taking attendance.') })
-      .finally(() => { if (active) setLoading(false) })
+    }).catch(() => { if (active && generation === accessGeneration.current) setError('Unlock a current device profile with a valid offline authorization before taking attendance.') })
+      .finally(() => { if (active && generation === accessGeneration.current) setLoading(false) })
     return () => { active = false }
   }, [store])
 
   useEffect(() => {
     if (!profile || !ministryId || !date) return
     let active = true
+    const generation = accessGeneration.current
     const ministry = ministries.find((candidate) => candidate.id === ministryId)
     const students = roster.filter((student) => student.ministry_ids.includes(ministryId))
     void repository.findDraft(profile.id, ministryId, date).then((existing) => existing ?? repository.createDraft({
@@ -115,11 +138,12 @@ export function AttendanceScreen({
       attendanceDate: date,
       students: students.map((student) => ({ id: student.id, displayName: student.display_name, gender: student.gender })),
     })).then(async (value) => {
-      if (!active) return
+      const pendingCount = await repository.countPending(profile.id)
+      if (!active || generation !== accessGeneration.current) return
       setDraft(value)
-      setPending(await repository.countPending(profile.id))
+      setPending(pendingCount)
       setError('')
-    }).catch(() => { if (active) setError('Attendance could not be saved on this device. Free storage or unlock the profile before continuing.') })
+    }).catch(() => { if (active && generation === accessGeneration.current) setError('Attendance could not be saved on this device. Free storage or unlock the profile before continuing.') })
     return () => { active = false }
   }, [date, ministries, ministryId, profile, repository, roster])
 
@@ -127,6 +151,7 @@ export function AttendanceScreen({
     if (!profile || !date) return
     let active = true
     const refreshAfterSync = () => {
+      const generation = accessGeneration.current
       void Promise.all([
         store.readEncryptedMinistries(profile.id),
         store.readEncryptedRoster(profile.id),
@@ -138,7 +163,7 @@ export function AttendanceScreen({
         const currentDraft = nextMinistryId
           ? await repository.findDraft(profile.id, nextMinistryId, date)
           : null
-        if (!active) return
+        if (!active || generation !== accessGeneration.current) return
         setMinistries(availableMinistries)
         setRoster(availableRoster)
         setMinistryId(nextMinistryId)
@@ -147,7 +172,7 @@ export function AttendanceScreen({
         setSaved(false)
         setError('')
       }).catch(() => {
-        if (!active) return
+        if (!active || generation !== accessGeneration.current) return
         setMinistries([])
         setRoster([])
         setMinistryId('')
@@ -174,17 +199,31 @@ export function AttendanceScreen({
   }, [draft, search])
 
   async function save(operation: () => Promise<AttendanceDraft>) {
-    if (!profile) return
+    if (!profile) return false
+    const generation = accessGeneration.current
     setBusy(true)
+    setSaved(false)
     try {
-      setDraft(await operation())
-      setPending(await repository.countPending(profile.id))
+      const value = await operation()
+      if (generation !== accessGeneration.current) return false
+      setDraft(value)
       setSaved(true)
       setError('')
+      // The domain transaction has committed. A status-read failure must not invite
+      // a duplicate guest submission by falsely reporting that nothing was saved.
+      try {
+        const pendingCount = await repository.countPending(profile.id)
+        if (generation === accessGeneration.current) setPending(pendingCount)
+      } catch {
+        if (generation === accessGeneration.current) setError('Saved on this device, but the pending count could not be refreshed. Reopen attendance to refresh it.')
+      }
+      if (generation !== accessGeneration.current) return false
+      return true
     } catch {
-      setError('This change was not saved. Free device storage, unlock the profile, and try again.')
+      if (generation === accessGeneration.current) setError('This change was not saved. Free device storage, unlock the profile, and try again.')
+      return false
     } finally {
-      setBusy(false)
+      if (generation === accessGeneration.current) setBusy(false)
     }
   }
 
@@ -196,9 +235,10 @@ export function AttendanceScreen({
       setError('Enter a guest display name.')
       return
     }
-    await save(() => repository.addGuest(profile!.id, draft.id, normalized, guestGender))
-    setGuestName('')
-    setGuestGender('unspecified')
+    if (await save(() => repository.addGuest(profile!.id, draft.id, normalized, guestGender))) {
+      setGuestName('')
+      setGuestGender('unspecified')
+    }
   }
 
   if (loading && !profile) return <section className="attendance-empty"><h1>Take attendance</h1><p>Loading the protected roster…</p></section>

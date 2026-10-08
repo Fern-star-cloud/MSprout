@@ -1,5 +1,13 @@
 # Testing Environment
 
+## Offline guest save validation — 2026-10-08
+
+Confirmed regressions: stale enabled controls after hidden-page key locking, Chrome's invalid Church ID pattern, guest-input erasure after storage failure and a false unsaved label after a durable write/count-read failure. Final focused offline/attendance/profile/sync coverage passes 46 tests/9 files, including real PBKDF2/AES-GCM plus IndexedDB guest persistence, locked/expired denial, quota rollback and asynchronous plaintext invalidation. Final aggregate frontend passes 211/37 files; serial isolated PostgreSQL backend passes 261/1,811 assertions. An unchanged attendance workflow hit its existing 5,000 ms timeout during concurrent validation; full retry passes after scanners/backend finish, without weakening tests/timeouts.
+
+Initial desktop/mobile Chrome regression 16 PASS; final corrected guest lifecycle/quota 10 PASS. API responses are intercepted in fresh disposable preview contexts; human Chrome/IndexedDB and live data/queue are untouched. No live persistence/sync or physical iPhone result is claimed. Typecheck/lint/build, actual contract drift, Pint, strict Composer, dependency audits, structure and whitespace PASS; all root verify constituents ran once before finalization, with effect-based reruns after the isolated count-read correction. Generated client CRLF bytes are restored after the actual normalized drift check.
+
+Gitleaks history/complete source zero leaks. Full OWASP 108 rules/336 targets/zero findings/~99.9% parsing has the same five unchanged Vitest-mock partial parses and reviewed default backend-test exclusions. Final direct 98 rules/30 targets/zero findings/100% parsing explicitly covers all changed/new source and tests plus offline/attendance/profile/PWA/sync dependencies. Current Node 24.19.0/Corepack pnpm 10.34.5/PHP 8.3.33 and trusted process-scoped CA preserve TLS without host/global changes. [Complete receipt and human retest limits](../docs/qa/offline-guest-save-verification.md).
+
 ## Teacher invitation identity validation — 2026-10-08
 
 Failing-then-passing Owner-session/identity-message regressions establish the original 410 misclassification. Focused memberships: 29/243 assertions, followed by final identity cases 4/47; teacher/auth transport 31/4 files. Final root verify passes frontend 202/36 files, typecheck/build and serial isolated PostgreSQL backend 261/1,811. An initial unchanged attendance timeout passes focused 4 and aggregate retry; a new mock type/parse correction passes current typecheck, scoped lint and aggregate verification. No test weakening or timeout change.

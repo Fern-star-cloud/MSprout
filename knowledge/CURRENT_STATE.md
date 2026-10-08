@@ -1,5 +1,13 @@
 # Current State
 
+## Offline guest save lifecycle correction — 2026-10-08
+
+Focused maintenance from synchronized `feat/mvp-foundation` / `ea0704c` is GREEN. The reproduced failure mechanism is a locked in-memory profile key with stale attendance controls: background/idle locking was not propagated to the plaintext screen. Network offline and blur alone permit encrypted guest writes; the human's precise 18:22 visibility/exception trace is unavailable and remains unverified. A new profile's initial pending receipt is `attendance.draft_created` in isolated proof; the existing human queue was not inspected or consumed. [Findings, limits, preservation and validation](../docs/qa/offline-guest-save-verification.md).
+
+Lock notifications now clear plaintext and prevent stale asynchronous loads/saves from restoring it. Authenticated encrypted lease expiry closes the open view. Failed guest writes preserve input, durable saves survive count-read failures with accurate guidance, and Chrome's Church ID pattern is corrected. Workbox's development revision warning is independent; offline credential/encryption/lease/tenant/assignment policy is preserved.
+
+Focused 46 tests, full frontend 211/37 files, serial isolated backend 261/1,811 assertions, initial 16 Chrome checks plus final corrected 10 and required validation/security gates pass. Final review queue is closed. No live API/profile/storage/data mutation, reset/reseed, fixture, unrelated UI, manual phase or next task. Human retest is NOT RUN: unlock the existing profile with its PIN; refresh authorization after signing in as the same teacher only when required, without recreation/removal/storage clearing. Check for an already-saved guest before retrying. Existing QA/environment edits remain outside this correction. This receipt precedes one authorized commit/push under `fix: keep offline attendance aligned with profile locks`; restore original edits afterward and stop.
+
 ## Teacher invitation identity correction — 2026-10-08
 
 Maintenance from synchronized `feat/mvp-foundation` / `3a76bfe` is GREEN. Human confirmation and read-only state establish that the existing Owner session caused a valid Teacher invitation to return 410; the frontend mislabeled that identity denial as expired/used. The identity restriction remains strict, now returning 403 with fixed guidance to use the invited verified account or reopen the email in a separate signed-out browser profile. Contract/client are synchronized. [Root cause, persisted outcome, security and review](../docs/qa/teacher-invitation-identity-verification.md).

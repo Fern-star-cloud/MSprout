@@ -58,6 +58,34 @@ describe('isolated local profiles', () => {
     await expect(store.readEncryptedRoster(profile.id)).rejects.toThrow('locked')
   })
 
+  it('notifies the open view after clearing the key and allows observers to unsubscribe', async () => {
+    const profile = await store.createProfile({ actorId: '11', pin: '184629' })
+    await store.unlockProfile(profile.id, '184629')
+    const listener = vi.fn(() => expect(store.isUnlocked(profile.id)).toBe(false))
+    const unsubscribe = store.onLock(listener)
+    store.lockProfile(profile.id)
+    expect(listener).toHaveBeenCalledWith(profile.id)
+    unsubscribe()
+    await store.unlockProfile(profile.id, '184629')
+    store.lockProfile(profile.id)
+    expect(listener).toHaveBeenCalledOnce()
+  })
+
+  it('expires an open profile using its authenticated lease and not a tampered clear expiry', async () => {
+    const timedStore = new LocalProfileStore(db, { ...storeOptions, idleTimeoutMs: 10_000 })
+    const profile = await timedStore.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
+    await timedStore.unlockProfile(profile.id, '184629')
+    await timedStore.saveBootstrap(profile.id, {
+      actor: { id: '11' }, ministries: [], roster: [], server_cursor: '1',
+      lease: lease(profile.id, '11', profile.deviceId, '2026-09-28T00:00:00.050Z'),
+    })
+    await db.profiles.update(profile.id, { leaseExpiresAt: '2099-01-01T00:00:00Z' })
+    await timedStore.readEncryptedRoster(profile.id)
+    await new Promise(resolve => setTimeout(resolve, 80))
+    expect(timedStore.isUnlocked(profile.id)).toBe(false)
+    timedStore.dispose()
+  })
+
   it('auto-locks five minutes after the last recorded activity', async () => {
     expect(PROFILE_IDLE_TIMEOUT_MS).toBe(5 * 60 * 1000)
     const timedStore = new LocalProfileStore(db, { ...storeOptions, now: () => new Date(), idleTimeoutMs: 50 })

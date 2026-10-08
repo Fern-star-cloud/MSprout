@@ -129,7 +129,7 @@ export function DeviceProfilesScreen({ store = profileStore, onUnlocked }: Devic
         <form onSubmit={add}>
           <h3>Add an encrypted profile</h3>
           <label htmlFor="profile-church">Church ID</label>
-          <input id="profile-church" value={churchId} onChange={(event) => setChurchId(event.target.value)} required pattern="[a-fA-F0-9-]{36}" />
+          <input id="profile-church" value={churchId} onChange={(event) => setChurchId(event.target.value)} required pattern="[a-fA-F0-9\-]{36}" />
           <label htmlFor="new-profile-pin">Choose a 6–12 digit local PIN</label>
           <input id="new-profile-pin" inputMode="numeric" autoComplete="new-password" type="password" pattern="[0-9]{6,12}" minLength={6} maxLength={12} value={newPin} onChange={(event) => setNewPin(event.target.value)} required />
           <button type="submit" disabled={!navigator.onLine}>Download assigned roster and create profile</button>
