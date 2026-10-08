@@ -89,6 +89,10 @@ export class SyncClient {
     if (!profile?.churchId) throw new Error('The selected profile is not ready for synchronization.')
     if (profile.requiresReauthentication) throw new Error('Authenticate online as this profile before synchronizing.')
 
+    // Upload acknowledgement does not complete the download/lease-renewal phase.
+    // Persist before sending so interruption cannot make an empty outbox imply completion.
+    await this.db.profiles.update(profileId, { syncNeedsPull: true })
+
     const summary: SyncSummary = { pushed: 0, acknowledged: 0, conflicts: 0, rejected: 0, pulled: 0, nextCursor: '0' }
     const events = await this.outbox.list(profileId)
     for (let offset = 0; offset < events.length; offset += 100) {
@@ -131,6 +135,7 @@ export class SyncClient {
       hasMore = response.page.has_more
     } while (hasMore)
     summary.nextCursor = cursor
+    await this.db.profiles.update(profileId, { syncNeedsPull: false })
 
     return summary
   }
@@ -154,6 +159,9 @@ export class SyncClient {
         const response = await this.fetcher(url, {
           ...init,
           credentials: 'include',
+          referrerPolicy: 'origin',
+          cache: 'no-store',
+          redirect: 'error',
           headers: {
             Accept: 'application/json',
             'X-Church-Id': profile.churchId!,
@@ -198,7 +206,7 @@ export class SyncClient {
     const existing = read()
     if (existing) return existing
     const response = await this.fetcher('/sanctum/csrf-cookie', {
-      method: 'GET', credentials: 'include', cache: 'no-store', headers: { Accept: 'application/json' },
+      method: 'GET', credentials: 'include', cache: 'no-store', redirect: 'error', referrerPolicy: 'origin', headers: { Accept: 'application/json' },
     })
     if (!response.ok) throw new Error('Online session protection could not be initialized.')
     return read()

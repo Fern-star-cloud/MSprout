@@ -7,6 +7,38 @@ import { AttendanceScreen } from './AttendanceScreen'
 
 afterEach(() => cleanup())
 
+it('distinguishes acknowledged uploads from an incomplete pull, including after reopening attendance', async () => {
+  let syncNeedsPull = true
+  const draft: AttendanceDraft = {
+    id: 'session-a', profileId: 'profile-a', churchId: 'church-a', ministryId: 'ministry-a', ministryName: 'Music',
+    attendanceDate: '2026-09-28', status: 'draft', version: 3, updatedAt: '2026-09-28T00:00:00Z', entries: [], guests: [],
+  }
+  const repository = {
+    findDraft: vi.fn(async () => draft), createDraft: vi.fn(async () => draft), countPending: vi.fn(async () => 0),
+    markStudent: vi.fn(async () => draft), bulkMark: vi.fn(async () => draft), finalizeDraft: vi.fn(async () => draft), addGuest: vi.fn(async () => draft),
+  }
+  const store = {
+    onLock: vi.fn(() => () => undefined),
+    activeProfile: vi.fn(async () => ({ id: 'profile-a', churchId: 'church-a', syncNeedsPull })),
+    readEncryptedMinistries: vi.fn(async () => [{ id: 'ministry-a', name: 'Music', version: 1 }]),
+    readEncryptedRoster: vi.fn(async () => []),
+  }
+  Object.defineProperty(navigator, 'onLine', { configurable: true, value: true })
+  render(<AttendanceScreen repository={repository} store={store} initialDate="2026-09-28" />)
+  expect(await screen.findByText(/Sync incomplete/)).toBeTruthy()
+  expect(screen.queryByText(/No pending changes/)).toBeNull()
+  expect(await screen.findByText(/Uploaded changes may already be accepted/)).toBeTruthy()
+  syncNeedsPull = false
+  act(() => window.dispatchEvent(new Event('ministrysprout:sync-complete')))
+  expect(await screen.findByText(/No pending changes/)).toBeTruthy()
+  expect(screen.queryByText(/Sync incomplete/)).toBeNull()
+  syncNeedsPull = true
+  repository.countPending.mockResolvedValue(3)
+  store.readEncryptedMinistries.mockRejectedValueOnce(new Error('Authorization unavailable'))
+  act(() => window.dispatchEvent(new Event('ministrysprout:sync-authorization-invalid')))
+  expect(await screen.findByText(/3 pending.*Sync incomplete/)).toBeTruthy()
+})
+
 it('supports search, individual and bulk marking, counts, and safe finalization', async () => {
   let draft: AttendanceDraft = {
     id: 'session-a', profileId: 'profile-a', churchId: 'church-a', ministryId: 'ministry-a', ministryName: 'Primary',

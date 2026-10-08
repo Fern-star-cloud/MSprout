@@ -1,5 +1,9 @@
 # Architecture
 
+## Sync pull authentication and completion state — 2026-10-08
+
+The page retains no-referrer privacy; sync and CSRF fetches explicitly send an origin-only referrer, no-store and reject redirects, matching the established first-party auth transport. Sanctum's allowlisted Origin/Referer recognition loads cookie sessions for API GETs; credentials alone do not. Upload acknowledgement remains durable before download. Optional per-profile `syncNeedsPull` is non-content operational metadata, set before synchronization and cleared only after all pull pages/lease handling complete; no Dexie index/schema migration or historic backfill. Attendance exposes incomplete download separately from pending uploads and preserves accurate failure counts. Payload encryption, actor/device/tenant/assignment checks, leases and mandatory profile-switch logout remain unchanged. [Proof and security review](../docs/qa/sync-pull-authentication-verification.md).
+
 ## Local unlock and web-session recovery — 2026-10-08
 
 Online Use profile selection clears the web session before unlocking an inactive local profile, even when reselecting the same stored profile after navigation/background key purge. This is established Task 11 policy; already-active same-profile selection is a no-op. Attendance can remain available through encrypted lease-bound authorization while Review requires fresh web-session discovery/scoped account preflight. Re-sign-in must follow online selection for workspace operations. Sign-in does not trigger reconnect synchronization. Current auth success opens generic account management without storing a return destination; broader recovery/navigation improvements remain deferred. [Cookie/browser characterization and policy evidence](../docs/qa/online-profile-session-recovery-verification.md).

@@ -1,5 +1,11 @@
 # Current State
 
+## Accepted uploads / pull authentication correction — 2026-10-08
+
+Focused correction from synchronized `feat/mvp-foundation` / `e8b4107` is GREEN. Human online Review retest passed (session/me/sync-conflicts 200); subsequent bootstrap/push 200 accepted three original events on one attendance record at versions 1–3, then pull cursor0 returned unauthenticated401. Historical headers are unavailable. Isolated browser and real cookie/database tests reproduce this without logout: no-referrer suppresses the GET headers Sanctum needs to load a cookie session. Allowed origin-only Referer restores pull200 with unchanged cookies/clock; untrusted origins remain denied. [Root cause, forensic limits, preservation and safe verification](../docs/qa/sync-pull-authentication-verification.md).
+
+Sync/CSRF fetches now use origin-only referrers/no-store/redirect rejection. A durable per-profile operational flag separates empty uploads from incomplete pull; accurate failure counts and existing key/lease guards remain. No backend policy, contract, migration, encryption, MFA, tenancy, idempotency or mandatory online profile-selection logout change. Focused frontend43/5, Chrome8, full frontend222/37 and backend265/1,871 plus required/security gates pass; final review closed. Profile1 and all accepted human events remain untouched; live pull completion is not certified and no retry/replay is permitted here. Original QA/environment bodies remain outside this task's commit. This receipt precedes one authorized fix commit/push; verify resulting SHA/tracking through Git. Tasks1–18/next work untouched; stop after finalization.
+
 ## Online session after encrypted profile selection — 2026-10-08
 
 Focused investigation from synchronized `feat/mvp-foundation` / `3b53e7e` is GREEN. The reported sign-in → online Use profile 1 → Attendance → Review order reproduces an automatic CSRF-protected logout followed by session 401. Task 11 requires this shared-device safeguard; it is preserved. Local encrypted Attendance access is independent of the web session. Re-sign-in after selection opens Review without consuming pending work. The historical browser logout was not captured; no live cookie/session/profile payload was inspected. [Verified mechanism, limits, deferred UX and exact safe retest](../docs/qa/online-profile-session-recovery-verification.md).

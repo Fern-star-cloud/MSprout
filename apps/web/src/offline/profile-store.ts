@@ -151,12 +151,12 @@ export class LocalProfileStore {
     return this.active?.profileId === profileId
   }
 
-  async activeProfile(): Promise<Pick<ProfileRecord, 'id' | 'churchId'> | null> {
+  async activeProfile(): Promise<Pick<ProfileRecord, 'id' | 'churchId' | 'syncNeedsPull'> | null> {
     const active = this.active
     if (!active) return null
     const profile = await this.db.profiles.get(active.profileId)
     if (this.active !== active) return null
-    return profile ? { id: profile.id, churchId: profile.churchId } : null
+    return profile ? { id: profile.id, churchId: profile.churchId, ...(profile.syncNeedsPull ? { syncNeedsPull: true } : {}) } : null
   }
 
   recordActivity(): void {

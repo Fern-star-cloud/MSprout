@@ -64,6 +64,37 @@ describe('profile synchronization client', () => {
 
   afterEach(async () => { await db.delete() })
 
+  it('retains incomplete pull state after accepted uploads and a pull authentication denial', async () => {
+    const requests: string[] = []
+    const fetcher = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      requests.push(url)
+      if (url === '/api/sync/push') return Response.json({ results: eventIds.map((id, index) => ({
+        client_event_id: id, status: 'accepted', version: index + 1,
+      })) })
+      return Response.json({ code: 'unauthenticated' }, { status: 401 })
+    })
+    const client = new SyncClient(db, codec, { fetcher })
+    await expect(client.syncProfile(profileId)).rejects.toThrow('Authenticate online')
+    expect(requests).toEqual(['/api/sync/push', '/api/sync/pull?cursor=0&limit=100'])
+    expect(await db.outboxEvents.count()).toBe(0)
+    expect((await db.serverCursors.get(profileId))?.cursor).toBe('0')
+    expect((await db.profiles.get(profileId))?.syncNeedsPull).toBe(true)
+    expect((await db.profiles.get(profileId))?.requiresReauthentication).toBe(true)
+    db.close()
+    await db.open()
+    expect((await db.profiles.get(profileId))?.syncNeedsPull).toBe(true)
+    // Acknowledged events are never restored or replayed during pull-only recovery.
+    await db.profiles.update(profileId, { requiresReauthentication: false })
+    const recovery = vi.fn(async (input: RequestInfo | URL) => {
+      expect(String(input)).toBe('/api/sync/pull?cursor=0&limit=100')
+      return Response.json({ changes: [], page: { next_cursor: '2', has_more: false }, lease: lease() })
+    })
+    await new SyncClient(db, codec, { fetcher: recovery }).syncProfile(profileId)
+    expect(recovery).toHaveBeenCalledOnce()
+    expect((await db.profiles.get(profileId))?.syncNeedsPull).toBe(false)
+  })
+
   it('pushes in stable order, acknowledges safe results, and pulls until the cursor is current', async () => {
     const requests: Array<{ url: string; init?: RequestInit }> = []
     const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -98,6 +129,12 @@ describe('profile synchronization client', () => {
     expect(await db.outboxEvents.where('profileId').equals(profileId).count()).toBe(0)
     expect((await db.serverCursors.get(profileId))?.cursor).toBe('7')
     expect(requests.filter(request => request.url.startsWith('/api/sync/pull'))).toHaveLength(2)
+    for (const request of requests) {
+      expect(request.init?.referrerPolicy).toBe('origin')
+      expect(request.init?.cache).toBe('no-store')
+      expect(request.init?.redirect).toBe('error')
+    }
+    expect((await db.profiles.get(profileId))?.syncNeedsPull).toBe(false)
     expect(renewedCursors).toEqual(['4', '7'])
   })
 

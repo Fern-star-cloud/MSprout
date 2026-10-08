@@ -26,6 +26,8 @@ export interface ProfileRecord extends ProfileKeyMaterial {
   leaseExpiresAt: string | null
   leaseSignature: string | null
   requiresReauthentication: boolean
+  // Operational completion flag only; attendance payloads remain encrypted.
+  syncNeedsPull?: boolean
 }
 
 export interface EncryptedBlobRecord {

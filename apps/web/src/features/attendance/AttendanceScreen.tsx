@@ -19,7 +19,7 @@ interface OfflineRosterStudent {
 
 interface AttendanceStore {
   onLock(listener: (profileId: string, reason: ProfileLockReason) => void): () => void
-  activeProfile(): Promise<{ id: string; churchId: string | null } | null>
+  activeProfile(): Promise<{ id: string; churchId: string | null; syncNeedsPull?: boolean } | null>
   readEncryptedMinistries(profileId: string): Promise<OfflineMinistry[]>
   readEncryptedRoster(profileId: string): Promise<OfflineRosterStudent[]>
 }
@@ -39,7 +39,7 @@ function today(): string {
   return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`
 }
 
-function ConnectionState({ pending }: { pending: number }) {
+function ConnectionState({ pending, needsPull }: { pending: number; needsPull: boolean }) {
   const [online, setOnline] = useState(globalThis.navigator?.onLine !== false)
 
   useEffect(() => {
@@ -55,7 +55,7 @@ function ConnectionState({ pending }: { pending: number }) {
   return (
     <div className="attendance-connection" role="status" aria-live="polite">
       <svg aria-hidden="true" viewBox="0 0 24 24"><path d={online ? 'M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01' : 'm4 4 16 16M5 12.5a10 10 0 0 1 5-2.6M14 9.8a10 10 0 0 1 5 2.7'} /></svg>
-      <span>{online ? 'Online' : 'Offline — saving on this device'}{pending > 0 ? ` · ${pending} pending` : ' · No pending changes'}</span>
+      <span>{online ? 'Online' : 'Offline — saving on this device'}{pending > 0 ? ` · ${pending} pending` : needsPull ? ' · No pending uploads' : ' · No pending changes'}{needsPull ? ' · Sync incomplete' : ''}</span>
     </div>
   )
 }
@@ -79,6 +79,7 @@ export function AttendanceScreen({
   const [guestName, setGuestName] = useState('')
   const [guestGender, setGuestGender] = useState<AttendanceDraft['entries'][number]['gender']>('unspecified')
   const [pending, setPending] = useState(0)
+  const [needsPull, setNeedsPull] = useState(false)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -100,6 +101,7 @@ export function AttendanceScreen({
     setGuestGender('unspecified')
     setSearch('')
     setPending(0)
+    setNeedsPull(false)
     setSaved(false)
     setBusy(false)
     setLoading(false)
@@ -111,6 +113,7 @@ export function AttendanceScreen({
     const generation = accessGeneration.current
     void store.activeProfile().then(async (current) => {
       if (!current?.churchId) return null
+      if (active && generation === accessGeneration.current) setNeedsPull(Boolean(current.syncNeedsPull))
       const [availableMinistries, availableRoster] = await Promise.all([
         store.readEncryptedMinistries(current.id),
         store.readEncryptedRoster(current.id),
@@ -154,11 +157,22 @@ export function AttendanceScreen({
     let active = true
     const refreshAfterSync = () => {
       const generation = accessGeneration.current
-      void Promise.all([
+      void Promise.allSettled([
+        store.activeProfile(),
         store.readEncryptedMinistries(profile.id),
         store.readEncryptedRoster(profile.id),
         repository.countPending(profile.id),
-      ]).then(async ([availableMinistries, availableRoster, pendingCount]) => {
+      ]).then(async ([currentResult, ministryResult, rosterResult, countResult]) => {
+        if (!active || generation !== accessGeneration.current) return
+        // A protected read can fail after uploads settle. Keep the independent queue
+        // count accurate before clearing the unavailable roster.
+        if (countResult.status === 'fulfilled') setPending(countResult.value)
+        if (currentResult.status === 'rejected' || ministryResult.status === 'rejected'
+          || rosterResult.status === 'rejected' || countResult.status === 'rejected') throw new Error('Profile data unavailable')
+        const current = currentResult.value
+        const availableMinistries = ministryResult.value
+        const availableRoster = rosterResult.value
+        const pendingCount = countResult.value
         const nextMinistryId = availableMinistries.some(ministry => ministry.id === ministryId)
           ? ministryId
           : (availableMinistries[0]?.id ?? '')
@@ -171,15 +185,16 @@ export function AttendanceScreen({
         setMinistryId(nextMinistryId)
         setDraft(currentDraft)
         setPending(pendingCount)
+        setNeedsPull(Boolean(current?.id === profile.id && current.syncNeedsPull))
         setSaved(false)
         setError('')
       }).catch(() => {
         if (!active || generation !== accessGeneration.current) return
+        setNeedsPull(true)
         setMinistries([])
         setRoster([])
         setMinistryId('')
         setDraft(null)
-        setPending(0)
         setSaved(false)
         setError('Reconnect and authenticate this profile before reopening its assigned roster.')
       })
@@ -250,8 +265,9 @@ export function AttendanceScreen({
     <section className="attendance-screen" aria-labelledby="attendance-heading">
       <header className="attendance-heading">
         <div><p className="eyebrow">Offline-ready attendance</p><h1 id="attendance-heading">Take attendance</h1></div>
-        <ConnectionState pending={pending} />
+        <ConnectionState pending={pending} needsPull={needsPull} />
       </header>
+      {needsPull && <p role="status">Server updates have not finished downloading. Uploaded changes may already be accepted. Sign in as this teacher and refresh authorization to finish synchronization.</p>}
       <div className="attendance-layout">
         <aside className="attendance-session-panel" aria-label="Attendance session">
           <label htmlFor="attendance-ministry">Ministry</label>

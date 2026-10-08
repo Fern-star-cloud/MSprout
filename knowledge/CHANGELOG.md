@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-08 — Accepted upload / unauthenticated pull correction
+
+Fix sync GET requests inheriting document no-referrer and missing Sanctum first-party session recognition. Preserve origin-only privacy, cache/redirect safeguards and all authorization/encryption policies. Persist incomplete pull state, distinguish it from empty uploads and keep failure counts truthful. Human three accepted events remain untouched; real cookie/browser isolated regressions prove the defect without logout. Full frontend222/backend265+1,871, Chrome8 and required gates pass; no live retry or full human sync claim. [Verification and preservation-safe steps](../docs/qa/sync-pull-authentication-verification.md).
+
 ## 2026-10-08 — Online session recovery characterization
 
 Reproduce online profile-selection logout after recent sign-in and subsequent Review 401; preserve the approved shared-device safeguard. Add real cookie/CSRF/expiry tests and desktop/mobile recovery tests proving three encrypted pending events remain with zero sync requests. No production policy change. Full frontend 220/backend 264+1,847 and required gates pass; generic account landing and hidden reauthentication guidance documented for later UX. Human Profile 1/queued work remain untouched. [Evidence and safe retest](../docs/qa/online-profile-session-recovery-verification.md).
