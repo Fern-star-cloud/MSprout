@@ -1,5 +1,9 @@
 # Architecture
 
+## Profile-only synchronization recovery — 2026-10-08
+
+Profiles recovery directly awaits the existing singleton SyncClient after PIN unlock and trusted same-actor/device/church bootstrap, without Attendance navigation or a synthetic online event. An opt-in bootstrap cursor-preservation mode retains the last applied local page during recovery; normal initial bootstrap stays unchanged. Per-client/profile in-flight calls coalesce, original-unlock/encrypted-lease guards cover transport/retries/page transactions/completion, and has_more pages must numerically advance. Empty outboxes skip push; the durable incomplete-pull flag clears only after all pages. Existing encryption, quarantine, server authorization/RLS/MFA/CSRF/idempotency and online profile-switch logout remain intact. [Evidence and limits](../docs/qa/profile-sync-recovery-verification.md).
+
 ## Existing church session at JSON login — 2026-10-08
 
 Fortify's guest:web boundary remains strict. The inherited guest middleware returns409/already_authenticated for JSON POST /login with an existing church session instead of the framework root redirect; it does not validate submitted credentials, switch actor, reauthenticate or grant workspace/MFA authority. Other routes/guards and HTML retain inherited behavior. Frontend redirect rejection remains enforced; an allowlisted code/status maps to fixed explicit session-check/sign-out guidance, while unknown online failures no longer assert offline state. Fresh login, CSRF, MFA, session rotation, tenant gates and shared-device profile logout remain unchanged. [Proof and policy preservation](../docs/qa/existing-login-session-verification.md).

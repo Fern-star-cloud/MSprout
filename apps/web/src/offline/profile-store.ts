@@ -192,7 +192,7 @@ export class LocalProfileStore {
     }
   }
 
-  async saveBootstrap(profileId: string, bootstrap: OfflineBootstrap): Promise<void> {
+  async saveBootstrap(profileId: string, bootstrap: OfflineBootstrap, options: { preserveCursor?: boolean } = {}): Promise<void> {
     const active = this.active
     const profile = await this.db.profiles.get(profileId)
     this.assertActive(active)
@@ -262,7 +262,10 @@ export class LocalProfileStore {
         if (revokedEventIds.length > 0) {
           await this.db.outboxEvents.bulkDelete(revokedEventIds.map(id => [profileId, id]))
         }
-        await this.db.serverCursors.put({ profileId, cursor: bootstrap.server_cursor, updatedAt: now })
+        // Recovery must download from the last locally applied page. Bootstrap's
+        // newest roster cursor does not prove attendance projections were applied.
+        const cursor = options.preserveCursor ? await this.db.serverCursors.get(profileId) : undefined
+        await this.db.serverCursors.put({ profileId, cursor: cursor?.cursor ?? bootstrap.server_cursor, updatedAt: now })
         await this.db.profiles.update(profileId, {
           churchId: bootstrap.lease.church_id,
           leaseExpiresAt: bootstrap.lease.expires_at,
@@ -304,6 +307,19 @@ export class LocalProfileStore {
 
   async readEncryptedAuthorization<T = unknown>(profileId: string): Promise<T> {
     return this.readLeasedBlob<T>(profileId, 'authorization')
+  }
+
+  captureSyncAuthorization(profileId: string): { assertCurrent: () => Promise<void>; assertUnlocked: () => void } {
+    const active = this.active
+    const key = this.keyFor(profileId)
+    return {
+      assertUnlocked: () => { this.assertActive(active) },
+      assertCurrent: async () => {
+        this.assertActive(active)
+        await this.assertCurrentAuthorization(profileId, key)
+        this.assertActive(active)
+      },
+    }
   }
 
   private async readLeasedBlob<T>(profileId: string, purpose: string): Promise<T> {

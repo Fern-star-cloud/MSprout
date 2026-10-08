@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-08 — Attendance-free synchronization recovery
+
+Add a discoverable Profiles recovery action that refreshes existing authorization and awaits complete synchronization without creating attendance. Preserve incomplete-download cursor, skip empty push, coalesce safe retries and enforce original-unlock/lease guards. Final focused56/backend15, full frontend235/backend268, Chrome8 and required/security gates pass. Human Profile1/storage/PIN/three accepted events and fixtures remain untouched; live pull verification is NOT RUN. [Review and exact human steps](../docs/qa/profile-sync-recovery-verification.md).
+
 ## 2026-10-08 — Existing login session response correction
 
 Replace the authenticated JSON church-login root redirect with409/already_authenticated and fixed session-check guidance; keep identity switching explicit and redirects rejected. Classify unknown online failures neutrally, synchronize the API contract/client and preserve all security/offline policies. Isolated cookie/browser proof, full frontend224/backend268+1903, Chrome10 and required/security gates pass; human data and accepted attendance remain untouched. [Verification and exact safe steps](../docs/qa/existing-login-session-verification.md).

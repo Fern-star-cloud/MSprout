@@ -64,6 +64,65 @@ describe('profile synchronization client', () => {
 
   afterEach(async () => { await db.delete() })
 
+  it('coalesces recovery and reconnect, resumes interrupted pagination and never reuploads acknowledged events', async () => {
+    let fail = true
+    const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      expect(init?.credentials).toBe('include')
+      expect(new Headers(init?.headers).get('X-Church-Id')).toBe(churchId)
+      if (url === '/api/sync/push') return Response.json({ results: eventIds.map((id, index) => ({ client_event_id: id, status: 'accepted', version: index + 1 })) })
+      expect(new Headers(init?.headers).get('X-Device-Id')).toBe(deviceId)
+      if (url.includes('cursor=0&')) return Response.json({ changes: [], page: { next_cursor: '4', has_more: true }, lease: lease() })
+      if (fail) throw new TypeError('interrupted download')
+      return Response.json({ changes: [], page: { next_cursor: '7', has_more: false }, lease: lease() })
+    })
+    const client = new SyncClient(db, codec, { fetcher, maxAttempts: 1 })
+    const attempts = await Promise.allSettled([client.syncProfile(profileId), client.syncProfile(profileId)])
+    expect(attempts.every(attempt => attempt.status === 'rejected')).toBe(true)
+    expect(fetcher.mock.calls.map(call => String(call[0]))).toEqual(['/api/sync/push', '/api/sync/pull?cursor=0&limit=100', '/api/sync/pull?cursor=4&limit=100'])
+    expect((await db.profiles.get(profileId))?.syncNeedsPull).toBe(true)
+    expect((await db.serverCursors.get(profileId))?.cursor).toBe('4')
+    expect(await db.outboxEvents.count()).toBe(0)
+    fail = false
+    fetcher.mockClear()
+    await client.syncProfile(profileId)
+    await client.syncProfile(profileId)
+    expect(fetcher.mock.calls.map(call => String(call[0]))).toEqual(['/api/sync/pull?cursor=4&limit=100', '/api/sync/pull?cursor=7&limit=100'])
+    expect((await db.profiles.get(profileId))?.syncNeedsPull).toBe(false)
+    expect(await db.attendanceDrafts.count()).toBe(0)
+  })
+
+  it.each(['0', '00'])('rejects nonadvancing pagination cursor %s instead of looping or claiming success', async (cursor) => {
+    await db.outboxEvents.clear()
+    const fetcher = vi.fn(async () => Response.json({ changes: [], page: { next_cursor: cursor, has_more: true }, lease: lease() }))
+    await expect(new SyncClient(db, codec, { fetcher }).syncProfile(profileId)).rejects.toThrow('advance')
+    expect(fetcher).toHaveBeenCalledOnce()
+    expect((await db.profiles.get(profileId))?.syncNeedsPull).toBe(true)
+  })
+
+  it('does not send a pull with an empty outbox when its captured authorization has expired', async () => {
+    await db.outboxEvents.clear()
+    const fetcher = vi.fn()
+    const access = { ...codec, captureSyncAuthorization: () => ({
+      assertUnlocked: () => {}, assertCurrent: async () => { throw new Error('The offline authorization lease has expired.') },
+    }) }
+    await expect(new SyncClient(db, access, { fetcher }).syncProfile(profileId)).rejects.toThrow('expired')
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+
+  it('does not send another page or clear incomplete state after locking during a pull', async () => {
+    await db.outboxEvents.clear()
+    let unlocked = true
+    const fetcher = vi.fn(async () => {
+      unlocked = false
+      return Response.json({ changes: [], page: { next_cursor: '4', has_more: true }, lease: lease() })
+    })
+    await expect(new SyncClient(db, { ...codec, isUnlocked: () => unlocked }, { fetcher }).syncProfile(profileId)).rejects.toThrow('locked')
+    expect(fetcher).toHaveBeenCalledOnce()
+    expect((await db.serverCursors.get(profileId))?.cursor).toBe('0')
+    expect((await db.profiles.get(profileId))?.syncNeedsPull).toBe(true)
+  })
+
   it('retains incomplete pull state after accepted uploads and a pull authentication denial', async () => {
     const requests: string[] = []
     const fetcher = vi.fn(async (input: RequestInfo | URL) => {

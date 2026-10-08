@@ -48,6 +48,35 @@ describe('isolated local profiles', () => {
     vi.useRealTimers()
   })
 
+  it('refreshes recovery authorization without skipping unapplied downloads or changing accepted local work', async () => {
+    const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
+    await store.unlockProfile(profile.id, '184629')
+    const bootstrap = { actor: { id: '11' }, ministries: [], roster: [], server_cursor: '1',
+      lease: lease(profile.id, '11', profile.deviceId, '2026-10-12T00:00:00Z') }
+    await store.saveBootstrap(profile.id, bootstrap)
+    await db.profiles.update(profile.id, { syncNeedsPull: true, requiresReauthentication: true })
+    await store.saveBootstrap(profile.id, { ...bootstrap, server_cursor: '30' }, { preserveCursor: true })
+    expect((await db.serverCursors.get(profile.id))?.cursor).toBe('1')
+    expect((await db.profiles.get(profile.id))?.syncNeedsPull).toBe(true)
+    expect((await db.profiles.get(profile.id))?.requiresReauthentication).toBe(false)
+    expect(await db.attendanceDrafts.count()).toBe(0)
+    expect(await db.outboxEvents.count()).toBe(0)
+  })
+
+  it('binds a synchronization authorization guard to the original unlock instance', async () => {
+    const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
+    await store.unlockProfile(profile.id, '184629')
+    await store.saveBootstrap(profile.id, { actor: { id: '11' }, ministries: [], roster: [], server_cursor: '0',
+      lease: lease(profile.id, '11', profile.deviceId, '2026-10-12T00:00:00Z') })
+    const guard = store.captureSyncAuthorization(profile.id)
+    await guard.assertCurrent()
+    store.lockProfile(profile.id)
+    await store.unlockProfile(profile.id, '184629')
+    expect(() => guard.assertUnlocked()).toThrow('locked')
+    await expect(guard.assertCurrent()).rejects.toThrow('locked')
+    await store.captureSyncAuthorization(profile.id).assertCurrent()
+  })
+
   it('clears the raw key from memory when a profile locks', async () => {
     const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
     await store.unlockProfile(profile.id, '184629')

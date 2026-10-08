@@ -7,6 +7,7 @@ import { ProfileOutbox, type OutboxCodec, type SyncEventResult } from './outbox'
 
 export interface SyncProfileAccess extends OutboxCodec {
   isUnlocked(profileId: string): boolean
+  captureSyncAuthorization?: (profileId: string) => { assertCurrent: () => Promise<void>; assertUnlocked: () => void }
   authorizationRenewed?: (profileId: string) => Promise<void>
 }
 
@@ -47,6 +48,7 @@ interface ClientOptions {
 
 const defaultAccess: SyncProfileAccess = {
   isUnlocked: (profileId) => profileStore.isUnlocked(profileId),
+  captureSyncAuthorization: (profileId) => profileStore.captureSyncAuthorization(profileId),
   authorizationRenewed: async (profileId) => { await profileStore.readEncryptedAuthorization(profileId) },
   encrypt: (profileId, purpose, value) => profileStore.encryptLocalPayload(profileId, purpose, value),
   decrypt: (profileId, purpose, envelope) => profileStore.decryptLocalPayload(profileId, purpose, envelope),
@@ -66,6 +68,7 @@ export class SyncClient {
   private readonly now: () => Date
   private readonly maxAttempts: number
   private readonly outbox: ProfileOutbox
+  private readonly inFlight = new Map<string, Promise<SyncSummary>>()
 
   constructor(
     db: OfflineDatabase = offlineDatabase,
@@ -83,11 +86,29 @@ export class SyncClient {
     this.outbox = new ProfileOutbox(db, access)
   }
 
-  async syncProfile(profileId: string): Promise<SyncSummary> {
+  syncProfile(profileId: string): Promise<SyncSummary> {
+    const existing = this.inFlight.get(profileId)
+    if (existing) return existing
+    const running = this.runSyncProfile(profileId).finally(() => { this.inFlight.delete(profileId) })
+    this.inFlight.set(profileId, running)
+    return running
+  }
+
+  private async runSyncProfile(profileId: string): Promise<SyncSummary> {
     if (!this.access.isUnlocked(profileId)) throw new Error('The selected profile must be unlocked before synchronization.')
+    const captured = this.access.captureSyncAuthorization?.(profileId)
+    const assertUnlocked = () => {
+      if (!this.access.isUnlocked(profileId)) throw new Error('This profile is locked.')
+      captured?.assertUnlocked()
+    }
+    const assertAccess = async () => {
+      assertUnlocked()
+      await captured?.assertCurrent()
+    }
     const profile = await this.db.profiles.get(profileId)
     if (!profile?.churchId) throw new Error('The selected profile is not ready for synchronization.')
     if (profile.requiresReauthentication) throw new Error('Authenticate online as this profile before synchronizing.')
+    await assertAccess()
 
     // Upload acknowledgement does not complete the download/lease-renewal phase.
     // Persist before sending so interruption cannot make an empty outbox imply completion.
@@ -105,7 +126,7 @@ export class SyncClient {
           batch_id: this.uuid(),
           events: chunk.map(event => this.pushProjection(event)),
         }),
-      })
+      }, assertAccess)
       if (!Array.isArray(response.results) || response.results.length !== chunk.length) {
         throw new Error('The synchronization acknowledgement is incomplete.')
       }
@@ -127,15 +148,20 @@ export class SyncClient {
       const response = await this.request<PullResponse>(`/api/sync/pull?cursor=${encodeURIComponent(cursor)}&limit=100`, profile, {
         method: 'GET',
         headers: { 'X-Device-Id': profile.deviceId },
-      })
+      }, assertAccess)
       this.validatePull(response, cursor)
-      await this.applyPull(profile, response)
+      await this.applyPull(profile, response, assertAccess, assertUnlocked)
       summary.pulled += response.changes.length
       cursor = response.page.next_cursor
       hasMore = response.page.has_more
     } while (hasMore)
     summary.nextCursor = cursor
-    await this.db.profiles.update(profileId, { syncNeedsPull: false })
+    await assertAccess()
+    await this.db.transaction('rw', this.db.profiles, async () => {
+      assertUnlocked()
+      await this.db.profiles.update(profileId, { syncNeedsPull: false })
+      assertUnlocked()
+    })
 
     return summary
   }
@@ -151,11 +177,13 @@ export class SyncClient {
     }
   }
 
-  private async request<T>(url: string, profile: ProfileRecord, init: RequestInit): Promise<T> {
+  private async request<T>(url: string, profile: ProfileRecord, init: RequestInit, assertAccess: () => Promise<void>): Promise<T> {
+    await assertAccess()
     const csrfToken = init.method === 'POST' ? await this.csrfToken() : null
     let lastError: unknown
     for (let attempt = 0; attempt < this.maxAttempts; attempt += 1) {
       try {
+        await assertAccess()
         const response = await this.fetcher(url, {
           ...init,
           credentials: 'include',
@@ -169,6 +197,7 @@ export class SyncClient {
             ...init.headers,
           },
         })
+        await assertAccess()
         if (response.status === 401 || response.status === 403) {
           await this.db.transaction('rw', this.db.profiles, this.db.encryptedBlobs, async () => {
             await this.db.profiles.update(profile.id, { requiresReauthentication: true })
@@ -224,9 +253,13 @@ export class SyncClient {
       sequence = BigInt(change.sequence)
     }
     if (sequence > BigInt(response.page.next_cursor)) throw new Error('The synchronization cursor precedes a returned change.')
+    if (response.page.has_more && BigInt(response.page.next_cursor) === BigInt(previousCursor)) {
+      throw new Error('The synchronization cursor must advance when more pages remain.')
+    }
   }
 
-  private async applyPull(profile: ProfileRecord, response: PullResponse): Promise<void> {
+  private async applyPull(profile: ProfileRecord, response: PullResponse, assertAccess: () => Promise<void>, assertUnlocked: () => void): Promise<void> {
+    await assertAccess()
     assertLeaseMatchesProfile(profile, response.lease)
     const now = this.now().toISOString()
     const draftPuts: Array<{ profileId: string; id: string; encrypted: EncryptedEnvelope; updatedAt: string }> = []
@@ -306,7 +339,11 @@ export class SyncClient {
     const ministriesPut = ministriesChanged && ministryValues !== null
       ? { profileId: profile.id, key: 'ministries', encrypted: await this.access.encrypt(profile.id, 'ministries', ministryValues), updatedAt: now }
       : null
+    await assertAccess()
     await this.db.transaction('rw', [this.db.profiles, this.db.encryptedBlobs, this.db.attendanceDrafts, this.db.outboxEvents, this.db.conflicts, this.db.serverCursors], async () => {
+      // Crypto/lease checks completed before the transaction; check the key remains
+      // present without introducing crypto waits into the IndexedDB transaction.
+      assertUnlocked()
       if (draftPuts.length > 0) await this.db.attendanceDrafts.bulkPut(draftPuts)
       if (draftDeletes.length > 0) await this.db.attendanceDrafts.bulkDelete(draftDeletes)
       if (outboxDeletes.length > 0) await this.db.outboxEvents.bulkDelete(outboxDeletes)
@@ -320,6 +357,7 @@ export class SyncClient {
         leaseSignature: response.lease.signature,
         requiresReauthentication: false,
       })
+      assertUnlocked()
     })
     await this.access.authorizationRenewed?.(profile.id)
   }

@@ -69,7 +69,7 @@ test('offline attendance survives browser closure and converges exactly once aft
   await context.setOffline(false)
   await reopened.goto(`/profiles?church=${churchId}`)
   await reopened.getByLabel('Local PIN').fill('184629')
-  await reopened.getByRole('button', { name: 'Refresh authorization after sign-in' }).click()
+  await reopened.getByRole('button', { name: 'Refresh authorization and sync' }).click()
   await expect.poll(() => outboxCount(reopened), { timeout: 10_000 }).toBe(0)
   expect(pushAttempts).toBe(3)
   expect(received.size).toBe(12)
