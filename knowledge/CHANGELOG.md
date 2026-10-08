@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-08 — Online session recovery characterization
+
+Reproduce online profile-selection logout after recent sign-in and subsequent Review 401; preserve the approved shared-device safeguard. Add real cookie/CSRF/expiry tests and desktop/mobile recovery tests proving three encrypted pending events remain with zero sync requests. No production policy change. Full frontend 220/backend 264+1,847 and required gates pass; generic account landing and hidden reauthentication guidance documented for later UX. Human Profile 1/queued work remain untouched. [Evidence and safe retest](../docs/qa/online-profile-session-recovery-verification.md).
+
 ## 2026-10-08 — Offline profile lifecycle and background-lock verification
 
 Human controlled retest confirms ten seconds of foreground attendance availability and a `background` lock on tab switching; the established immediate key-purge policy is preserved. Cancel obsolete PIN/sign-out completions, bind authorization/timers/cryptographic results to their unlock instance, rearm committed lease renewals, and mask Local PIN. Profile 1 and queued work remain intact. Focused 55, frontend 220, backend 261/1,811, Chrome 16 and required gates pass. Disruptive recovery is documented for later UX/onboarding work. [Evidence, security and recovery](../docs/qa/offline-profile-lock-verification.md).

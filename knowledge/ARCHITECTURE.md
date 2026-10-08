@@ -1,5 +1,9 @@
 # Architecture
 
+## Local unlock and web-session recovery — 2026-10-08
+
+Online Use profile selection clears the web session before unlocking an inactive local profile, even when reselecting the same stored profile after navigation/background key purge. This is established Task 11 policy; already-active same-profile selection is a no-op. Attendance can remain available through encrypted lease-bound authorization while Review requires fresh web-session discovery/scoped account preflight. Re-sign-in must follow online selection for workspace operations. Sign-in does not trigger reconnect synchronization. Current auth success opens generic account management without storing a return destination; broader recovery/navigation improvements remain deferred. [Cookie/browser characterization and policy evidence](../docs/qa/online-profile-session-recovery-verification.md).
+
 ## Shared authenticated church workspace — 2026-10-08
 
 Review, Reports, Birthdays, Ministries, Students and Import share one authenticated route boundary. `/auth/session` discovers only the verified web actor's active memberships in active churches through a narrow SQL capability; scoped `/api/me` remains the operational authorization and Owner current-session MFA preflight. Single membership selects automatically; multiple memberships require explicit selection. URL hints are revalidated, loaders wait for context, and authentication/denial/focus/connectivity changes invalidate or recheck it.

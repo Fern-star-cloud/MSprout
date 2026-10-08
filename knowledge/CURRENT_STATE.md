@@ -1,5 +1,11 @@
 # Current State
 
+## Online session after encrypted profile selection — 2026-10-08
+
+Focused investigation from synchronized `feat/mvp-foundation` / `3b53e7e` is GREEN. The reported sign-in → online Use profile 1 → Attendance → Review order reproduces an automatic CSRF-protected logout followed by session 401. Task 11 requires this shared-device safeguard; it is preserved. Local encrypted Attendance access is independent of the web session. Re-sign-in after selection opens Review without consuming pending work. The historical browser logout was not captured; no live cookie/session/profile payload was inspected. [Verified mechanism, limits, deferred UX and exact safe retest](../docs/qa/online-profile-session-recovery-verification.md).
+
+Added cookie-backed authentication characterization and desktop/mobile browser preservation coverage; no production or security-policy change. Focused backend 24/158, Chrome 2, full frontend 220/37 and backend 264/1,847 plus required gates pass. Final review closed. Existing Profile 1 and three pending human attendance changes were not touched or synchronized; recreation/PIN reset is unnecessary. Generic account destination and obscured reauthentication guidance are deferred UX findings. Original QA/environment bodies remain outside this task's commit. This receipt precedes one authorized test/documentation commit/push; verify its SHA and tracking state through Git. Tasks 1–18/next work remain untouched; stop after finalization.
+
 ## Offline profile lifecycle and confirmed background lock — 2026-10-08
 
 GREEN validation receipt prepared from synchronized `feat/mvp-foundation` / `d45fe8e`, before authorized finalization. HUMAN_MANUAL controlled retest: existing Profile 1 remained usable foreground for approximately ten seconds; switching tabs produced the exact `background` lock reason. Immediate hidden-page key purge is established Task 11/shared-device policy and remains enforced. A three-second foreground timeout was not reproduced; the historical 18:22 guest trigger remains unverified. No profile recreation, refresh, guest creation, synchronization or storage clearing occurred in the human observation. [Findings, expected behavior, deferred UX and recovery](../docs/qa/offline-profile-lock-verification.md).
