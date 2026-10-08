@@ -1,5 +1,11 @@
 # Current State
 
+## Workspace activation correction — 2026-10-08
+
+Maintenance from synchronized `feat/mvp-foundation` / `f4fb230` is GREEN after focused 66 tests, final frontend 188/35, serial isolated backend 257/1,764, eight intercepted desktop/mobile Chrome checks and required validation/security gates. The boundary retains unchanged authorized modules through coalesced background activation checks; explicit invalidation and failed preflight clear protected content, and actor/church/role/ministry-scope changes discard old module state. Import separates loading, authorized, forbidden and error. [Root causes, security, preservation, review and validation](../docs/qa/workspace-activation-verification.md).
+
+HUMAN_MANUAL confirms all six raw-ID navigation flows at `f4fb230`; the two new observations are fixed with automated proof. A human retest of this correction is NOT RUN. No live migration/reset/reseed, synthetic application record, unrelated UI or next task. Existing QA/rollout/GREEN evidence and environment edits remain outside this correction's commit. This receipt precedes the authorized single commit/push; resolve final Git SHA and synchronization through `fix: preserve workspace during background authorization checks`, then stop. The earlier worker/scheduler one-hour window remains an operational limit, not an indefinitely renewed readiness claim.
+
 ## Current maintenance checkpoint — shared workspace, 2026-10-08
 
 The shared workspace-context fix for Review, Reports, Birthdays, Ministries, Students and Import is implemented and validated. This receipt precedes the single reviewed commit/push; resolve final Git evidence through subject `fix: inherit authenticated church workspace across modules`. `/auth/session` discovers verified active memberships; the shared boundary validates selection and scoped `/api/me` before data loading, preserves Owner/Teacher authorization, and invalidates stale identity/membership context. Multi-membership selection is explicit. Attendance/sync and encrypted offline preservation remain intact. [Verified implementation, gates, review and rollout limits](../docs/qa/shared-workspace-context-verification.md).

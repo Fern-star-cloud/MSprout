@@ -4,6 +4,8 @@
 
 Review, Reports, Birthdays, Ministries, Students and Import share one authenticated route boundary. `/auth/session` discovers only the verified web actor's active memberships in active churches through a narrow SQL capability; scoped `/api/me` remains the operational authorization and Owner current-session MFA preflight. Single membership selects automatically; multiple memberships require explicit selection. URL hints are revalidated, loaders wait for context, and authentication/denial/focus/connectivity changes invalidate or recheck it.
 
+Visibility/focus activation coalesces in-flight discovery/preflight and keeps a validated module mounted during background checks. Its identity includes actor, church, role and canonical ministry assignments, so changed authorization discards previous module state. Explicit authentication/denial/connectivity invalidation clears content immediately; failed background checks fail closed and stale responses cannot restore it. Import represents unresolved authorization as loading, separate from authorized, forbidden and sanitized error. [Activation verification](../docs/qa/workspace-activation-verification.md).
+
 Forced tenant RLS and role/ministry enforcement remain server-owned. Platform identity stays separate. Attendance/sync retain their existing offline flow; offline Birthdays requires an unlocked encrypted profile authorization and valid lease. See [implementation and verification](../docs/qa/shared-workspace-context-verification.md), including the additive migration and live rollout prerequisite.
 
 ## Topology

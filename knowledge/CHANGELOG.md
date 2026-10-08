@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-08 — Workspace activation and Import initialization correction
+
+Coalesced tab activation validates session/membership/MFA in the background without blanking or remounting an unchanged authorized module. Actor, church, role or ministry-assignment changes invalidate its retained state; explicit denial/authentication changes still clear content immediately. Import separates unresolved authorization from forbidden/error. Focused 66, final frontend 188, backend 257/1,764 and eight intercepted browser checks pass with required gates and reviewed security coverage. Human observations, existing data and unrelated QA remain preserved; no subsequent task. [Verification and finalization subject](../docs/qa/workspace-activation-verification.md).
+
 ## 2026-10-08 — Shared authenticated workspace maintenance fix
 
 Review, Reports, Birthdays, Ministries, Students and Import inherit a server-validated church workspace across navigation and refresh, with explicit multi-membership selection and fail-closed session/membership handling. Authenticated discovery, scoped preflight, the API contract and regression/browser proof are synchronized. Historical QA work was preserved through a verified three-commit fast-forward. Tasks 1–18 and unrelated UI findings remain untouched. [Precommit validation receipt](../docs/qa/shared-workspace-context-verification.md); live migration/rollout is NOT RUN.

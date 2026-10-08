@@ -1,5 +1,11 @@
 # MSprout System Handoff
 
+## Workspace activation correction handoff — 2026-10-08
+
+The human six-module smoke test at `f4fb230` resolved the original raw workspace-ID observation. Its tab-return loading and transient Import denial findings now have a scoped GREEN correction: validated modules stay mounted through coalesced background authorization checks; denial/authentication/connectivity changes fail closed, and changed actor/church/role/ministry assignment removes old module state. Import distinguishes loading/authorized/forbidden/error without relaxing Owner/MFA requirements. [Verification and finalization subject](workspace-activation-verification.md).
+
+Focused66/frontend188/backend257+1,764/eight intercepted desktop/mobile browser checks and required gates pass; no live data or synthetic fixture operation. Human retest of this correction remains NOT RUN. Reload the updated frontend at `http://127.0.0.1:5173/account/students` in the existing authorized session for a risk-based retest. The prior local worker/scheduler window ends around13:05Asia/Taipei; no new operational-readiness extension is claimed. Existing QA evidence, pending decisions and unrelated edits remain preserved; stop after the authorized feature commit/push, without another task.
+
 ## Shared workspace maintenance fix — 2026-10-08
 
 Review, Reports, Birthdays, Ministries, Students and Import now share authenticated workspace discovery and scoped authorization preflight, automatic single-membership context, explicit multi-membership selection, and fail-closed invalidation across navigation/refresh. [The verification receipt](shared-workspace-context-verification.md) records passing regression/browser/security gates, reconciliation recovery, source review and rollout ordering. Live migration/rollout and a new manual retest are NOT RUN; historical manual evidence and counts retain their status.

@@ -7,7 +7,7 @@ import { ChurchWorkspaceContext, type ChurchWorkspace } from './workspace-contex
 
 type State = { kind: 'loading' } | { kind: 'error'; message: string; signIn?: boolean; mfa?: boolean }
   | { kind: 'select'; workspaces: ChurchWorkspace[] }
-  | { kind: 'ready'; workspace: ChurchWorkspace; workspaces: ChurchWorkspace[]; actorId: number }
+  | { kind: 'ready'; workspace: ChurchWorkspace; workspaces: ChurchWorkspace[]; actorId: number; assignmentScope: string }
 
 function failureState(error: unknown): State {
   const status = typeof error === 'object' && error !== null && 'status' in error ? error.status : 0
@@ -20,12 +20,14 @@ export function ChurchWorkspaceBoundary({ children, allowOffline = false }: { ch
   const [state, setState] = useState<State>({ kind: 'loading' })
   const [revision, setRevision] = useState(0)
   const generation = useRef(0)
+  const pending = useRef(false)
   const selection = useRef(new URLSearchParams(location.search).get('church'))
   const currentChurch = state.kind === 'ready' ? state.workspace.church_id : null
 
   useEffect(() => {
     let active = true
     const run = ++generation.current
+    pending.current = true
     const apply = (value: State) => { if (active && run === generation.current) setState(value) }
     void (async () => {
       try {
@@ -36,7 +38,7 @@ export function ChurchWorkspaceBoundary({ children, allowOffline = false }: { ch
           // This decrypting read enforces the encrypted actor/church/device binding and lease.
           const authorization = await profileStore.readEncryptedAuthorization<Pick<OfflineBootstrap, 'actor' | 'lease'>>(profile.id)
           if (authorization.lease.church_id !== profile.churchId || (selection.current && selection.current !== profile.churchId)) throw new Error('Profile workspace mismatch')
-          apply({ kind: 'ready', actorId: Number(authorization.actor.id), workspace: { church_id: profile.churchId, name: 'Church workspace', role: 'teacher' }, workspaces: [] })
+          apply({ kind: 'ready', actorId: Number(authorization.actor.id), assignmentScope: profile.id, workspace: { church_id: profile.churchId, name: 'Church workspace', role: 'teacher' }, workspaces: [] })
           return
         }
         const session = await authRequest<components['schemas']['AccountSession']>('/auth/session')
@@ -58,39 +60,44 @@ export function ChurchWorkspaceBoundary({ children, allowOffline = false }: { ch
         if (workspace.role === 'owner' && !account.active_session.mfa_confirmed) {
           apply(failureState({ status: 403 })); return
         }
-        apply({ kind: 'ready', actorId: session.id, workspace, workspaces })
+        const assignmentScope = [...new Set(account.assignments?.ministry_ids ?? [])].sort().join(',')
+        apply({ kind: 'ready', actorId: session.id, workspace, workspaces, assignmentScope })
       } catch (error) { apply(failureState(error)) }
+      finally { if (run === generation.current) pending.current = false }
     })()
     return () => { active = false }
   }, [allowOffline, revision])
 
   useEffect(() => {
-    const refresh = () => {
+    const refresh = (background: boolean) => {
+      if (background && pending.current) return
       generation.current++
-      setState({ kind: 'loading' })
+      pending.current = true
+      // Retain only a previously validated view while activation checks run.
+      // Explicit auth/connectivity changes still remove it immediately.
+      if (!background) setState({ kind: 'loading' })
       setRevision(value => value + 1)
     }
-    const visible = () => {
-      if (document.visibilityState === 'visible') refresh()
-      else { generation.current++; setState({ kind: 'loading' }) }
-    }
+    const visible = () => { if (document.visibilityState === 'visible') refresh(true) }
+    const connectivity = () => refresh(false)
     const invalidate = (event: Event) => {
       const detail = (event as CustomEvent<{ status: number; churchId?: string }>).detail
       if (detail?.status === 403 && detail.churchId && detail.churchId !== currentChurch) return
       generation.current++
-      if (detail?.status === 0) refresh()
+      pending.current = false
+      if (detail?.status === 0) refresh(false)
       else setState(failureState(detail))
     }
     window.addEventListener('church-workspace-invalidated', invalidate)
-    window.addEventListener('focus', refresh)
-    window.addEventListener('online', refresh)
-    window.addEventListener('offline', refresh)
+    window.addEventListener('focus', visible)
+    window.addEventListener('online', connectivity)
+    window.addEventListener('offline', connectivity)
     document.addEventListener('visibilitychange', visible)
     return () => {
       window.removeEventListener('church-workspace-invalidated', invalidate)
-      window.removeEventListener('focus', refresh)
-      window.removeEventListener('online', refresh)
-      window.removeEventListener('offline', refresh)
+      window.removeEventListener('focus', visible)
+      window.removeEventListener('online', connectivity)
+      window.removeEventListener('offline', connectivity)
       document.removeEventListener('visibilitychange', visible)
     }
   }, [currentChurch])
@@ -122,6 +129,6 @@ export function ChurchWorkspaceBoundary({ children, allowOffline = false }: { ch
   if (state.kind === 'select') return <section>{selector}</section>
   return <ChurchWorkspaceContext.Provider value={state.workspace}>
     {selector}
-    <div key={`${state.actorId}:${state.workspace.church_id}:${revision}`}>{children}</div>
+    <div key={`${state.actorId}:${state.workspace.church_id}:${state.workspace.role}:${state.assignmentScope}`}>{children}</div>
   </ChurchWorkspaceContext.Provider>
 }

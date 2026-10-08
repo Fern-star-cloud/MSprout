@@ -6,10 +6,16 @@ test.use({ serviceWorkers: 'block' })
 for (const role of ['owner', 'teacher'] as const) {
   test(`${role} navigates all six modules and refreshes without entering workspace IDs`, async ({ page, context }) => {
     const requests: string[] = []
-    await context.route('**/auth/session', route => json(route, {
-      id: 11, email_verified: true, mfa_confirmed: role === 'owner',
-      workspaces: [{ church_id: churchId, name: 'Pilot Church', role }],
-    }))
+    let activations = 0
+    let activationGate: Promise<void> | undefined
+    await context.route('**/auth/session', async route => {
+      activations++
+      await activationGate
+      return json(route, {
+        id: 11, email_verified: true, mfa_confirmed: role === 'owner',
+        workspaces: [{ church_id: churchId, name: 'Pilot Church', role }],
+      })
+    })
     await context.route('**/api/**', async route => {
       const path = new URL(route.request().url()).pathname
       if (path === '/api/health') return json(route, { status: 'ok' })
@@ -30,6 +36,31 @@ for (const role of ['owner', 'teacher'] as const) {
       await (await navigation.isVisible() ? navigation : phone).getByRole('link', { name: label, exact: true }).click()
       await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible()
       await expect(page.getByLabel('Church workspace ID')).toHaveCount(0)
+      if (label === 'Import') {
+        if (role === 'owner') await expect(page.getByLabel('Student spreadsheet')).toBeVisible()
+        else await expect(page.getByText('Student imports are available only to the church Owner with confirmed MFA.')).toBeVisible()
+      }
+      const content = page.getByRole('heading', { name: heading, exact: true })
+      await content.evaluate(element => { element.setAttribute('data-activation-proof', 'retained') })
+      const previousActivations = activations
+      let release!: () => void
+      activationGate = new Promise(resolve => { release = resolve })
+      // Deterministic browser event simulation; live human timing remains separate evidence.
+      await page.evaluate(() => {
+        Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' })
+        document.dispatchEvent(new Event('visibilitychange'))
+        Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' })
+        document.dispatchEvent(new Event('visibilitychange'))
+        window.dispatchEvent(new Event('focus'))
+      })
+      await expect.poll(() => activations).toBe(previousActivations + 1)
+      await expect(content).toHaveAttribute('data-activation-proof', 'retained')
+      await expect(page.getByText('Loading church workspace…')).toHaveCount(0)
+      const scopedResponse = page.waitForResponse(response => new URL(response.url()).pathname === '/api/me')
+      release(); activationGate = undefined
+      await scopedResponse
+      await expect(content).toHaveAttribute('data-activation-proof', 'retained')
+      await page.evaluate(() => { Reflect.deleteProperty(document, 'visibilityState') })
     }
     await page.reload()
     await expect(page.getByRole('heading', { name: 'Import students' })).toBeVisible()

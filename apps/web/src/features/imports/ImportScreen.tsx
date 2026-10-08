@@ -19,7 +19,9 @@ function saveBlob(blob: Blob, name: string) {
 
 export function ImportScreen() {
   const church = useWorkspaceChurchId(new URLSearchParams(location.search).get('church') ?? '')
-  const [owner, setOwner] = useState(false)
+  const [authorization, setAuthorization] = useState<{ church: string; kind: 'loading' | 'authorized' | 'forbidden' | 'error' }>({ church, kind: 'loading' })
+  const authorizationKind = authorization.church === church ? authorization.kind : 'loading'
+  const owner = authorizationKind === 'authorized'
   const [ministries, setMinistries] = useState<Ministry[]>([])
   const [preview, setPreview] = useState<Preview | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -37,9 +39,12 @@ export function ImportScreen() {
       authRequest<{ data: Ministry[] }>('/api/ministries', 'GET', undefined, church),
     ]).then(([me, list]) => {
       if (!active) return
-      setOwner(me.memberships.some(item => item.church_id === church && item.status === 'active' && item.role === 'owner') && me.active_session.mfa_confirmed)
+      const authorized = me.memberships.some(item => item.church_id === church && item.status === 'active' && item.role === 'owner') && me.active_session.mfa_confirmed
+      setAuthorization({ church, kind: authorized ? 'authorized' : 'forbidden' })
       setMinistries(list.data); setError('')
-    }).catch(failure => { if (active) setError(safeAuthMessage(failure)) })
+    }).catch(failure => {
+      if (active) { setAuthorization({ church, kind: 'error' }); setError(safeAuthMessage(failure)) }
+    })
     return () => { active = false }
   }, [church])
 
@@ -114,8 +119,9 @@ export function ImportScreen() {
         <button type="submit" disabled={busy}>{busy ? 'Inspecting…' : 'Preview import'}</button>
       </form>
     </>}
-    {church && !owner && !error && <p role="status">Student imports are available only to the church Owner with confirmed MFA.</p>}
-    {preview && <section aria-labelledby="preview-heading">
+    {church && authorizationKind === 'loading' && <p role="status">Checking import authorization…</p>}
+    {church && authorizationKind === 'forbidden' && <p role="status">Student imports are available only to the church Owner with confirmed MFA.</p>}
+    {owner && preview && <section aria-labelledby="preview-heading">
       <h3 id="preview-heading">Preview</h3>
       <div className="import-counts" aria-label="Import row counts">
         <strong>{preview.counts.valid} valid</strong><strong>{preview.counts.invalid} invalid</strong>

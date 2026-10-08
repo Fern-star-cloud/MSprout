@@ -1,5 +1,11 @@
 # Testing Environment
 
+## Workspace activation validation — 2026-10-08
+
+Focused workspace/Import/auth transport: 66 passed. Final frontend: **188 tests / 35 files**; serial isolated PostgreSQL backend: **257 / 1,764 assertions**. Root aggregate verify passed; the later assignment-scope correction reran the affected frontend suite/build/lint and final security proof, preserving valid backend results. Eight intercepted browser checks pass on desktop and Pixel 7 Chrome emulation, including all six routes for Owners/Teachers with delayed, simulated visibility/focus activation. Human retest is NOT RUN.
+
+Typecheck/lint/build, Pint, strict Composer validation, structure, whitespace, contract check and both dependency audits pass. Unchanged generated-client CRLF drift was verified as newline-only; actual api:check passes under temporary LF normalization and original bytes are restored. Gitleaks history/source zero leaks. OWASP full scan:108 rules/333 targets/zero findings with reviewed unchanged parser/convergence limitations; final direct-boundary scan:76 rules/9 targets/zero findings/no parser or convergence warnings. [Detailed evidence and input preservation](../docs/qa/workspace-activation-verification.md). No development DB operation, host/security reconfiguration or application-data creation; historical GREEN evidence remains below.
+
 ## Shared workspace-context verification — 2026-10-08
 
 Final isolated backend suite: **257 passed / 1,764 assertions**. Focused stabilization: 64 / 423; final workspace/platform-session focused proof: 11 / 240. Frontend: **166 passed / 35 files**; workspace/transport focused rerun: 42. Browser: **15 passed** across desktop, Pixel 7 Chrome emulation and existing offline/profile coverage. Browser API interception is automated UI evidence; live rollout/manual cases are NOT RUN.

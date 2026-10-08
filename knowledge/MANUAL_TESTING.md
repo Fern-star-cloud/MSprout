@@ -1,5 +1,11 @@
 # Manual Testing Knowledge
 
+## Human workspace smoke findings and scoped correction — 2026-10-08
+
+HUMAN_MANUAL confirms Students, Ministries, Import, Review, Reports and Birthdays open without a raw Church workspace ID under the existing authenticated session at `f4fb230`. The same report describes tab-return loading across all six (Students approximately 2–5 seconds) and a transient Import Owner/MFA explanation. Source tracing and focused regression tests confirm hidden-state clearing/revision remounting and unresolved authorization represented as false, respectively. [Correction and automated evidence](../docs/qa/workspace-activation-verification.md).
+
+This correction's live human retest is NOT RUN; intercepted browser/event simulation is automated evidence, not a new manual PASS. Historical case counts, blockers, attribution, fixtures and rollout receipts are preserved. No unrelated UI or next manual phase is included.
+
 ## Shared workspace finding — automated fix evidence, 2026-10-08
 
 The missing church-context finding across Review, Reports, Birthdays, Ministries, Students and Import now has a shared authenticated boundary and [automated regression/security/browser evidence](../docs/qa/shared-workspace-context-verification.md). Single-membership navigation/refresh inherits context; multi-membership users explicitly choose an authorized church; revoked/expired context gates child loaders. Live migration/rollout and a new human manual retest are NOT RUN. Historical manual cases, counts, blockers and attribution remain unchanged.

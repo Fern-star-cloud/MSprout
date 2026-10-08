@@ -68,3 +68,35 @@ it('escapes spreadsheet-executable prefixes in corrected CSV cells', () => {
   expect(escapeSpreadsheetCell('  =cmd')).toBe("'  =cmd")
   expect(escapeSpreadsheetCell('Ari')).toBe('Ari')
 })
+
+it('shows loading rather than forbidden while authorization is unresolved', async () => {
+  let resolve!: (value: never) => void
+  const implementation = vi.mocked(authRequest).getMockImplementation()!
+  vi.mocked(authRequest).mockImplementation((...args) => args[0] === '/api/me'
+    ? new Promise(done => { resolve = done }) : implementation(...args))
+  render(<ImportScreen />)
+  expect(screen.getByText('Checking import authorization…')).toBeTruthy()
+  expect(screen.queryByText('Student imports are available only to the church Owner with confirmed MFA.')).toBeNull()
+  expect(screen.queryByLabelText('Student spreadsheet')).toBeNull()
+  resolve({ memberships: [{ church_id: church, role: 'owner', status: 'active' }], active_session: { mfa_confirmed: true } } as never)
+  await screen.findByLabelText('Student spreadsheet')
+})
+
+it.each([
+  ['teacher', 'active', true], ['owner', 'inactive', true], ['owner', 'active', false],
+])('denies imports for role=%s status=%s MFA=%s', async (role, status, mfa) => {
+  const implementation = vi.mocked(authRequest).getMockImplementation()!
+  vi.mocked(authRequest).mockImplementation((...args) => args[0] === '/api/me'
+    ? Promise.resolve({ memberships: [{ church_id: church, role, status }], active_session: { mfa_confirmed: mfa } } as never) : implementation(...args))
+  render(<ImportScreen />)
+  await screen.findByText('Student imports are available only to the church Owner with confirmed MFA.')
+  expect(screen.queryByLabelText('Student spreadsheet')).toBeNull()
+})
+
+it('distinguishes a failed authorization request from a forbidden result', async () => {
+  vi.mocked(authRequest).mockRejectedValue(new Error('private failure'))
+  render(<ImportScreen />)
+  expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Safe import error.')
+  expect(screen.queryByText('Student imports are available only to the church Owner with confirmed MFA.')).toBeNull()
+  expect(screen.queryByLabelText('Student spreadsheet')).toBeNull()
+})

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { ApiError } from '../api/client'
 import { authRequest } from '../features/auth/transport'
@@ -174,4 +174,104 @@ it('uses only the unlocked encrypted profile for offline birthdays and fails clo
   expect(authorization).toHaveBeenCalledWith('offline-test-profile')
   expect(authRequest).not.toHaveBeenCalled()
   expect(screen.queryByRole('heading', { name: "Today's Birthdays" })).toBeNull()
+})
+
+it.each([
+  ['students', 'Students'], ['ministries', 'Ministries'], ['imports', 'Import students'],
+  ['conflicts', 'Attendance review'], ['reports', 'Attendance reports'], ['birthdays', "Today's Birthdays"],
+])('retains %s and coalesces visibility/focus revalidation without remounting', async (page, heading) => {
+  history.replaceState(null, '', `/account/${page}`)
+  render(<App />)
+  const content = await screen.findByRole('heading', { name: heading })
+  await waitFor(() => expect(vi.mocked(authRequest).mock.calls.some(([path]) => path.startsWith('/api/') && path !== '/api/me')).toBe(true))
+  const childRequests = vi.mocked(authRequest).mock.calls.filter(([path]) => path !== '/auth/session' && path !== '/api/me').length
+  const scopedRequests = vi.mocked(authRequest).mock.calls.filter(([path]) => path === '/api/me').length
+  const implementation = vi.mocked(authRequest).getMockImplementation()!
+  let resolve!: (value: never) => void
+  vi.mocked(authRequest).mockImplementation((...args) => args[0] === '/auth/session'
+    ? new Promise(done => { resolve = done }) : implementation(...args))
+  const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+  fireEvent(document, new Event('visibilitychange'))
+  fireEvent.focus(window)
+  expect(screen.getByRole('heading', { name: heading })).toBe(content)
+  expect(vi.mocked(authRequest).mock.calls.filter(([path]) => path === '/auth/session')).toHaveLength(1)
+  visibility.mockReturnValue('visible')
+  fireEvent(document, new Event('visibilitychange'))
+  fireEvent.focus(window)
+  expect(screen.queryByText('Loading church workspace…')).toBeNull()
+  expect(screen.getByRole('heading', { name: heading })).toBe(content)
+  expect(vi.mocked(authRequest).mock.calls.filter(([path]) => path === '/auth/session')).toHaveLength(2)
+  await act(async () => { resolve({ id: 7, email_verified: true, workspaces } as never) })
+  expect(screen.getByRole('heading', { name: heading })).toBe(content)
+  expect(vi.mocked(authRequest).mock.calls.filter(([path]) => path !== '/auth/session' && path !== '/api/me')).toHaveLength(childRequests)
+  expect(vi.mocked(authRequest).mock.calls.filter(([path]) => path === '/api/me')).toHaveLength(scopedRequests + 1)
+})
+
+it.each(['membership', 'mfa', 'session', 'error'])('removes retained content when background validation finds %s invalid', async failure => {
+  history.replaceState(null, '', '/account/students')
+  render(<App />)
+  await screen.findByRole('button', { name: 'Add student' })
+  const implementation = vi.mocked(authRequest).getMockImplementation()!
+  vi.mocked(authRequest).mockImplementation(async (...args) => {
+    if (args[0] === '/auth/session' && failure === 'membership') return { id: 7, email_verified: true, workspaces: [] } as never
+    if (args[0] === '/auth/session' && (failure === 'session' || failure === 'error')) throw new ApiError('denied', 'private detail', '', failure === 'session' ? 401 : 500)
+    if (args[0] === '/api/me' && failure === 'mfa') return { id: 7, memberships: [{ church_id: church, status: 'active', role }], active_session: { mfa_confirmed: false } } as never
+    return implementation(...args)
+  })
+  fireEvent.focus(window)
+  await screen.findByRole('alert')
+  expect(screen.queryByRole('heading', { name: 'Students' })).toBeNull()
+  expect(document.body.textContent).not.toContain('private detail')
+})
+
+it('remounts on a validated role transition and removes Owner controls', async () => {
+  history.replaceState(null, '', '/account/imports')
+  render(<App />)
+  await screen.findByLabelText('Student spreadsheet')
+  role = 'teacher'; workspaces[0] = { ...workspaces[0], role }
+  fireEvent.focus(window)
+  await screen.findByText('Student imports are available only to the church Owner with confirmed MFA.')
+  expect(screen.queryByLabelText('Student spreadsheet')).toBeNull()
+})
+
+it.each([0, 401, 419, 403])('immediately clears content on invalidation %s and rejects a late background success', async status => {
+  history.replaceState(null, '', '/account/students')
+  render(<App />)
+  await screen.findByRole('heading', { name: 'Students' })
+  let resolve!: (value: never) => void
+  vi.mocked(authRequest).mockImplementation(() => new Promise(done => { resolve ??= done }))
+  fireEvent.focus(window)
+  fireEvent(window, new CustomEvent('church-workspace-invalidated', { detail: { status, churchId: church } }))
+  expect(screen.queryByRole('heading', { name: 'Students' })).toBeNull()
+  await act(async () => { resolve({ id: 7, email_verified: true, workspaces } as never) })
+  expect(screen.queryByRole('heading', { name: 'Students' })).toBeNull()
+})
+
+it('ignores another church denial but immediately gates a connectivity transition', async () => {
+  history.replaceState(null, '', '/account/students')
+  render(<App />)
+  const content = await screen.findByRole('heading', { name: 'Students' })
+  fireEvent(window, new CustomEvent('church-workspace-invalidated', { detail: { status: 403, churchId: other } }))
+  expect(screen.getByRole('heading', { name: 'Students' })).toBe(content)
+  vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+  fireEvent(window, new Event('offline'))
+  expect(screen.queryByRole('heading', { name: 'Students' })).toBeNull()
+  await screen.findByRole('alert')
+})
+
+it('discards a Teacher view when the validated ministry assignment scope changes', async () => {
+  role = 'teacher'; workspaces[0].role = role
+  let ministryIds = [other]
+  const implementation = vi.mocked(authRequest).getMockImplementation()!
+  vi.mocked(authRequest).mockImplementation(async (...args) => args[0] === '/api/me'
+    ? { id: 7, memberships: [{ church_id: church, role, status: 'active' }], assignments: { ministry_ids: ministryIds }, active_session: { mfa_confirmed: false } } as never
+    : implementation(...args))
+  history.replaceState(null, '', '/account/students')
+  render(<App />)
+  const content = await screen.findByRole('heading', { name: 'Students' })
+  await waitFor(() => expect(vi.mocked(authRequest).mock.calls.filter(([path]) => path === '/api/students')).toHaveLength(1))
+  ministryIds = []
+  fireEvent.focus(window)
+  await waitFor(() => expect(screen.getByRole('heading', { name: 'Students' })).not.toBe(content))
+  await waitFor(() => expect(vi.mocked(authRequest).mock.calls.filter(([path]) => path === '/api/students')).toHaveLength(2))
 })
