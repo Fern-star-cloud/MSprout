@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-08 — Existing login session response correction
+
+Replace the authenticated JSON church-login root redirect with409/already_authenticated and fixed session-check guidance; keep identity switching explicit and redirects rejected. Classify unknown online failures neutrally, synchronize the API contract/client and preserve all security/offline policies. Isolated cookie/browser proof, full frontend224/backend268+1903, Chrome10 and required/security gates pass; human data and accepted attendance remain untouched. [Verification and exact safe steps](../docs/qa/existing-login-session-verification.md).
+
 ## 2026-10-08 — Accepted upload / unauthenticated pull correction
 
 Fix sync GET requests inheriting document no-referrer and missing Sanctum first-party session recognition. Preserve origin-only privacy, cache/redirect safeguards and all authorization/encryption policies. Persist incomplete pull state, distinguish it from empty uploads and keep failure counts truthful. Human three accepted events remain untouched; real cookie/browser isolated regressions prove the defect without logout. Full frontend222/backend265+1,871, Chrome8 and required gates pass; no live retry or full human sync claim. [Verification and preservation-safe steps](../docs/qa/sync-pull-authentication-verification.md).

@@ -559,7 +559,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Rate limited. two_factor=true requires /two-factor-challenge before authentication completes. */
+        /** @description Rate limited. two_factor=true requires /two-factor-challenge before authentication completes. An existing church session returns 409 already_authenticated without validating submitted credentials or switching identity; check /auth/session before continuing. */
         post: operations["churchLogin"];
         delete?: never;
         options?: never;
@@ -3306,6 +3306,8 @@ export interface operations {
                     "application/json": components["schemas"]["LoginResult"];
                 };
             };
+            /** @description An existing session prevents a new login. Error code already_authenticated; no submitted credential validation or identity switch. */
+            409: components["responses"]["AuthError"];
             default: components["responses"]["AuthError"];
         };
     };

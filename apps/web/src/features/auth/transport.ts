@@ -2,6 +2,9 @@ import { ApiError } from '../../api/client'
 
 export function safeAuthMessage(error: unknown): string {
   const status = typeof error === 'object' && error !== null && 'status' in error ? error.status : 0
+  if (error instanceof ApiError && status === 409 && error.code === 'already_authenticated') {
+    return 'A session is already signed in. Choose Continue signed-in session to check it, or sign out before using another account.'
+  }
   if (typeof status === 'number' && status >= 500 && status < 600) {
     return 'The service is temporarily unavailable. Please try again later.'
   }
@@ -13,7 +16,9 @@ export function safeAuthMessage(error: unknown): string {
     case 419: return 'Your session expired. Please try again.'
     case 422: return 'Check the information you entered and try again.'
     case 429: return 'Too many attempts. Please wait a minute and try again.'
-    default: return 'Connect to the internet and try again. If the problem continues, try later.'
+    default: return globalThis.navigator?.onLine === false
+      ? 'Connect to the internet and try again. If the problem continues, try later.'
+      : 'The request could not be completed. Check your connection and try again. If it continues, try later.'
   }
 }
 
@@ -24,7 +29,11 @@ async function readResponse(response: Response): Promise<unknown> {
     // Only field names affect form feedback; never reflect arbitrary server text.
     const fields = errors && typeof errors === 'object'
       ? Object.fromEntries(Object.keys(errors).map((key) => [key, ['Check this field.']])) : undefined
-    throw new ApiError('auth_failed', safeAuthMessage({ status: response.status }), '', response.status, fields)
+    const code = response.status === 409 && typeof payload === 'object' && payload !== null
+      && 'code' in payload && payload.code === 'already_authenticated' ? 'already_authenticated' : 'auth_failed'
+    const error = new ApiError(code, '', '', response.status, fields)
+    error.message = safeAuthMessage(error)
+    throw error
   }
   return payload
 }

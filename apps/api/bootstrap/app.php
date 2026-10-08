@@ -4,6 +4,7 @@ use App\Domain\Audit\CorrelationContext;
 use App\Http\Middleware\AuditAuthentication;
 use App\Http\Middleware\AuthResponseHeaders;
 use App\Http\Middleware\CorrelationId;
+use App\Http\Middleware\RejectAuthenticatedJsonLogin;
 use App\Http\Middleware\RequireConfirmedOwnerMfa;
 use App\Http\Middleware\RequireVerifiedApiEmail;
 use App\Http\Middleware\ResolveChurchMembership;
@@ -47,6 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [AuditAuthentication::class]);
 
         $middleware->alias([
+            'guest' => RejectAuthenticatedJsonLogin::class,
             'verified' => RequireVerifiedApiEmail::class,
             'owner.mfa' => RequireConfirmedOwnerMfa::class,
             'tenant.resolve' => ResolveChurchMembership::class,

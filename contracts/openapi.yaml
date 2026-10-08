@@ -2144,7 +2144,7 @@ paths:
       - url: /
     post:
       operationId: churchLogin
-      description: Rate limited. two_factor=true requires /two-factor-challenge before authentication completes.
+      description: Rate limited. two_factor=true requires /two-factor-challenge before authentication completes. An existing church session returns 409 already_authenticated without validating submitted credentials or switching identity; check /auth/session before continuing.
       security: []
       responses:
         "200":
@@ -2153,6 +2153,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LoginResult"
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID. Invalid or missing client values are replaced.
+              schema:
+                type: string
+                format: uuid
+        "409":
+          $ref: "#/components/responses/AuthError"
+          description: An existing session prevents a new login. Error code already_authenticated; no submitted credential validation or identity switch.
           headers:
             X-Correlation-Id:
               description: Request correlation UUID. Invalid or missing client values are replaced.

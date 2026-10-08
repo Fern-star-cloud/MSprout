@@ -1,5 +1,9 @@
 # Architecture
 
+## Existing church session at JSON login — 2026-10-08
+
+Fortify's guest:web boundary remains strict. The inherited guest middleware returns409/already_authenticated for JSON POST /login with an existing church session instead of the framework root redirect; it does not validate submitted credentials, switch actor, reauthenticate or grant workspace/MFA authority. Other routes/guards and HTML retain inherited behavior. Frontend redirect rejection remains enforced; an allowlisted code/status maps to fixed explicit session-check/sign-out guidance, while unknown online failures no longer assert offline state. Fresh login, CSRF, MFA, session rotation, tenant gates and shared-device profile logout remain unchanged. [Proof and policy preservation](../docs/qa/existing-login-session-verification.md).
+
 ## Sync pull authentication and completion state — 2026-10-08
 
 The page retains no-referrer privacy; sync and CSRF fetches explicitly send an origin-only referrer, no-store and reject redirects, matching the established first-party auth transport. Sanctum's allowlisted Origin/Referer recognition loads cookie sessions for API GETs; credentials alone do not. Upload acknowledgement remains durable before download. Optional per-profile `syncNeedsPull` is non-content operational metadata, set before synchronization and cleared only after all pull pages/lease handling complete; no Dexie index/schema migration or historic backfill. Attendance exposes incomplete download separately from pending uploads and preserves accurate failure counts. Payload encryption, actor/device/tenant/assignment checks, leases and mandatory profile-switch logout remain unchanged. [Proof and security review](../docs/qa/sync-pull-authentication-verification.md).

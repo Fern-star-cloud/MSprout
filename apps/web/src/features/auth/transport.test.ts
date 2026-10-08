@@ -4,6 +4,22 @@ import { authDownload, authRequest, authUpload, safeAuthMessage, signedInvitatio
 
 afterEach(() => { vi.unstubAllGlobals(); document.cookie = 'XSRF-TOKEN=; Max-Age=0' })
 
+it('classifies an existing login session without treating submitted credentials as accepted', async () => {
+  document.cookie = 'XSRF-TOKEN=csrf-value'
+  const fetcher = vi.fn().mockResolvedValueOnce(new Response(null, { status: 204 }))
+    .mockResolvedValueOnce(Response.json({ code: 'already_authenticated', message: 'private account detail' }, { status: 409 }))
+  vi.stubGlobal('fetch', fetcher)
+  const error = await authRequest('/login', 'POST', { email: 'different@example.test', password: crypto.randomUUID() }).catch(error => error)
+  expect(error).toMatchObject({ code: 'already_authenticated', status: 409 })
+  expect(safeAuthMessage(error)).toBe('A session is already signed in. Choose Continue signed-in session to check it, or sign out before using another account.')
+  expect(fetcher.mock.calls[1][1]).toMatchObject({ redirect: 'error', headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+  expect(fetcher).toHaveBeenCalledTimes(2)
+})
+
+it('does not assert offline status for an unclassified online fetch failure', () => {
+  expect(safeAuthMessage(new TypeError('Failed to fetch private details'))).toBe('The request could not be completed. Check your connection and try again. If it continues, try later.')
+})
+
 it.each([401, 419, 403])('invalidates church workspace on protected request HTTP %s', async status => {
   const invalidated = vi.fn()
   window.addEventListener('church-workspace-invalidated', invalidated)
