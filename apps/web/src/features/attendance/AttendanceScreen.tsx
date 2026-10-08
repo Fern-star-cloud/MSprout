@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { avatarForGender } from '../students/avatar'
-import { profileStore } from '../../offline/profile-store'
+import { profileStore, type ProfileLockReason } from '../../offline/profile-store'
 import { attendanceRepository, type AttendanceRepository } from './attendance-repository'
 import type { AttendanceDraft, AttendanceState } from './domain'
 
@@ -18,7 +18,7 @@ interface OfflineRosterStudent {
 }
 
 interface AttendanceStore {
-  onLock(listener: (profileId: string) => void): () => void
+  onLock(listener: (profileId: string, reason: ProfileLockReason) => void): () => void
   activeProfile(): Promise<{ id: string; churchId: string | null } | null>
   readEncryptedMinistries(profileId: string): Promise<OfflineMinistry[]>
   readEncryptedRoster(profileId: string): Promise<OfflineRosterStudent[]>
@@ -83,12 +83,14 @@ export function AttendanceScreen({
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [lockReason, setLockReason] = useState<ProfileLockReason | undefined>()
   const accessGeneration = useRef(0)
 
-  useEffect(() => store.onLock(() => {
+  useEffect(() => store.onLock((_profileId, reason) => {
     // Locking removes the in-memory key. Discard the corresponding plaintext view too,
     // and prevent an earlier asynchronous load/save from putting it back.
     accessGeneration.current += 1
+    setLockReason(reason)
     setProfile(null)
     setMinistries([])
     setRoster([])
@@ -242,7 +244,7 @@ export function AttendanceScreen({
   }
 
   if (loading && !profile) return <section className="attendance-empty"><h1>Take attendance</h1><p>Loading the protected roster…</p></section>
-  if (!profile) return <section className="attendance-empty"><p className="eyebrow">Offline attendance</p><h1>Take attendance</h1><p>{error || 'Unlock a device profile to open its assigned roster.'}</p><a href="/profiles">Choose a device profile</a></section>
+  if (!profile) return <section className="attendance-empty" data-profile-lock-reason={lockReason}><p className="eyebrow">Offline attendance</p><h1>Take attendance</h1><p>{error || 'Unlock a device profile to open its assigned roster.'}</p><a href="/profiles">Choose a device profile</a></section>
 
   return (
     <section className="attendance-screen" aria-labelledby="attendance-heading">

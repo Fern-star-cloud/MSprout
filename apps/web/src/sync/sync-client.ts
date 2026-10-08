@@ -7,6 +7,7 @@ import { ProfileOutbox, type OutboxCodec, type SyncEventResult } from './outbox'
 
 export interface SyncProfileAccess extends OutboxCodec {
   isUnlocked(profileId: string): boolean
+  authorizationRenewed?: (profileId: string) => Promise<void>
 }
 
 export interface SyncSummary {
@@ -46,6 +47,7 @@ interface ClientOptions {
 
 const defaultAccess: SyncProfileAccess = {
   isUnlocked: (profileId) => profileStore.isUnlocked(profileId),
+  authorizationRenewed: async (profileId) => { await profileStore.readEncryptedAuthorization(profileId) },
   encrypt: (profileId, purpose, value) => profileStore.encryptLocalPayload(profileId, purpose, value),
   decrypt: (profileId, purpose, envelope) => profileStore.decryptLocalPayload(profileId, purpose, envelope),
 }
@@ -311,6 +313,7 @@ export class SyncClient {
         requiresReauthentication: false,
       })
     })
+    await this.access.authorizationRenewed?.(profile.id)
   }
 
   private async prepareRevocation(

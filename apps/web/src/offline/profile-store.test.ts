@@ -64,7 +64,7 @@ describe('isolated local profiles', () => {
     const listener = vi.fn(() => expect(store.isUnlocked(profile.id)).toBe(false))
     const unsubscribe = store.onLock(listener)
     store.lockProfile(profile.id)
-    expect(listener).toHaveBeenCalledWith(profile.id)
+    expect(listener).toHaveBeenCalledWith(profile.id, 'manual')
     unsubscribe()
     await store.unlockProfile(profile.id, '184629')
     store.lockProfile(profile.id)
@@ -98,6 +98,161 @@ describe('isolated local profiles', () => {
     await new Promise((resolve) => setTimeout(resolve, 30))
     expect(timedStore.isUnlocked(profile.id)).toBe(false)
     timedStore.dispose()
+  })
+
+  it('does not let a stale authorization read arm a timer against a renewed unlock', async () => {
+    const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
+    await store.unlockProfile(profile.id, '184629')
+    await store.saveBootstrap(profile.id, {
+      actor: { id: '11' }, ministries: [], roster: [], server_cursor: '1',
+      lease: lease(profile.id, '11', profile.deviceId, '2026-09-28T00:00:00.100Z'),
+    })
+    const originalGet = db.encryptedBlobs.get.bind(db.encryptedBlobs)
+    let release: () => void = () => undefined
+    let captured: () => void = () => undefined
+    const capturedRead = new Promise<void>(resolve => { captured = resolve })
+    const pause = new Promise<void>(resolve => { release = resolve })
+    const delayedGet = vi.spyOn(db.encryptedBlobs, 'get').mockImplementationOnce((...args) => originalGet(...args).then(async result => {
+      captured()
+      await pause
+      return result
+    }))
+    const staleRead = store.isLeaseValid(profile.id)
+    await capturedRead
+    store.lockProfile(profile.id)
+    await store.unlockProfile(profile.id, '184629')
+    await store.saveBootstrap(profile.id, {
+      actor: { id: '11' }, ministries: [], roster: [], server_cursor: '2',
+      lease: { ...lease(profile.id, '11', profile.deviceId, '2026-10-12T00:00:00Z'), signature: 'b'.repeat(64) },
+    })
+    await store.readEncryptedRoster(profile.id)
+    release()
+    expect(await staleRead).toBe(false)
+    await new Promise(resolve => setTimeout(resolve, 150))
+    expect(store.isUnlocked(profile.id)).toBe(true)
+    expect(await store.isLeaseValid(profile.id)).toBe(true)
+    delayedGet.mockRestore()
+  })
+
+  it('does not restore a key when a pending PIN unwrap finishes after a lock', async () => {
+    let release: (key: CryptoKey) => void = () => undefined
+    let started: () => void = () => undefined
+    const unwrapping = new Promise<void>(resolve => { started = resolve })
+    const guardedStore = new LocalProfileStore(db, { ...storeOptions,
+      unwrapKey: () => new Promise<CryptoKey>(resolve => { release = resolve; started() }),
+    })
+    try {
+      const profile = await guardedStore.createProfile({ actorId: '11', pin: '184629' })
+      const pending = guardedStore.unlockProfile(profile.id, '184629')
+      const outcome = pending.then(() => 'unlocked', () => 'cancelled')
+      await unwrapping
+      // No key is active yet; locking must cancel an in-flight unlock too.
+      guardedStore.lockProfile(profile.id)
+      const key = await storeOptions!.unwrapKey!(profile.id, '184629', profile)
+      release(key)
+      expect(await outcome).toBe('cancelled')
+      expect(guardedStore.isUnlocked(profile.id)).toBe(false)
+      expect((await db.profiles.get(profile.id))?.failedAttempts).toBe(0)
+    } finally { guardedStore.dispose() }
+  })
+
+  it('retains a renewed encrypted lease when its earlier timer fires in the same unlock', async () => {
+    const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
+    await store.unlockProfile(profile.id, '184629')
+    const bootstrap = {
+      actor: { id: '11' }, ministries: [], roster: [], server_cursor: '1',
+      lease: lease(profile.id, '11', profile.deviceId, '2026-09-28T00:00:00.100Z'),
+    }
+    await store.saveBootstrap(profile.id, bootstrap)
+    await store.readEncryptedRoster(profile.id)
+    await store.saveBootstrap(profile.id, { ...bootstrap,
+      lease: { ...bootstrap.lease, expires_at: '2026-10-12T00:00:00Z', signature: 'b'.repeat(64) },
+    })
+    await new Promise(resolve => setTimeout(resolve, 150))
+    expect(store.isUnlocked(profile.id)).toBe(true)
+    expect(await store.isLeaseValid(profile.id)).toBe(true)
+  })
+
+  it('purges an expired key even when storage reads are unavailable', async () => {
+    const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
+    await store.unlockProfile(profile.id, '184629')
+    await store.saveBootstrap(profile.id, {
+      actor: { id: '11' }, ministries: [], roster: [], server_cursor: '1',
+      lease: lease(profile.id, '11', profile.deviceId, '2026-09-28T00:00:00.100Z'),
+    })
+    const unavailable = vi.spyOn(db.encryptedBlobs, 'get').mockRejectedValue(new DOMException('Storage unavailable', 'UnknownError'))
+    const locked = vi.fn()
+    store.onLock(locked)
+    await new Promise(resolve => setTimeout(resolve, 150))
+    expect(store.isUnlocked(profile.id)).toBe(false)
+    expect(locked).toHaveBeenCalledWith(profile.id, 'lease_expired')
+    unavailable.mockRestore()
+  })
+
+  it('does not let an older PIN completion replace a different teacher profile', async () => {
+    let release: (key: CryptoKey) => void = () => undefined
+    let started: () => void = () => undefined
+    const unwrapping = new Promise<void>(resolve => { started = resolve })
+    const guardedStore = new LocalProfileStore(db, { ...storeOptions,
+      unwrapKey: vi.fn().mockImplementationOnce(() => new Promise<CryptoKey>(resolve => { release = resolve; started() }))
+        .mockImplementation(storeOptions!.unwrapKey!),
+    })
+    try {
+      const first = await guardedStore.createProfile({ actorId: '11', pin: '184629' })
+      const second = await guardedStore.createProfile({ actorId: '12', pin: '934175' })
+      const outcome = guardedStore.unlockProfile(first.id, '184629').then(() => 'unlocked', () => 'cancelled')
+      await unwrapping
+      await guardedStore.unlockProfile(second.id, '934175')
+      release(await storeOptions!.unwrapKey!(first.id, '184629', first))
+      expect(await outcome).toBe('cancelled')
+      expect(guardedStore.isUnlocked(first.id)).toBe(false)
+      expect(guardedStore.isUnlocked(second.id)).toBe(true)
+    } finally { guardedStore.dispose() }
+  })
+
+  it.each(['background', 'disposed'] as const)('cancels a pending unlock on %s without charging a failed PIN', async reason => {
+    let release: (key: CryptoKey) => void = () => undefined
+    let started: () => void = () => undefined
+    const unwrapping = new Promise<void>(resolve => { started = resolve })
+    const guardedStore = new LocalProfileStore(db, { ...storeOptions,
+      unwrapKey: () => new Promise<CryptoKey>(resolve => { release = resolve; started() }),
+    })
+    try {
+      const profile = await guardedStore.createProfile({ actorId: '11', pin: '184629' })
+      const locked = vi.fn()
+      guardedStore.onLock(locked)
+      const outcome = guardedStore.unlockProfile(profile.id, '184629').then(() => 'unlocked', () => 'cancelled')
+      await unwrapping
+      if (reason === 'disposed') guardedStore.dispose()
+      else vi.stubGlobal('document', { visibilityState: 'hidden' })
+      release(await storeOptions!.unwrapKey!(profile.id, '184629', profile))
+      expect(await outcome).toBe('cancelled')
+      expect(guardedStore.isUnlocked(profile.id)).toBe(false)
+      expect(locked).toHaveBeenCalledWith(profile.id, reason)
+      expect((await db.profiles.get(profile.id))?.failedAttempts).toBe(0)
+    } finally { guardedStore.dispose(); vi.unstubAllGlobals() }
+  })
+
+  it('rejects unlock persistence errors without restoring a key or counting an incorrect PIN', async () => {
+    const profile = await store.createProfile({ actorId: '11', pin: '184629' })
+    const update = vi.spyOn(db.profiles, 'update').mockRejectedValueOnce(new DOMException('Storage unavailable', 'QuotaExceededError'))
+    await expect(store.unlockProfile(profile.id, '184629')).rejects.toThrow('Storage unavailable')
+    expect(store.isUnlocked(profile.id)).toBe(false)
+    expect((await db.profiles.get(profile.id))?.failedAttempts).toBe(0)
+    update.mockRestore()
+  })
+
+  it('does not let an older online sign-out completion unlock over a newer teacher', async () => {
+    const first = await store.createProfile({ actorId: '11', pin: '184629' })
+    const second = await store.createProfile({ actorId: '12', pin: '934175' })
+    let release: () => void = () => undefined
+    const pause = new Promise<void>(resolve => { release = resolve })
+    const outcome = store.switchProfile(first.id, '184629', { online: true, signOut: () => pause }).then(() => 'unlocked', () => 'cancelled')
+    await store.unlockProfile(second.id, '934175')
+    release()
+    expect(await outcome).toBe('cancelled')
+    expect(store.isUnlocked(first.id)).toBe(false)
+    expect(store.isUnlocked(second.id)).toBe(true)
   })
 
   it('blocks roster access after lease expiry', async () => {

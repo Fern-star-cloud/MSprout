@@ -83,7 +83,14 @@ describe('profile synchronization client', () => {
       if (cursor === '0') return Response.json({ changes: [], page: { next_cursor: '4', has_more: true }, lease: lease() })
       return Response.json({ changes: [], page: { next_cursor: '7', has_more: false }, lease: lease() })
     })
-    const client = new SyncClient(db, codec, { fetcher, uuid: () => '00000000-0000-4000-8000-000000000999' })
+    const renewedCursors: string[] = []
+    const access: SyncProfileAccess = { ...codec, authorizationRenewed: async currentProfileId => {
+      // Renewal notification follows the committed encrypted lease and cursor, never a speculative response.
+      expect((await db.profiles.get(currentProfileId))?.leaseExpiresAt).toBe(lease().expires_at)
+      expect(await db.encryptedBlobs.get([currentProfileId, 'authorization'])).toBeDefined()
+      renewedCursors.push((await db.serverCursors.get(currentProfileId))!.cursor)
+    } }
+    const client = new SyncClient(db, access, { fetcher, uuid: () => '00000000-0000-4000-8000-000000000999' })
 
     const summary = await client.syncProfile(profileId)
 
@@ -91,6 +98,7 @@ describe('profile synchronization client', () => {
     expect(await db.outboxEvents.where('profileId').equals(profileId).count()).toBe(0)
     expect((await db.serverCursors.get(profileId))?.cursor).toBe('7')
     expect(requests.filter(request => request.url.startsWith('/api/sync/pull'))).toHaveLength(2)
+    expect(renewedCursors).toEqual(['4', '7'])
   })
 
   it('applies the encrypted temporary guest lifecycle from the attendance change feed', async () => {

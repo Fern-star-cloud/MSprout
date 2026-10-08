@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-08 — Offline profile lifecycle and background-lock verification
+
+Human controlled retest confirms ten seconds of foreground attendance availability and a `background` lock on tab switching; the established immediate key-purge policy is preserved. Cancel obsolete PIN/sign-out completions, bind authorization/timers/cryptographic results to their unlock instance, rearm committed lease renewals, and mask Local PIN. Profile 1 and queued work remain intact. Focused 55, frontend 220, backend 261/1,811, Chrome 16 and required gates pass. Disruptive recovery is documented for later UX/onboarding work. [Evidence, security and recovery](../docs/qa/offline-profile-lock-verification.md).
+
 ## 2026-10-08 — Teacher invitation identity denial correction
 
 A valid Teacher invitation opened under the Owner session was mislabeled expired/used. Preserve the identity restriction, return 403 for a different/unverified authenticated account, and guide new invitees to reopen the original email in a separate signed-out profile. Signed proofs, expiry, replay, account/password preservation, RLS, MFA and audit atomicity remain intact. Frontend 202/backend 261+1,811 and required gates pass; no live invitation/data operation. [Confirmed state, security and validation](../docs/qa/teacher-invitation-identity-verification.md).

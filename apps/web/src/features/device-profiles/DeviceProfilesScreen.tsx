@@ -117,7 +117,7 @@ export function DeviceProfilesScreen({ store = profileStore, onUnlocked }: Devic
             ))}
           </fieldset>
           <label htmlFor="profile-pin">Local PIN</label>
-          <input id="profile-pin" inputMode="numeric" autoComplete="off" pattern="[0-9]{6,12}" minLength={6} maxLength={12} value={pin} onChange={(event) => setPin(event.target.value)} required />
+          <input id="profile-pin" type="password" inputMode="numeric" autoComplete="off" pattern="[0-9]{6,12}" minLength={6} maxLength={12} value={pin} onChange={(event) => setPin(event.target.value)} required />
           <p className="privacy-note">This PIN protects this device profile. It is not your church password.</p>
           <button type="submit" disabled={!selected}>Use profile {Math.max(1, profiles.findIndex((profile) => profile.id === selected) + 1)}</button>
           <button className="secondary" type="button" disabled={!selected || !navigator.onLine} onClick={() => void refreshAuthorization()}>Refresh authorization after sign-in</button>

@@ -8,8 +8,12 @@ test.beforeEach(async ({ context }) => {
   // Fresh Playwright contexts only: intercept every API request, never use the human profile or live API.
   await context.route('**/api/**', route => json(route, {}, 503))
   await context.route('**/logout', route => json(route, {}))
-  await context.route('**/api/offline/bootstrap**', route => json(route,
-    bootstrap('11', [], new URL(route.request().url()).searchParams.get('device_id')!)))
+  await context.route('**/api/offline/bootstrap**', route => {
+    const response = bootstrap('11', [], new URL(route.request().url()).searchParams.get('device_id')!)
+    response.lease.issued_at = new Date().toISOString()
+    response.lease.expires_at = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+    return json(route, response)
+  })
 })
 
 test('Church ID pattern is valid in Chrome and rejects invalid input', async ({ page }) => {
@@ -37,6 +41,10 @@ test('network offline, focus loss and mobile emulation retain encrypted guest wr
   await addProfile(page)
   await expect(page.getByText(/1 pending/)).toBeVisible()
   expect(await outboxCount(page)).toBe(1)
+  // Reproduce the reported short foreground interval with the real 14-day lease duration.
+  await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 4_000)))
+  expect(await page.evaluate(() => document.visibilityState)).toBe('visible')
+  await expect(page.getByRole('button', { name: 'Add guest as present' })).toBeVisible()
   await context.setOffline(true)
   await page.evaluate(() => window.dispatchEvent(new Event('blur')))
   await page.getByLabel('Display name').fill('MTQA Offline Guest')
@@ -59,6 +67,7 @@ test('five minutes of inactivity clears the open attendance view without deletin
   await expect(page.getByText(/1 pending/)).toBeVisible()
   await page.clock.fastForward('05:01')
   await expect(page.getByRole('link', { name: 'Choose a device profile' })).toBeVisible()
+  await expect(page.locator('[data-profile-lock-reason]')).toHaveAttribute('data-profile-lock-reason', 'inactivity')
   expect(await outboxCount(page)).toBe(1)
 })
 
@@ -73,12 +82,14 @@ test('a hidden page locks the key, clears stale attendance controls, and preserv
     document.dispatchEvent(new Event('visibilitychange', { bubbles: true }))
   })
   await expect(page.getByRole('link', { name: 'Choose a device profile' })).toBeVisible()
+  await expect(page.locator('[data-profile-lock-reason]')).toHaveAttribute('data-profile-lock-reason', 'background')
   await expect(page.getByRole('button', { name: 'Add guest as present' })).toHaveCount(0)
   expect(await outboxCount(page)).toBe(1)
   await context.setOffline(false)
   await page.getByRole('link', { name: 'Choose a device profile' }).click()
   await context.setOffline(true)
   await page.getByLabel('Local PIN', { exact: true }).fill('184629')
+  await expect(page.getByLabel('Local PIN', { exact: true })).toHaveAttribute('type', 'password')
   await page.getByRole('button', { name: 'Use profile 1' }).click()
   await expect(page.getByText(/1 pending/)).toBeVisible()
   await page.getByLabel('Display name').fill('MTQA Offline Guest')

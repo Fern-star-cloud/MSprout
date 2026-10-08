@@ -215,7 +215,7 @@ it('clears plaintext on lock and does not restore it when an in-flight guest sav
     addGuest: vi.fn(() => new Promise<AttendanceDraft>(resolve => { finish = resolve })),
   }
   const store = {
-    onLock: (listener: (profileId: string) => void) => { locked = () => listener('profile-a'); return () => undefined },
+    onLock: (listener: (profileId: string, reason: 'manual') => void) => { locked = () => listener('profile-a', 'manual'); return () => undefined },
     activeProfile: vi.fn(async () => ({ id: 'profile-a', churchId: 'church-a' })),
     readEncryptedMinistries: vi.fn(async () => [{ id: 'ministry-a', name: 'Music', version: 1 }]),
     readEncryptedRoster: vi.fn(async () => []),

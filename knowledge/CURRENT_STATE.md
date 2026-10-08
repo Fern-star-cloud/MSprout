@@ -1,5 +1,13 @@
 # Current State
 
+## Offline profile lifecycle and confirmed background lock — 2026-10-08
+
+GREEN validation receipt prepared from synchronized `feat/mvp-foundation` / `d45fe8e`, before authorized finalization. HUMAN_MANUAL controlled retest: existing Profile 1 remained usable foreground for approximately ten seconds; switching tabs produced the exact `background` lock reason. Immediate hidden-page key purge is established Task 11/shared-device policy and remains enforced. A three-second foreground timeout was not reproduced; the historical 18:22 guest trigger remains unverified. No profile recreation, refresh, guest creation, synchronization or storage clearing occurred in the human observation. [Findings, expected behavior, deferred UX and recovery](../docs/qa/offline-profile-lock-verification.md).
+
+Confirmed additional races are corrected: old authorization reads/timers cannot lock a renewed unlock, pending PIN or sign-out completions cannot restore/replace a locked or newer teacher's key, and committed bootstrap/sync lease renewals rearm the deadline. Expiry purges without storage I/O. Async protected reads/crypto/bootstrap remain bound to their active instance. Local PIN is masked and lock reasons are transient nonpersistent DOM metadata; visible recovery UI and offline credential/security policy are preserved.
+
+Focused 55/9 files, final frontend 220/37, serial isolated backend 261/1,811 assertions, final Chrome 16 and required validation/security gates pass. Final review queue is closed. Original QA/environment bodies remain outside this correction. Existing Profile 1 needs its current PIN after backgrounding, not removal/recreation; refresh only for an actual expired authorization/session requirement. Human guest persistence and queue contents are not certified. This receipt precedes one automatic commit/push under `fix: guard offline profile unlock and lease lifecycles`. Tasks 1–18 and prior work remain intact; stop after finalization.
+
 ## Offline guest save lifecycle correction — 2026-10-08
 
 Focused maintenance from synchronized `feat/mvp-foundation` / `ea0704c` is GREEN. The reproduced failure mechanism is a locked in-memory profile key with stale attendance controls: background/idle locking was not propagated to the plaintext screen. Network offline and blur alone permit encrypted guest writes; the human's precise 18:22 visibility/exception trace is unavailable and remains unverified. A new profile's initial pending receipt is `attendance.draft_created` in isolated proof; the existing human queue was not inspected or consumed. [Findings, limits, preservation and validation](../docs/qa/offline-guest-save-verification.md).
