@@ -7,7 +7,7 @@ import { ChurchWorkspaceContext, type ChurchWorkspace } from './workspace-contex
 
 type State = { kind: 'loading' } | { kind: 'error'; message: string; signIn?: boolean; mfa?: boolean }
   | { kind: 'select'; workspaces: ChurchWorkspace[] }
-  | { kind: 'ready'; workspace: ChurchWorkspace; workspaces: ChurchWorkspace[]; actorId: number; assignmentScope: string }
+  | { kind: 'ready'; workspace: ChurchWorkspace; workspaces: ChurchWorkspace[]; actorId: number; assignmentScope: string; source: 'online' | 'offline' }
 
 function failureState(error: unknown): State {
   const status = typeof error === 'object' && error !== null && 'status' in error ? error.status : 0
@@ -16,7 +16,7 @@ function failureState(error: unknown): State {
   return { kind: 'error', message: 'The church workspace could not be loaded. Connect and try again.' }
 }
 
-export function ChurchWorkspaceBoundary({ children, allowOffline = false }: { children: ReactNode; allowOffline?: boolean }) {
+export function ChurchWorkspaceBoundary({ children, allowOffline = false, routeKey = '' }: { children: ReactNode; allowOffline?: boolean; routeKey?: string }) {
   const [state, setState] = useState<State>({ kind: 'loading' })
   const [revision, setRevision] = useState(0)
   const generation = useRef(0)
@@ -38,7 +38,7 @@ export function ChurchWorkspaceBoundary({ children, allowOffline = false }: { ch
           // This decrypting read enforces the encrypted actor/church/device binding and lease.
           const authorization = await profileStore.readEncryptedAuthorization<Pick<OfflineBootstrap, 'actor' | 'lease'>>(profile.id)
           if (authorization.lease.church_id !== profile.churchId || (selection.current && selection.current !== profile.churchId)) throw new Error('Profile workspace mismatch')
-          apply({ kind: 'ready', actorId: Number(authorization.actor.id), assignmentScope: profile.id, workspace: { church_id: profile.churchId, name: 'Church workspace', role: 'teacher' }, workspaces: [] })
+          apply({ kind: 'ready', actorId: Number(authorization.actor.id), assignmentScope: profile.id, source: 'offline', workspace: { church_id: profile.churchId, name: 'Church workspace', role: 'teacher' }, workspaces: [] })
           return
         }
         const session = await authRequest<components['schemas']['AccountSession']>('/auth/session')
@@ -61,12 +61,12 @@ export function ChurchWorkspaceBoundary({ children, allowOffline = false }: { ch
           apply(failureState({ status: 403 })); return
         }
         const assignmentScope = [...new Set(account.assignments?.ministry_ids ?? [])].sort().join(',')
-        apply({ kind: 'ready', actorId: session.id, workspace, workspaces, assignmentScope })
+        apply({ kind: 'ready', actorId: session.id, workspace, workspaces, assignmentScope, source: 'online' })
       } catch (error) { apply(failureState(error)) }
       finally { if (run === generation.current) pending.current = false }
     })()
     return () => { active = false }
-  }, [allowOffline, revision])
+  }, [allowOffline, revision, routeKey])
 
   useEffect(() => {
     const refresh = (background: boolean) => {
@@ -113,7 +113,10 @@ export function ChurchWorkspaceBoundary({ children, allowOffline = false }: { ch
     setState({ kind: 'loading' }); setRevision(value => value + 1)
   }
 
-  if (state.kind === 'loading') return <p role="status">Loading church workspace…</p>
+  // A retained offline profile never substitutes for the destination's web session.
+  if (state.kind === 'ready' && !navigator.onLine && !allowOffline) return <p role="alert">The church workspace could not be loaded. Connect and try again.</p>
+  const needsConnectionValidation = state.kind === 'ready' && (navigator.onLine ? state.source === 'offline' : state.source === 'online')
+  if (state.kind === 'loading' || needsConnectionValidation) return <p role="status">Loading church workspace…</p>
   if (state.kind === 'error') return <section>
     <p role="alert">{state.message}</p>
     {state.signIn && <a href="/account/login">Sign in</a>}

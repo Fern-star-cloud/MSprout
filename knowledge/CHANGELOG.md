@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-08 — Shared workspace sidebar lifecycle correction
+
+Replaced full document navigation only between the six church modules and retained the boundary by selected church. Same-church transitions reuse verified state with mandatory background preflight; fresh entry/church switches and incompatible offline authorization remain gated. Focused76/frontend198/backend257+1,764 and13 browser checks pass with required validation and reviewed security coverage. Human observations and historical QA are preserved; no live data or excluded UI changes. [Root cause, evidence and finalization subject](../docs/qa/workspace-navigation-lifecycle-verification.md).
+
 ## 2026-10-08 — Workspace activation and Import initialization correction
 
 Coalesced tab activation validates session/membership/MFA in the background without blanking or remounting an unchanged authorized module. Actor, church, role or ministry-assignment changes invalidate its retained state; explicit denial/authentication changes still clear content immediately. Import separates unresolved authorization from forbidden/error. Focused 66, final frontend 188, backend 257/1,764 and eight intercepted browser checks pass with required gates and reviewed security coverage. Human observations, existing data and unrelated QA remain preserved; no subsequent task. [Verification and finalization subject](../docs/qa/workspace-activation-verification.md).

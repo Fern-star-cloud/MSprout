@@ -6,6 +6,8 @@ Review, Reports, Birthdays, Ministries, Students and Import share one authentica
 
 Visibility/focus activation coalesces in-flight discovery/preflight and keeps a validated module mounted during background checks. Its identity includes actor, church, role and canonical ministry assignments, so changed authorization discards previous module state. Explicit authentication/denial/connectivity invalidation clears content immediately; failed background checks fail closed and stale responses cannot restore it. Import represents unresolved authorization as loading, separate from authorized, forbidden and sanitized error. [Activation verification](../docs/qa/workspace-activation-verification.md).
 
+Ordinary sidebar transitions within those six modules use the existing router's History API and retain the shell plus boundary keyed by selected church. Each destination still triggers background session/scoped-account validation and its own server-authorized data loading. Cold entry/reload and church changes gate fresh context; outside-group navigation remains native. Online/offline authorization sources cannot carry into an incompatible destination, and Attendance remains independently profile-authorized. [Lifecycle verification](../docs/qa/workspace-navigation-lifecycle-verification.md).
+
 Forced tenant RLS and role/ministry enforcement remain server-owned. Platform identity stays separate. Attendance/sync retain their existing offline flow; offline Birthdays requires an unlocked encrypted profile authorization and valid lease. See [implementation and verification](../docs/qa/shared-workspace-context-verification.md), including the additive migration and live rollout prerequisite.
 
 ## Topology

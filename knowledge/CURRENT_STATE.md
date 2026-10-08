@@ -1,5 +1,11 @@
 # Current State
 
+## Workspace navigation lifecycle correction — 2026-10-08
+
+Maintenance from synchronized `feat/mvp-foundation` / `bec364e` is GREEN. The sidebar performed document navigation and the router keyed the shared boundary by full route URL. Ordinary transitions among the six church modules now preserve the document/sidebar and reuse the verified boundary by selected church; every route still revalidates session/scoped account in the background. Cold entry/reload, actual church switches, auth invalidation and incompatible offline sources remain gated. Import initialization and excluded flows remain unchanged. [Definitive review, security and evidence](../docs/qa/workspace-navigation-lifecycle-verification.md).
+
+Focused76/frontend198+35 files/isolated backend257+1,764 assertions/13 browser checks and required gates pass; no unresolved review finding. HUMAN_MANUAL confirms raw-ID-free modules and preserved tab-return view at bec364e; this navigation correction's human retest is NOT RUN. No live data/decision/migration/fixture operation or next task. Original QA/environment work and prior GREEN receipts stay outside this fix commit. This receipt precedes the authorized single commit/push; resolve final SHA/synchronization through `fix: retain church workspace across sidebar navigation`, then stop. Prior bounded background-service readiness was not extended.
+
 ## Workspace activation correction — 2026-10-08
 
 Maintenance from synchronized `feat/mvp-foundation` / `f4fb230` is GREEN after focused 66 tests, final frontend 188/35, serial isolated backend 257/1,764, eight intercepted desktop/mobile Chrome checks and required validation/security gates. The boundary retains unchanged authorized modules through coalesced background activation checks; explicit invalidation and failed preflight clear protected content, and actor/church/role/ministry-scope changes discard old module state. Import separates loading, authorized, forbidden and error. [Root causes, security, preservation, review and validation](../docs/qa/workspace-activation-verification.md).

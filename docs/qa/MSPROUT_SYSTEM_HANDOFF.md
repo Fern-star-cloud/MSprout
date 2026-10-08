@@ -1,5 +1,11 @@
 # MSprout System Handoff
 
+## Shared workspace sidebar lifecycle handoff — 2026-10-08
+
+The six-module context and tab-return fixes are HUMAN_MANUAL confirmed at bec364e; Import authorization loading is expected. Remaining sidebar loading traced to document navigation and full-route boundary keys. The new scoped GREEN correction retains the sidebar and same-church workspace through internal navigation while performing mandatory background session/scoped-account preflight. Cold entry/reload, church switches, denial and incompatible offline authorization remain gated. [Root cause, definitive review and evidence](workspace-navigation-lifecycle-verification.md).
+
+Focused76/frontend198/backend257+1,764/13 browser checks and required gates pass. Human navigation smoke retest is NOT RUN; reload the updated frontend in the existing authorized session after finalization. No live record/data/decision or excluded UI operation; historical QA remains preserved outside this fix commit. This receipt precedes the single authorized commit/push under subject `fix: retain church workspace across sidebar navigation`; stop afterward. Human API/Vite are preserved, but the prior one-hour queue/scheduler window was not extended and no fresh operational-readiness result is asserted.
+
 ## Workspace activation correction handoff — 2026-10-08
 
 The human six-module smoke test at `f4fb230` resolved the original raw workspace-ID observation. Its tab-return loading and transient Import denial findings now have a scoped GREEN correction: validated modules stay mounted through coalesced background authorization checks; denial/authentication/connectivity changes fail closed, and changed actor/church/role/ministry assignment removes old module state. Import distinguishes loading/authorized/forbidden/error without relaxing Owner/MFA requirements. [Verification and finalization subject](workspace-activation-verification.md).

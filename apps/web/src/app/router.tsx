@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import { ApplicationScreen } from '../features/applications/ApplicationScreen'
 import { AuditScreen } from '../features/audit/AuditScreen'
 import { AttendanceScreen } from '../features/attendance/AttendanceScreen'
@@ -92,13 +92,25 @@ export function AppRouter() {
     return () => globalThis.removeEventListener('popstate', update)
   }, [])
   const navigate = (path: string) => {
-    globalThis.history.pushState(null, '', path)
-    setEntry({ path, search: '', fragment: '' })
+    const url = new URL(path, globalThis.location.href)
+    globalThis.history.pushState(null, '', url.pathname + url.search + url.hash)
+    setEntry({ path: url.pathname, search: url.search, fragment: url.hash.slice(1) })
   }
   const page = entry.path.split('/').filter(Boolean).pop() ?? 'profiles'
   const screen = screenFor(page, entry.fragment, navigate)
   const churchHint = new URLSearchParams(entry.search).get('church')
   const items = churchHint ? navigationItems.map(item => ({ ...item, href: `${item.href}?church=${encodeURIComponent(churchHint)}` })) : navigationItems
+
+  function navigateWorkspace(event: MouseEvent<HTMLDivElement>) {
+    if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || !workspacePages.has(page)) return
+    const link = event.target instanceof Element ? event.target.closest('a') : null
+    if (!link || !link.closest('nav') || link.hasAttribute('download') || (link.target && link.target !== '_self')) return
+    const url = new URL(link.href)
+    // Keep native navigation outside the six shared church modules.
+    if (url.origin !== location.origin || !navigationItems.some(item => workspacePages.has(item.href.split('/').pop()!) && item.href === url.pathname)) return
+    event.preventDefault()
+    if (url.pathname !== entry.path || url.search !== entry.search || url.hash.slice(1) !== entry.fragment) navigate(url.href)
+  }
 
   if (!shellPages.has(page)) {
     return (
@@ -111,7 +123,7 @@ export function AppRouter() {
   }
 
   return (
-    <div className="application-layout">
+    <div className="application-layout" onClick={navigateWorkspace}>
       <a className="skip-link" href="#main-content">Skip to content</a>
       <PhoneLayout items={items} activePath={entry.path} />
       <WideLayout items={items} activePath={entry.path} />
@@ -119,7 +131,7 @@ export function AppRouter() {
         <div className="phone-status"><ConnectivityStatus /></div>
         <UpdateNotice />
         <main id="main-content" tabIndex={-1}>{workspacePages.has(page)
-          ? <ChurchWorkspaceBoundary key={entry.path + entry.search} allowOffline={page === 'birthdays'}>{screen}</ChurchWorkspaceBoundary>
+          ? <ChurchWorkspaceBoundary key={churchHint ?? ''} routeKey={entry.path + entry.search} allowOffline={page === 'birthdays'}>{screen}</ChurchWorkspaceBoundary>
           : screen}</main>
       </div>
     </div>

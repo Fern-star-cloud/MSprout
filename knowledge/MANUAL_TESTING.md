@@ -1,5 +1,11 @@
 # Manual Testing Knowledge
 
+## Workspace sidebar observation and scoped correction — 2026-10-08
+
+HUMAN_MANUAL confirms all six modules inherit church context and that returning to an existing tab preserves the page at bec364e. Import Checking import authorization is expected initialization. Sidebar Students → Ministries still showed workspace-level loading; source and failing regression identify full document anchors plus route-keyed boundary remounting. The scoped correction preserves the sidebar/context across all six with mandatory background preflight and fail-closed invalidation. [Automated evidence and review](../docs/qa/workspace-navigation-lifecycle-verification.md).
+
+Human retest of this correction is NOT RUN; historical counts/blockers/attribution and prior evidence remain intact. Excluded Account/Profile/Sign out, Sign in, platform routing, profile/PIN, reset/MFA UI, applicant refresh, wrapping, email branding, enrollment empty state and student form/birthdate observations are retained for a separate improvement batch, without fix or PASS claim. No next manual phase or live fixture operation.
+
 ## Human workspace smoke findings and scoped correction — 2026-10-08
 
 HUMAN_MANUAL confirms Students, Ministries, Import, Review, Reports and Birthdays open without a raw Church workspace ID under the existing authenticated session at `f4fb230`. The same report describes tab-return loading across all six (Students approximately 2–5 seconds) and a transient Import Owner/MFA explanation. Source tracing and focused regression tests confirm hidden-state clearing/revision remounting and unresolved authorization represented as false, respectively. [Correction and automated evidence](../docs/qa/workspace-activation-verification.md).

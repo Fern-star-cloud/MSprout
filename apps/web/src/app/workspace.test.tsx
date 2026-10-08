@@ -275,3 +275,147 @@ it('discards a Teacher view when the validated ministry assignment scope changes
   await waitFor(() => expect(screen.getByRole('heading', { name: 'Students' })).not.toBe(content))
   await waitFor(() => expect(vi.mocked(authRequest).mock.calls.filter(([path]) => path === '/api/students')).toHaveLength(2))
 })
+
+it('reuses the workspace and sidebar through Students → Ministries → Reports and all six routes', async () => {
+  history.replaceState(null, '', '/account/students')
+  render(<App />)
+  await screen.findByRole('button', { name: 'Add student' })
+  const sidebar = screen.getByRole('navigation', { name: 'Main navigation' })
+  const implementation = vi.mocked(authRequest).getMockImplementation()!
+  let resolve!: (value: never) => void
+  vi.mocked(authRequest).mockImplementation((...args) => args[0] === '/auth/session'
+    ? new Promise(done => { resolve = done }) : implementation(...args))
+  for (const [label, heading, page] of [
+    ['Ministries', 'Ministries', 'ministries'], ['Reports', 'Attendance reports', 'reports'],
+    ['Review', 'Attendance review', 'conflicts'], ['Birthdays', "Today's Birthdays", 'birthdays'],
+    ['Import', 'Import students', 'imports'], ['Students', 'Students', 'students'],
+  ]) {
+    fireEvent.click(sidebar.querySelector(`a[href="/account/${page}"]`)!)
+    expect(location.pathname).toBe(`/account/${page}`)
+    expect(screen.getByRole('heading', { name: heading })).toBeTruthy()
+    expect(screen.queryByText('Loading church workspace…')).toBeNull()
+    expect(screen.getByRole('navigation', { name: 'Main navigation' })).toBe(sidebar)
+    expect(screen.getAllByRole('link', { name: label })[1].getAttribute('aria-current')).toBe('page')
+    await act(async () => { resolve({ id: 7, email_verified: true, workspaces } as never) })
+  }
+  expect(vi.mocked(authRequest).mock.calls.filter(([path]) => path === '/auth/session')).toHaveLength(7)
+})
+
+it.each(['session', 'membership', 'role', 'mfa'])('fails closed when navigation revalidation detects %s change', async failure => {
+  history.replaceState(null, '', '/account/students')
+  render(<App />)
+  await screen.findByRole('button', { name: 'Add student' })
+  const implementation = vi.mocked(authRequest).getMockImplementation()!
+  vi.mocked(authRequest).mockImplementation(async (...args) => {
+    if (args[0] === '/auth/session' && failure === 'session') throw new ApiError('denied', '', '', 401)
+    if (args[0] === '/auth/session' && failure === 'membership') return { id: 7, email_verified: true, workspaces: [] } as never
+    if (args[0] === '/auth/session' && failure === 'role') {
+      role = 'teacher'; workspaces[0] = { ...workspaces[0], role }
+    }
+    if (args[0] === '/api/me' && failure === 'mfa') return { id: 7, memberships: [{ church_id: church, role, status: 'active' }], active_session: { mfa_confirmed: false } } as never
+    return implementation(...args)
+  })
+  fireEvent.click(screen.getAllByRole('link', { name: 'Import' })[1])
+  if (failure === 'role') {
+    await screen.findByText('Student imports are available only to the church Owner with confirmed MFA.')
+    expect(screen.queryByLabelText('Student spreadsheet')).toBeNull()
+  } else {
+    await screen.findByRole('alert')
+    expect(screen.queryByRole('heading', { name: 'Import students' })).toBeNull()
+  }
+})
+
+it('preserves selected multi-church scope across navigation and gates a real church switch', async () => {
+  workspaces = [{ church_id: church, name: 'First church', role }, { church_id: other, name: 'Second church', role }]
+  history.replaceState(null, '', '/account/students')
+  render(<App />)
+  fireEvent.change(await screen.findByLabelText('Church workspace'), { target: { value: church } })
+  await screen.findByRole('button', { name: 'Add student' })
+  fireEvent.click(screen.getAllByRole('link', { name: 'Ministries' })[1])
+  expect(location.search).toBe(`?church=${church}`)
+  expect(screen.queryByText('Loading church workspace…')).toBeNull()
+  expect(screen.getByLabelText<HTMLSelectElement>('Church workspace').value).toBe(church)
+  let resolve!: (value: never) => void
+  vi.mocked(authRequest).mockImplementation(() => new Promise(done => { resolve = done }))
+  fireEvent.change(screen.getByLabelText('Church workspace'), { target: { value: other } })
+  expect(screen.queryByRole('heading', { name: 'Ministries' })).toBeNull()
+  expect(screen.getByText('Loading church workspace…')).toBeTruthy()
+  fireEvent(window, new CustomEvent('church-workspace-invalidated', { detail: { status: 401 } }))
+  await act(async () => { resolve({ id: 7, email_verified: true, workspaces } as never) })
+  expect(screen.queryByRole('heading', { name: 'Ministries' })).toBeNull()
+  await screen.findByRole('link', { name: 'Sign in' })
+})
+
+it('does not reuse offline Birthdays authorization for an online-only module', async () => {
+  vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+  vi.spyOn(profileStore, 'activeProfile').mockResolvedValue({ id: 'offline-test-profile', churchId: church })
+  vi.spyOn(profileStore, 'readEncryptedAuthorization').mockResolvedValue({ actor: { id: 7 }, lease: { church_id: church } })
+  history.replaceState(null, '', '/account/birthdays')
+  render(<App />)
+  await screen.findByRole('heading', { name: "Today's Birthdays" })
+  vi.mocked(authRequest).mockClear()
+  fireEvent.click(screen.getAllByRole('link', { name: 'Students' })[1])
+  expect(screen.queryByRole('heading', { name: 'Students' })).toBeNull()
+  await screen.findByRole('alert')
+  expect(authRequest).not.toHaveBeenCalled()
+})
+
+it('does not apply a superseded navigation response or resurrect content after logout', async () => {
+  history.replaceState(null, '', '/account/students')
+  render(<App />)
+  await screen.findByRole('button', { name: 'Add student' })
+  const implementation = vi.mocked(authRequest).getMockImplementation()!
+  let oldResolve!: (value: never) => void
+  vi.mocked(authRequest).mockImplementationOnce(() => new Promise(done => { oldResolve = done }))
+  fireEvent.click(screen.getAllByRole('link', { name: 'Ministries' })[1])
+  fireEvent.click(screen.getAllByRole('link', { name: 'Reports' })[1])
+  await screen.findByRole('heading', { name: 'Attendance reports' })
+  await act(async () => { oldResolve({ id: 7, email_verified: true, workspaces: [] } as never) })
+  expect(screen.getByRole('heading', { name: 'Attendance reports' })).toBeTruthy()
+  vi.mocked(authRequest).mockImplementation((...args) => args[0] === '/auth/session'
+    ? new Promise(done => { oldResolve = done }) : implementation(...args))
+  fireEvent.click(screen.getAllByRole('link', { name: 'Import' })[1])
+  fireEvent(window, new CustomEvent('church-workspace-invalidated', { detail: { status: 401 } }))
+  expect(screen.queryByRole('heading', { name: 'Import students' })).toBeNull()
+  await act(async () => { oldResolve({ id: 7, email_verified: true, workspaces } as never) })
+  expect(screen.queryByRole('heading', { name: 'Import students' })).toBeNull()
+})
+
+it('validates a different authorized church before mounting its destination data', async () => {
+  workspaces = [{ church_id: church, name: 'First church', role }, { church_id: other, name: 'Second church', role }]
+  history.replaceState(null, '', `/account/students?church=${church}`)
+  render(<App />)
+  const original = await screen.findByRole('heading', { name: 'Students' })
+  const implementation = vi.mocked(authRequest).getMockImplementation()!
+  let resolve!: (value: never) => void
+  vi.mocked(authRequest).mockImplementation((...args) => args[0] === '/auth/session'
+    ? new Promise(done => { resolve = done }) : implementation(...args))
+  fireEvent.change(screen.getByLabelText('Church workspace'), { target: { value: other } })
+  expect(screen.queryByRole('heading', { name: 'Students' })).toBeNull()
+  expect(vi.mocked(authRequest).mock.calls.some(([path, , , id]) => path === '/api/students' && id === other)).toBe(false)
+  await act(async () => { resolve({ id: 7, email_verified: true, workspaces } as never) })
+  await waitFor(() => expect(authRequest).toHaveBeenCalledWith('/api/students', 'GET', undefined, other))
+  expect(screen.getByRole('heading', { name: 'Students' })).not.toBe(original)
+  expect(authRequest).toHaveBeenCalledWith('/api/me', 'GET', undefined, other)
+  expect(screen.getByLabelText<HTMLSelectElement>('Church workspace').value).toBe(other)
+})
+
+it('preserves native modified clicks and navigation outside the shared workspace', async () => {
+  history.replaceState(null, '', '/account/students')
+  render(<App />)
+  await screen.findByRole('heading', { name: 'Students' })
+  const prevented: boolean[] = []
+  const observe = (event: Event) => { prevented.push(event.defaultPrevented); event.preventDefault() }
+  window.addEventListener('click', observe)
+  try {
+    fireEvent.click(screen.getAllByRole('link', { name: 'Ministries' })[1], { ctrlKey: true })
+    fireEvent.click(screen.getAllByRole('link', { name: 'Attendance' })[1])
+  } finally { window.removeEventListener('click', observe) }
+  expect(prevented).toEqual([false, false])
+  expect(location.pathname).toBe('/account/students')
+  history.pushState(null, '', '/account/attendance')
+  vi.mocked(authRequest).mockClear()
+  fireEvent(window, new PopStateEvent('popstate'))
+  await screen.findByRole('heading', { name: 'Take attendance' })
+  expect(authRequest).not.toHaveBeenCalled()
+})

@@ -1,5 +1,11 @@
 # Testing Environment
 
+## Workspace navigation lifecycle validation — 2026-10-08
+
+Focused workspace/Import/auth-transport: **76 passed**. Root aggregate verify: **198 frontend /35 files**, typecheck/build and serial isolated PostgreSQL **257 backend /1,764 assertions** passed. **13 browser checks** pass: eight six-module navigation/Import/denial checks across desktop/mobile Chrome and five existing offline/profile/quota/tenant checks. Two mobile harness failures came from querying hidden desktop navigation; visible-sidebar correction and scoped mobile rerun pass, with focused ESLint. Concurrent initial browser runners collided in their ignored trace directory; the final mobile run uses a separate ignored Git-local output. No production inputs changed after comprehensive validation.
+
+Full lint/Pint/strict Composer/structure/whitespace/contract checks and dependency audits pass. Actual api:check used temporary LF normalization of the unchanged CRLF client, then restored bytes. Gitleaks history/source zero leaks. OWASP full:108 rules/333 targets/zero findings/~99.9% parsing with five reviewed unchanged mock parse and five convergence limitations; direct boundary:76 rules/11 targets/zero findings/100% parsed/no warnings. [Evidence and invalidation reasoning](../docs/qa/workspace-navigation-lifecycle-verification.md). No live DB operation, host-security change or new readiness claim; human retest pending and prior GREEN receipts preserved.
+
 ## Workspace activation validation — 2026-10-08
 
 Focused workspace/Import/auth transport: 66 passed. Final frontend: **188 tests / 35 files**; serial isolated PostgreSQL backend: **257 / 1,764 assertions**. Root aggregate verify passed; the later assignment-scope correction reran the affected frontend suite/build/lint and final security proof, preserving valid backend results. Eight intercepted browser checks pass on desktop and Pixel 7 Chrome emulation, including all six routes for Owners/Teachers with delayed, simulated visibility/focus activation. Human retest is NOT RUN.

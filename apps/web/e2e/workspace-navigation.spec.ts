@@ -30,11 +30,18 @@ for (const role of ['owner', 'teacher'] as const) {
       return json(route, { data: [] })
     })
     await page.goto('/account/students')
+    await expect(page.getByRole('heading', { name: 'Students', exact: true })).toBeVisible()
+    await page.evaluate(() => { document.documentElement.setAttribute('data-workspace-document', 'retained') })
+    const wideNavigation = page.getByRole('navigation', { name: 'Main navigation', exact: true })
+    const navigationProof = await wideNavigation.isVisible() ? wideNavigation : page.getByRole('navigation', { name: 'Phone navigation', exact: true })
+    await navigationProof.evaluate(element => { element.setAttribute('data-workspace-sidebar', 'retained') })
     for (const [label, heading] of [['Review', 'Attendance review'], ['Reports', 'Attendance reports'], ['Birthdays', "Today's Birthdays"], ['Ministries', 'Ministries'], ['Students', 'Students'], ['Import', 'Import students']]) {
       const navigation = page.getByRole('navigation', { name: 'Main navigation', exact: true })
       const phone = page.getByRole('navigation', { name: 'Phone navigation', exact: true })
       await (await navigation.isVisible() ? navigation : phone).getByRole('link', { name: label, exact: true }).click()
       await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible()
+      await expect(page.locator('html')).toHaveAttribute('data-workspace-document', 'retained')
+      await expect(navigationProof).toHaveAttribute('data-workspace-sidebar', 'retained')
       await expect(page.getByLabel('Church workspace ID')).toHaveCount(0)
       if (label === 'Import') {
         if (role === 'owner') await expect(page.getByLabel('Student spreadsheet')).toBeVisible()
