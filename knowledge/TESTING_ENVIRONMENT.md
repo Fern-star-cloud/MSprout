@@ -1,5 +1,13 @@
 # Testing Environment
 
+## Human synchronization recovery receipt / documentation follow-up — 2026-10-08
+
+Human retest after `7b86aaa` is **HUMAN_MANUAL PASS**: bootstrap and pull returned HTTP 200, three prior attendance sequences/versions 1–3, terminal cursor `3` with `has_more: false`, zero pending uploads/complete downloads, no observed push/new draft/logout and retained `/profiles`. Evidence is the human report in this chat, without independent HAR/screenshot/raw response/database fingerprint inspection. No new live multi-page/retry/concurrency coverage is claimed. [Canonical evidence and limits](../docs/qa/profile-sync-recovery-verification.md#human_manual-live-recovery-pass--2026-10-08).
+
+This follow-up changes six Markdown evidence/knowledge files only. It does not invalidate 7b86aaa's verified application/backend/build/dependency/OWASP gates, so those are retained rather than rerun. Documentation validation covers exact scope/preservation, local links/anchors, repository structure, whitespace, secret scanning and complete final/staged review. The agent performs no human browser/API/profile/storage/PIN/database/attendance/synchronization operation; tests, fixtures and manual-phase counts are unchanged.
+
+Documentation-only checks passed: local links/anchors, exact preservation of eight pre-existing file bodies, repository structure and whitespace. Gitleaks scanned 51 commits and the complete 466-file tracked/new source snapshot (including the lockfile text alias), with zero leaks. Ignored credentials, dependencies, runtime/build output and disposable runner evidence were excluded. No application/security-control input changed; prior application, backend, dependency and OWASP results remain valid under the effect-based invalidation policy. Final review requires exact six-file Markdown staging with no unrelated content.
+
 ## Profile synchronization recovery validation — 2026-10-08
 
 From `bb06620`: five expected TDD failures established recovery navigation/cursor replacement, concurrent duplicate transport, nonadvancing pull and missing post-lock guard. Final focused frontend **56/6** and guarded PostgreSQL sync/device **15/138 assertions** pass. Final desktop/mobile Chrome **8/8** proves cookie/origin-only paginated pull, 401 persistence, reload/repeated empty-outbox recovery, unchanged one-draft/three-accepted-event outcome, no extra push/logout/Attendance navigation and accessibility. All browser endpoints are intercepted/disposable; no human QA synchronization.

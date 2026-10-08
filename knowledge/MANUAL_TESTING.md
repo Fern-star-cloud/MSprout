@@ -1,5 +1,11 @@
 # Manual Testing Knowledge
 
+## Human profile-only live synchronization recovery — 2026-10-08
+
+**HUMAN_MANUAL PASS**, reported by the human after `7b86aaa`: original Chrome/existing encrypted Profile 1/authorized Teacher; one recovery action. Bootstrap and pull returned HTTP 200 and downloaded three existing attendance-session changes (sequences/versions 1–3), with the temporary QA guest Present in version 2 and retained Present on finalization in version 3. Terminal cursor `3` with `has_more: false`; both completion messages shown, zero pending uploads. No push/new draft observed; remained on `/profiles` with no unexpected logout. [Canonical receipt, source and limits](../docs/qa/profile-sync-recovery-verification.md#human_manual-live-recovery-pass--2026-10-08).
+
+Only this reported single recovery is PASS. No independent capture/database inspection, repeated or multi-page live test, new manual case/phase completion or changed historical counts is inferred. The agent performed no live test, synchronization, fixture/data mutation, profile removal/recreation or PIN/storage operation. Previous NOT RUN/incomplete-pull receipts remain historical; guest display name and private identifiers are omitted.
+
 ## Human Teacher invitation acceptance finding — 2026-10-08
 
 HUMAN_MANUAL reported expired/used after one registration submit for the Music invitation. The human confirmed the same Chrome profile still held the MTQA A Owner session. Source and isolated regression establish identity denial incorrectly classified 410. Read-only DB/Mailpit proof and one API request at 15:46:26 confirm a fresh pending invitation issued at 15:41:37, expiring October 15 at 15:41:37 Asia/Taipei, with no created invitee account/membership or acceptance audit. Email URL/proof/Music assignment are intact.

@@ -1,5 +1,11 @@
 # MSprout System Handoff
 
+## Profile 1 synchronization recovery human PASS — 2026-10-08
+
+After `7b86aaa`, the human reported **HUMAN_MANUAL PASS** for one **Refresh authorization and sync** action using the original Chrome profile/existing encrypted Profile 1/authorized Teacher. Bootstrap and pull returned HTTP 200; pull returned the three previously accepted attendance-session versions 1–3; the temporary QA guest was Present in version 2 and retained on finalization in version 3. Final cursor `3` with `has_more: false`, zero pending uploads and complete-download UI; no push/new draft observed, remained `/profiles` with no unexpected logout. [Canonical human evidence and limits](profile-sync-recovery-verification.md#human_manual-live-recovery-pass--2026-10-08).
+
+The previous incomplete-live-pull handoff is superseded for this recovery only. The source is the human report, with no independent browser capture/database fingerprint inspection or new live multi-page/retry proof. The documentation agent did not repeat synchronization or access/alter Profile 1, PIN/storage, attendance, accepted events or fixtures. Retain prior evidence and unrelated work; no manual phase, new feature, redesign or fresh runtime-readiness/production claim is implied.
+
 ## Teacher invitation identity handoff — 2026-10-08
 
 The human-confirmed active Owner session prevented new Teacher registration; the valid proof was incorrectly reported expired/used. The scoped GREEN correction returns 403 for a different/unverified authenticated identity and gives safe account/profile instructions, retaining all authorization, single-use and transaction controls. [Persisted outcome, proof, validation and review](teacher-invitation-identity-verification.md).

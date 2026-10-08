@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-08 — Human synchronization recovery evidence
+
+Record the human's single successful original-profile recovery after `7b86aaa`: bootstrap and pull HTTP 200, three prior versions downloaded, terminal cursor `3` with `has_more: false` and complete UI with no observed push/new draft/logout. Documentation-only update attributes the report, preserves historical evidence and limits PASS to this recovery. No repeat synchronization, profile/PIN/storage/attendance/fixture mutation or broader manual-phase/UX task. [Human receipt and limits](../docs/qa/profile-sync-recovery-verification.md#human_manual-live-recovery-pass--2026-10-08).
+
 ## 2026-10-08 — Attendance-free synchronization recovery
 
 Add a discoverable Profiles recovery action that refreshes existing authorization and awaits complete synchronization without creating attendance. Preserve incomplete-download cursor, skip empty push, coalesce safe retries and enforce original-unlock/lease guards. Final focused56/backend15, full frontend235/backend268, Chrome8 and required/security gates pass. Human Profile1/storage/PIN/three accepted events and fixtures remain untouched; live pull verification is NOT RUN. [Review and exact human steps](../docs/qa/profile-sync-recovery-verification.md).

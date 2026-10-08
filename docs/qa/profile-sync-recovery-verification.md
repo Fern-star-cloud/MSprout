@@ -1,10 +1,31 @@
 # Profile synchronization recovery — 2026-10-08
 
-Scope: the explicitly authorized maintenance task from `feat/mvp-foundation` / `bb06620`. Tasks 1–18, the next feature, and application-wide UI/UX redesign remain untouched. Human Profile 1 pull completion remains **NOT RUN** by the agent.
+Scope: the explicitly authorized maintenance task from `feat/mvp-foundation` / `bb06620`. Tasks 1–18, the next feature, and application-wide UI/UX redesign remain untouched. At implementation finalization the human pull retest was **NOT RUN**. The subsequent human-operated **PASS** is recorded below; the agent did not perform the live test.
+
+## HUMAN_MANUAL live recovery PASS — 2026-10-08
+
+Evidence source: the human's explicit retest report in this chat after implementation commit `7b86aaacf476fe965295285305e69d6074f2a315` (`7b86aaa`). The human used the original Chrome profile, existing encrypted Profile 1 and authorized Teacher session, and clicked **Refresh authorization and sync once**. This is an attributed human result, not an agent-executed or independently captured browser/database test.
+
+| Reported observation | Human result |
+|---|---|
+| `/api/offline/bootstrap` | HTTP 200 |
+| `/api/sync/pull` | HTTP 200; three attendance-session changes, sequences 1, 2 and 3 |
+| Returned versions | 1, 2 and 3 matched the previously accepted server events for the same attendance session |
+| Version 2 | Existing temporary QA guest recorded as Present |
+| Version 3 | Same session finalized; the guest retained as Present |
+| Final page | `page.next_cursor: "3"`, `page.has_more: false` |
+| UI | `0 pending uploads · Downloads complete`; `Synchronization complete. All download pages applied.` |
+| Side effects/navigation | No sync push request or new attendance draft observed; remained on `/profiles`; no unexpected logout |
+
+Outcome: **HUMAN_MANUAL PASS for this single live profile-only synchronization recovery**. The report establishes successful download of the three previously accepted versions and terminal-page completion, rather than inferring success solely from zero uploads. It supersedes the earlier incomplete/NOT RUN live-pull handoff for this recovery path; historical failures and implementation evidence remain retained below. No repeat synchronization is requested by this evidence update; the original verification steps remain a reference only.
+
+Limits: no screenshot, HAR, raw response, precise execution time or database fingerprint was supplied or independently inspected in this documentation run. The human observed no push/new draft; this is not a new independent database-level uniqueness/audit proof. The reported pull ended with has_more false and does not establish a new live multi-page/interruption/concurrency/repeated-retry test. Existing isolated automated regression/security evidence at 7b86aaa remains separate. No broader manual phase, unexecuted case, production rollout or application-wide redesign is marked PASS. Guest display name and actor/church/device/session identifiers are omitted from durable evidence; no credentials, cookies or child details are copied.
+
+The agent only recorded the supplied observations. It did not access the human browser, API, profile/IndexedDB, PIN, live database, attendance, fixtures or original accepted events, and did not repeat synchronization or recreate/remove Profile 1.
 
 ## Confirmed root cause and correction
 
-The former refresh action saved bootstrap, dispatched a synthetic `online` event, and called `onUnlocked`. The router's callback navigates to Attendance, whose initial ministry/date load automatically creates a missing draft and enqueues `attendance.draft_created`. Authorization recovery therefore coupled a sync attempt to an attendance mutation. The prior HTTP 401 transport correction remains intact; this task does not certify historical or current human pull success.
+The former refresh action saved bootstrap, dispatched a synthetic `online` event, and called `onUnlocked`. The router's callback navigates to Attendance, whose initial ministry/date load automatically creates a missing draft and enqueues `attendance.draft_created`. Authorization recovery therefore coupled a sync attempt to an attendance mutation. The prior HTTP 401 transport correction remains intact; the original implementation validation did not yet include a successful human live pull.
 
 Bootstrap also returns the latest feed cursor. Replacing the local cursor during recovery could skip attendance projections not applied before an interrupted pull. Recovery now preserves the existing applied cursor while reusing the same actor/device/tenant/lease validation and assignment quarantine. Ordinary initial bootstrap retains its existing behavior.
 
@@ -24,7 +45,7 @@ Concurrent calls to the existing client coalesce by profile. Empty queues issue 
 
 No backend, API contract, migration, dependency, fixture, service-worker or security-policy change. Server authentication, MFA where required, CSRF, current active membership/assignment checks, trusted church context, forced RLS, device authorization, idempotency receipts and append-only audit remain authoritative. The client retains cookies, origin-only referrer, no-store and redirect rejection. Keys/PINs/payloads remain protected by the existing profile implementation; no secret or raw human data is logged.
 
-All browser proof uses disposable Playwright contexts and intercepted endpoints. Real-cookie/backend proof uses the guarded separate PostgreSQL test database and runtime role; suites run serially. No human Chrome takeover, account authentication, live synchronization, Profile 1 read/write/removal/recreation, storage clearing, PIN reset, accepted-event replay, fixture change, migration/reset/reseed, or production/staging operation occurred. Existing QA evidence and unrelated tracked/untracked work are preserved separately and excluded from this task commit.
+The implementation's agent-operated browser proof uses disposable Playwright contexts and intercepted endpoints. Real-cookie/backend proof uses the guarded separate PostgreSQL test database and runtime role; suites run serially. The agent performed no human Chrome takeover, account authentication, live synchronization, Profile 1 read/write/removal/recreation, storage clearing, PIN reset, accepted-event replay, fixture change, migration/reset/reseed, or production/staging operation. Existing QA evidence and unrelated tracked/untracked work are preserved separately and excluded from this task commit.
 
 ## Human verification using the existing Profile 1
 
@@ -60,4 +81,8 @@ Remediation closed: recovery cursor overwrite, concurrent duplicate client work,
 
 The initial comprehensive verify established backend268 and all frontend guarantees. Later changes were confined to frontend profile/sync/UI source/tests; final complete frontend, types/lint/build, browser and security scans cover those inputs. Backend/Pint/contracts/dependencies/structure remain unchanged, so their green results retain validity under the effect-based invalidation policy. Documentation-only synchronization requires final secret/whitespace/link proof, not redundant application suites.
 
-Complete source/diff/security review closes all BLOCKING/SHOULD FIX findings. No scope expansion, backend/schema/data mutation, weakened test, suppressed scanner finding, debug/generated junk, credential exposure or unexplained task file remains. Original unrelated tracked/untracked work is preserved with exact-byte receipts outside the task commit. The user request and repository contract authorize one reviewed commit/normal push to the existing feature tracking branch; this receipt records pre-finalization evidence and Git records the resulting SHA and synchronization. Human Profile1 verification remains **NOT RUN**, with no live sync/data/PIN/storage operation by the agent.
+Complete source/diff/security review closes all BLOCKING/SHOULD FIX findings. No scope expansion, backend/schema/data mutation, weakened test, suppressed scanner finding, debug/generated junk, credential exposure or unexplained task file remains. Original unrelated tracked/untracked work is preserved with exact-byte receipts outside the task commit. The user request and repository contract authorize one reviewed commit/normal push to the existing feature tracking branch; this receipt records pre-finalization evidence and Git records the resulting SHA and synchronization. At implementation finalization human Profile1 verification was **NOT RUN**; the HUMAN_MANUAL PASS above supersedes that status. No live sync/data/PIN/storage operation was performed by the agent.
+
+## Documentation evidence follow-up validation — 2026-10-08
+
+This follow-up records the human result only and changes six Markdown report/handoff/knowledge files. Local evidence links/anchors, exact preservation of the eight pre-existing file bodies, repository structure and whitespace passed. Gitleaks scanned 51 commits and the complete 466-file tracked/new source snapshot plus lockfile text alias: zero leaks. Ignored credentials, dependencies, runtime/build output and disposable tool evidence stay excluded. Prior implementation application/backend/dependency/OWASP guarantees remain valid because their inputs are unchanged; those suites were not rerun for this documentation-only update. No live synchronization, browser/profile/PIN/storage, attendance or fixture operation was performed. Final review/staging covers only this attributed evidence update; Git records the documentation commit and normal feature-branch synchronization.
