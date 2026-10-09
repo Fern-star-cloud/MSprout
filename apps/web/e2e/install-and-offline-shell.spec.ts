@@ -12,7 +12,12 @@ test('the application shell installs and remains usable while offline', async ({
   await page.goto('/account/students')
 
   await expect(page.getByRole('heading', { name: 'Students' })).toBeVisible()
-  await expect(page.getByRole('navigation', { name: /navigation/i }).first()).toBeVisible()
+  const menu = page.getByRole('button', { name: 'Menu', exact: true })
+  if (await menu.isVisible()) {
+    await menu.click()
+    await expect(page.getByRole('navigation', { name: 'Tablet navigation', exact: true })).toBeVisible()
+    await page.keyboard.press('Escape')
+  } else await expect(page.getByRole('navigation', { name: /navigation/i }).first()).toBeVisible()
 
   const manifest = await page.locator('link[rel="manifest"]').getAttribute('href')
   expect(manifest).toBe('/manifest.webmanifest')

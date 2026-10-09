@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-09 — UI-02 explicit routes and role-aware navigation
+
+Add an explicit compatible route registry, verified Owner/Teacher Home and grouped navigation, desktop sidebar, accessible tablet drawer and compact phone bars. Make Account/Sync/device preparation discoverable through existing capabilities while retaining independent offline Attendance. Preserve guarded workspace transitions, native modified links and existing APIs/data. Frontend285/backend268+1903, all152 browser case outcomes and applicable/security gates are green; final review findings are closed and eight original QA bodies preserved. Stop before UI-03. [Evidence and limits](../docs/qa/ui-02-navigation-verification.md).
+
 ## 2026-10-09 — UI-01 harmonized accessible foundations
 
 Apply the approved navy/blue/emerald tokens and shared presentation primitives. Give AuthForm unique field/error relationships, safe focused summaries and pending-submit protection while preserving secrets/transport. Keep Absent and generic status neutral. Frontend246/backend268+1903, all132 browser case outcomes after isolated fixture corrections, and required/security gates pass; no remaining review finding. Preserve all existing human work/data, retain production assets, and stop before UI-02. [Evidence and qualification limits](../docs/qa/ui-01-foundations-verification.md).

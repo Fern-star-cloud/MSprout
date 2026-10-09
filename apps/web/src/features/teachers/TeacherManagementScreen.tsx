@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { components } from '../../api/generated'
 import { authRequest, safeAuthMessage } from '../auth/transport'
+import { useWorkspaceChurchId } from '../../app/workspace-context'
 
 type Teacher = components['schemas']['Teacher']
 type Ministry = components['schemas']['AssignedMinistry']
@@ -8,7 +9,8 @@ type Invitation = components['schemas']['TeacherInvitation']
 type Dialog = { action: 'assign' | 'revoke' | 'transfer'; teacher: Teacher } | null
 
 export function TeacherManagementScreen() {
-  const [church, setChurch] = useState(() => new URLSearchParams(location.search).get('church') ?? '')
+  const workspaceChurch = useWorkspaceChurchId(new URLSearchParams(location.search).get('church') ?? '')
+  const [church, setChurch] = useState(workspaceChurch)
   const [selectedChurch, setSelectedChurch] = useState(church)
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [invitations, setInvitations] = useState<Invitation[]>([])

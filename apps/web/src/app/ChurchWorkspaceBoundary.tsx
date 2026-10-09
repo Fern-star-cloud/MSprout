@@ -3,9 +3,9 @@ import type { components } from '../api/generated'
 import { authRequest } from '../features/auth/transport'
 import { profileStore } from '../offline/profile-store'
 import type { OfflineBootstrap } from '../offline/schema'
-import { ChurchWorkspaceContext, type ChurchWorkspace } from './workspace-context'
+import { ChurchNavigationContext, ChurchWorkspaceContext, type ChurchWorkspace } from './workspace-context'
 
-type State = { kind: 'loading' } | { kind: 'error'; message: string; signIn?: boolean; mfa?: boolean }
+type State = { kind: 'loading' } | { kind: 'device' } | { kind: 'error'; message: string; signIn?: boolean; mfa?: boolean }
   | { kind: 'select'; workspaces: ChurchWorkspace[] }
   | { kind: 'ready'; workspace: ChurchWorkspace; workspaces: ChurchWorkspace[]; actorId: number; assignmentScope: string; source: 'online' | 'offline' }
 
@@ -16,7 +16,7 @@ function failureState(error: unknown): State {
   return { kind: 'error', message: 'The church workspace could not be loaded. Connect and try again.' }
 }
 
-export function ChurchWorkspaceBoundary({ children, allowOffline = false, routeKey = '' }: { children: ReactNode; allowOffline?: boolean; routeKey?: string }) {
+export function ChurchWorkspaceBoundary({ children, allowOffline = false, independent = false, routeKey = '', renderShell }: { children: ReactNode; allowOffline?: boolean; independent?: boolean; routeKey?: string; renderShell?: (content: ReactNode) => ReactNode }) {
   const [state, setState] = useState<State>({ kind: 'loading' })
   const [revision, setRevision] = useState(0)
   const generation = useRef(0)
@@ -31,7 +31,10 @@ export function ChurchWorkspaceBoundary({ children, allowOffline = false, routeK
     const apply = (value: State) => { if (active && run === generation.current) setState(value) }
     void (async () => {
       try {
+        selection.current = new URLSearchParams(location.search).get('church')
         if (!navigator.onLine) {
+          // Attendance remains authorized by its encrypted profile, regardless of the web account.
+          if (independent) { apply({ kind: 'device' }); return }
           if (!allowOffline) throw new Error('Online workspace required')
           const profile = await profileStore.activeProfile()
           if (!profile?.churchId) throw new Error('Unlocked profile required')
@@ -66,7 +69,7 @@ export function ChurchWorkspaceBoundary({ children, allowOffline = false, routeK
       finally { if (run === generation.current) pending.current = false }
     })()
     return () => { active = false }
-  }, [allowOffline, revision, routeKey])
+  }, [allowOffline, independent, revision, routeKey])
 
   useEffect(() => {
     const refresh = (background: boolean) => {
@@ -113,25 +116,35 @@ export function ChurchWorkspaceBoundary({ children, allowOffline = false, routeK
     setState({ kind: 'loading' }); setRevision(value => value + 1)
   }
 
-  // A retained offline profile never substitutes for the destination's web session.
-  if (state.kind === 'ready' && !navigator.onLine && !allowOffline) return <p role="alert">The church workspace could not be loaded. Connect and try again.</p>
+  const requestedChurch = new URLSearchParams(location.search).get('church')
+  const compatible = state.kind !== 'ready' || (requestedChurch
+    ? requestedChurch === state.workspace.church_id
+    : state.workspaces.length <= 1)
   const needsConnectionValidation = state.kind === 'ready' && (navigator.onLine ? state.source === 'offline' : state.source === 'online')
-  if (state.kind === 'loading' || needsConnectionValidation) return <p role="status">Loading church workspace…</p>
-  if (state.kind === 'error') return <section>
+  const error = state.kind === 'error' && <section>
     <p role="alert">{state.message}</p>
     {state.signIn && <a href="/account/login">Sign in</a>}
     {state.mfa && <a href="/account/mfa">Check MFA</a>}
     <button onClick={() => { setState({ kind: 'loading' }); setRevision(value => value + 1) }}>Retry workspace</button>
   </section>
-  const selector = state.workspaces.length > 1 && <label>Church workspace
+  const selector = (state.kind === 'ready' || state.kind === 'select') && state.workspaces.length > 1 && <label>Church workspace
     <select value={state.kind === 'ready' ? state.workspace.church_id : ''} onChange={event => selectChurch(event.target.value)}>
       <option value="">Choose a church</option>
       {state.workspaces.map(item => <option key={item.church_id} value={item.church_id}>{item.name}</option>)}
     </select>
   </label>
-  if (state.kind === 'select') return <section>{selector}</section>
-  return <ChurchWorkspaceContext.Provider value={state.workspace}>
-    {selector}
-    <div key={`${state.actorId}:${state.workspace.church_id}:${state.workspace.role}:${state.assignmentScope}`}>{children}</div>
-  </ChurchWorkspaceContext.Provider>
+  const onlineReady = state.kind === 'ready' && state.source === 'online' && navigator.onLine && compatible
+  const workspace = state.kind === 'ready' && compatible && !needsConnectionValidation ? state.workspace : null
+  let content: ReactNode = null
+  if (independent) content = children
+  else if (!compatible || state.kind === 'loading' || needsConnectionValidation) content = <p role="status">Loading church workspace…</p>
+  else if (state.kind === 'ready' && !navigator.onLine && !allowOffline) content = <p role="alert">The church workspace could not be loaded. Connect and try again.</p>
+  else if (state.kind === 'error') content = error
+  else if (state.kind === 'select') content = <section><p>Choose an authorized church workspace to continue.</p>{!renderShell && selector}</section>
+  else if (state.kind === 'ready') content = <div key={`${state.actorId}:${state.workspace.church_id}:${state.workspace.role}:${state.assignmentScope}`}>{children}</div>
+  return <ChurchNavigationContext.Provider value={{ workspace: onlineReady ? state.workspace : null, assignments: onlineReady ? state.assignmentScope.split(',').filter(Boolean) : [], selector: !independent && compatible ? selector : null }}>
+    <ChurchWorkspaceContext.Provider value={workspace}>
+      {renderShell ? renderShell(content) : <>{state.kind === 'ready' && selector}{content}</>}
+    </ChurchWorkspaceContext.Provider>
+  </ChurchNavigationContext.Provider>
 }

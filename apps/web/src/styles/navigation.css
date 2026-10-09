@@ -1,0 +1,58 @@
+/* UI-02 shell: online roles come from scoped validation; device entry stays independent. */
+.church-shell.application-layout { display: block; min-height: 100vh; }
+.church-shell .wide-layout { display: none; }
+.church-workspace { min-width: 0; }
+.workspace-header { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-4); border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
+.compact-brand { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-width: 0; }
+.compact-brand .brand-link { min-width: 0; min-height: var(--touch-target); }
+.workspace-identity { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); min-width: 0; font-size: var(--font-supporting); }
+.workspace-identity > span:first-child { font-weight: 600; }
+.workspace-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.protected-sync-link { display: inline-flex; align-items: center; min-height: var(--touch-target); font-weight: 600; }
+.tablet-menu { display: none; }
+.church-shell .application-content { padding: var(--space-4) var(--space-4) calc(7rem + env(safe-area-inset-bottom)); }
+.church-shell .phone-navigation { display: grid; grid-auto-flow: row; grid-template-columns: repeat(auto-fit, minmax(3.6rem, 1fr)); overflow: visible; gap: 0; padding: var(--space-2) var(--space-1) calc(var(--space-2) + env(safe-area-inset-bottom)); }
+.phone-count-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.phone-count-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.church-shell .phone-navigation a { display: flex; min-width: 0; min-height: 64px; justify-content: center; align-items: center; flex-direction: column; gap: var(--space-1); padding: var(--space-1) 0; font-size: clamp(.75rem, 3.4vw, .875rem); letter-spacing: -.01em; text-align: center; white-space: normal; overflow-wrap: anywhere; }
+.church-shell .phone-navigation svg { width: 22px; height: 22px; flex-shrink: 0; }
+.church-shell .phone-navigation a[aria-current] { border-bottom: 3px solid var(--color-brand); font-weight: 700; color: var(--color-brand); background: var(--color-brand-soft); }
+.church-shell .wide-navigation a[data-active-group] { background: var(--color-brand-soft); color: var(--color-brand-strong); }
+.destination-list { display: grid; gap: var(--space-2); }
+.destination-list a, .church-home li a { display: flex; align-items: center; min-height: var(--touch-target); padding: var(--space-2) 0; }
+.home-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4); }
+.home-heading h1 { margin: 0; }
+.home-heading p { margin-top: var(--space-2); }
+.action-link { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: var(--space-3) var(--space-4); border-radius: var(--radius-small); background: var(--color-brand); color: white; font-weight: 600; text-decoration: none; }
+.action-link:hover { background: var(--color-brand-strong); }
+.home-actions { display: grid; gap: var(--space-4); margin: var(--space-6) 0; }
+.home-actions .dashboard-card { margin: 0; padding: var(--space-6); }
+.home-actions h2 { margin-top: 0; }
+.home-actions ul { list-style: none; padding: 0; }
+.home-actions li { padding: var(--space-2) 0; }
+.church-shell .ui-dialog:has(.tablet-drawer) { width: min(22rem, calc(100% - var(--space-8))); height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; background: var(--color-navy); color: white; padding: var(--space-6); }
+.tablet-drawer nav { display: grid; gap: var(--space-1); margin-top: var(--space-4); }
+.tablet-drawer a { display: flex; align-items: center; min-height: var(--touch-target); padding: var(--space-2) var(--space-3); border-radius: var(--radius-small); color: white; text-decoration: none; }
+.tablet-drawer a[aria-current="page"] { color: var(--color-brand-strong); background: var(--color-brand-soft); }
+.tablet-drawer .navigation-child { padding-left: var(--space-8); }
+.tablet-drawer .ui-button-secondary { color: white; border-color: white; background: transparent; }
+.tablet-drawer :focus-visible { outline-color: white; }
+@media (min-width: 768px) {
+  .church-shell .phone-navigation { display: none; }
+  .tablet-menu { display: inline-flex; }
+  .compact-brand { width: auto; }
+  .workspace-tools { margin-left: auto; }
+  .church-shell .application-content { padding: var(--space-6); }
+  .home-actions { grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+}
+@media (min-width: 1024px) {
+  .church-shell.application-layout { display: grid; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); }
+  .church-shell .wide-layout { display: flex; gap: var(--space-6); padding: var(--space-6); overflow-y: auto; }
+  .church-shell .wide-layout .brand-link { min-height: var(--touch-target); }
+  .church-shell .wide-navigation .navigation-child { padding-left: var(--space-8); font-size: var(--font-supporting); }
+  .compact-brand { display: none; }
+  .church-shell .application-content { padding: var(--space-8); }
+}
+/* Existing attendance uses its own sticky bar; its tablet offset follows the new shell. */
+@media (min-width: 768px) and (max-width: 1023px) { .church-shell .attendance-finalize-bar { left: 0; } }
+@media (forced-colors: active) { .action-link, .protected-sync-link, .phone-navigation a[aria-current="page"] { border: 2px solid CanvasText; } }

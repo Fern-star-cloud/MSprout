@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import 'fake-indexeddb/auto'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { ApiError } from '../api/client'
 import { authRequest } from '../features/auth/transport'
@@ -120,7 +120,7 @@ it('preserves the encrypted profile attendance route when no online session exis
   history.replaceState(null, '', '/account/attendance')
   render(<App />)
   await screen.findByRole('heading', { name: 'Take attendance' })
-  expect(authRequest).not.toHaveBeenCalled()
+  expect(vi.mocked(authRequest).mock.calls.every(([path]) => path === '/auth/session')).toBe(true)
 })
 
 it.each(['conflicts', 'reports', 'birthdays', 'ministries', 'students', 'imports'])('opens %s with Teacher membership without Owner write controls', async page => {
@@ -295,7 +295,7 @@ it('reuses the workspace and sidebar through Students → Ministries → Reports
     expect(screen.getByRole('heading', { name: heading })).toBeTruthy()
     expect(screen.queryByText('Loading church workspace…')).toBeNull()
     expect(screen.getByRole('navigation', { name: 'Main navigation' })).toBe(sidebar)
-    expect(screen.getAllByRole('link', { name: label })[1].getAttribute('aria-current')).toBe('page')
+    expect(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: label }).getAttribute('aria-current')).toBe('page')
     await act(async () => { resolve({ id: 7, email_verified: true, workspaces } as never) })
   }
   expect(vi.mocked(authRequest).mock.calls.filter(([path]) => path === '/auth/session')).toHaveLength(7)
@@ -315,7 +315,7 @@ it.each(['session', 'membership', 'role', 'mfa'])('fails closed when navigation 
     if (args[0] === '/api/me' && failure === 'mfa') return { id: 7, memberships: [{ church_id: church, role, status: 'active' }], active_session: { mfa_confirmed: false } } as never
     return implementation(...args)
   })
-  fireEvent.click(screen.getAllByRole('link', { name: 'Import' })[1])
+  fireEvent.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Import' }))
   if (failure === 'role') {
     await screen.findByText('Student imports are available only to the church Owner with confirmed MFA.')
     expect(screen.queryByLabelText('Student spreadsheet')).toBeNull()
@@ -331,7 +331,7 @@ it('preserves selected multi-church scope across navigation and gates a real chu
   render(<App />)
   fireEvent.change(await screen.findByLabelText('Church workspace'), { target: { value: church } })
   await screen.findByRole('button', { name: 'Add student' })
-  fireEvent.click(screen.getAllByRole('link', { name: 'Ministries' })[1])
+  fireEvent.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Ministries' }))
   expect(location.search).toBe(`?church=${church}`)
   expect(screen.queryByText('Loading church workspace…')).toBeNull()
   expect(screen.getByLabelText<HTMLSelectElement>('Church workspace').value).toBe(church)
@@ -354,7 +354,7 @@ it('does not reuse offline Birthdays authorization for an online-only module', a
   render(<App />)
   await screen.findByRole('heading', { name: "Today's Birthdays" })
   vi.mocked(authRequest).mockClear()
-  fireEvent.click(screen.getAllByRole('link', { name: 'Students' })[1])
+  history.pushState(null, '', '/account/students'); fireEvent(window, new PopStateEvent('popstate'))
   expect(screen.queryByRole('heading', { name: 'Students' })).toBeNull()
   await screen.findByRole('alert')
   expect(authRequest).not.toHaveBeenCalled()
@@ -367,14 +367,14 @@ it('does not apply a superseded navigation response or resurrect content after l
   const implementation = vi.mocked(authRequest).getMockImplementation()!
   let oldResolve!: (value: never) => void
   vi.mocked(authRequest).mockImplementationOnce(() => new Promise(done => { oldResolve = done }))
-  fireEvent.click(screen.getAllByRole('link', { name: 'Ministries' })[1])
-  fireEvent.click(screen.getAllByRole('link', { name: 'Reports' })[1])
+  fireEvent.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Ministries' }))
+  fireEvent.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Reports' }))
   await screen.findByRole('heading', { name: 'Attendance reports' })
   await act(async () => { oldResolve({ id: 7, email_verified: true, workspaces: [] } as never) })
   expect(screen.getByRole('heading', { name: 'Attendance reports' })).toBeTruthy()
   vi.mocked(authRequest).mockImplementation((...args) => args[0] === '/auth/session'
     ? new Promise(done => { oldResolve = done }) : implementation(...args))
-  fireEvent.click(screen.getAllByRole('link', { name: 'Import' })[1])
+  fireEvent.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Import' }))
   fireEvent(window, new CustomEvent('church-workspace-invalidated', { detail: { status: 401 } }))
   expect(screen.queryByRole('heading', { name: 'Import students' })).toBeNull()
   await act(async () => { oldResolve({ id: 7, email_verified: true, workspaces } as never) })
@@ -400,7 +400,7 @@ it('validates a different authorized church before mounting its destination data
   expect(screen.getByLabelText<HTMLSelectElement>('Church workspace').value).toBe(other)
 })
 
-it('preserves native modified clicks and navigation outside the shared workspace', async () => {
+it('preserves native modified clicks and routes ordinary Attendance navigation independently', async () => {
   history.replaceState(null, '', '/account/students')
   render(<App />)
   await screen.findByRole('heading', { name: 'Students' })
@@ -408,14 +408,14 @@ it('preserves native modified clicks and navigation outside the shared workspace
   const observe = (event: Event) => { prevented.push(event.defaultPrevented); event.preventDefault() }
   window.addEventListener('click', observe)
   try {
-    fireEvent.click(screen.getAllByRole('link', { name: 'Ministries' })[1], { ctrlKey: true })
-    fireEvent.click(screen.getAllByRole('link', { name: 'Attendance' })[1])
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Ministries' }), { ctrlKey: true })
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Attendance' }))
   } finally { window.removeEventListener('click', observe) }
-  expect(prevented).toEqual([false, false])
-  expect(location.pathname).toBe('/account/students')
+  expect(prevented).toEqual([false, true])
+  expect(location.pathname).toBe('/account/attendance')
   history.pushState(null, '', '/account/attendance')
   vi.mocked(authRequest).mockClear()
   fireEvent(window, new PopStateEvent('popstate'))
   await screen.findByRole('heading', { name: 'Take attendance' })
-  expect(authRequest).not.toHaveBeenCalled()
+  expect(vi.mocked(authRequest).mock.calls.every(([path]) => ['/auth/session', '/api/me'].includes(path))).toBe(true)
 })

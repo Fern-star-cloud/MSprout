@@ -1,5 +1,9 @@
 # Architecture
 
+## Explicit routes and independently authorized device presentation
+
+UI-02 replaces suffix inference with `app/routes.ts`, ordinary same-origin history navigation and compatibility aliases. `ChurchWorkspaceBoundary` supplies existing scoped module context plus a separate online-only navigation context. Its generation/invalidation checks and actor/church/role/assignment subtree key govern protected data; URL scope withdrawal hides old content immediately. Device destinations render independently while optional account assurance supplies navigation only. Offline encrypted profiles supply no new persisted role/name projection. Teacher Home intersects existing authorized ministry data with validated assignment IDs. `ChurchShell` composes role navigation, native tablet dialog and responsive phone/desktop layouts; public church/platform authentication and platform guards remain separate. [Scope and proof](../docs/qa/ui-02-navigation-verification.md).
+
 ## Shared presentation foundations
 
 UI-01 adds `apps/web/src/components/ui/Foundations.tsx` and semantic CSS/tokens for reusable controls, field errors, feedback, native modal focus management, keyboard tabs and responsive containers. AuthForm composes these presentation primitives; API transport, server assurance, role/tenant boundaries and offline stores remain unchanged. In-memory browser examples are test-only and do not add application routes. [Usage](../apps/web/src/components/ui/README.md), [verified scope](../docs/qa/ui-01-foundations-verification.md).

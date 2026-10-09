@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { addProfile, bootstrap, churchId, json, ministryId, mockCsrf, outboxCount } from './support'
+import { openChurchDestination } from './navigation-support'
 
 test.use({ serviceWorkers: 'block' })
 
@@ -85,15 +86,17 @@ test('online profile use logs out a recent session; signing in afterward opens R
   await page.getByRole('button', { name: 'Use profile 1' }).click()
   await expect(page.getByText(/3 pending/)).toBeVisible()
   await expect(page.getByText('Pilot Offline Guest', { exact: true })).toBeVisible()
-  expect(authentication.at(-1)).toBe('logout:204')
+  expect(authentication.filter(event => event === 'logout:204')).toHaveLength(1)
   expect(await outboxCount(page)).toBe(3)
   expect(await localWorkFingerprint(page)).toBe(work)
 
-  await page.getByRole('link', { name: 'Review', exact: true }).first().click()
+  // Unverified/Teacher navigation no longer exposes Owner Review. Home is a protected online entry.
+  await openChurchDestination(page, 'Home', 'teacher')
   await expect(page.getByRole('alert')).toContainText('Please sign in again to open your church workspace')
   expect(authentication.at(-1)).toBe('session:401')
+  const denied = authentication.filter(event => event === 'session:401').length
   await page.evaluate(() => window.dispatchEvent(new Event('focus')))
-  await expect.poll(() => authentication.filter(event => event === 'session:401').length).toBe(2)
+  await expect.poll(() => authentication.filter(event => event === 'session:401').length).toBe(denied + 1)
 
   // Reauthentication follows profile selection; do not select the profile again afterward.
   await signIn()

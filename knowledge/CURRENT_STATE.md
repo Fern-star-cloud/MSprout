@@ -1,5 +1,15 @@
 # Current State
 
+## UI-02 explicit routes and role navigation — 2026-10-09
+
+Selected continuation from UI-01 GREEN: `38bf11dc025fc898cbd1c2f8d4be8499c0f1a178`, committed/pushed on `feat/mvp-foundation`, live tracking HEAD equal and ahead/behind0/0 at entry. UI-01 had no unresolved task blocker. [Approved scope](../docs/superpowers/plans/2026-10-09-uiux-implementation-roadmap.md), [UI-02 verification](../docs/qa/ui-02-navigation-verification.md).
+
+UI-02 is implemented and validated before its single reviewed finalization. An explicit registry preserves canonical/short/device/auth URLs and rejects unknown suffixes. Verified Owner/Teacher navigation uses desktop sidebar≥1024, tablet drawer768–1023 and compact phone bars. Home uses supported next actions and authorized assigned ministries. Account, Sync/device, preparation, People and More are entries to existing capabilities; no later workflow is implemented. Online identity requires session plus scoped membership/assurance; independent Attendance never waits for it. Removing a multi-church URL selection clears prior protected presentation immediately.
+
+Actual proof: frontend **285 tests/42 files**, serial isolated backend **268 tests/1903 assertions**, all **152 browser outcomes green** (149/152 final matrix plus12/12 affected-scenario rerun; 20 UI-02 cases), required types/lint/build/Pint/contract/structure/validation/audits/secret/OWASP gates pass. Final source review and remediation queue have no remaining BLOCKING/SHOULD FIX finding. Initial browser fixtures are corrected without weakening wire/session/preservation assertions; see evidence for anonymous local-read diagnosis and exact invalidation limits. Physical devices, human screen-reader operation and actual400% zoom remain unverified; A2 assets remain gated.
+
+No backend/API/schema/dependency/cryptography/persistence/sync algorithm or manifest/update-policy change. The six original tracked QA/environment bodies and two untracked MT-02 documents remain outside the task commit, protected by exact-byte checks and restored with only additive task knowledge after clean finalization. Resolve the commit by subject `feat: add explicit routes and role-aware church navigation` and verify its SHA/normal feature synchronization through Git. MVP Tasks1–18/UI-01 remain intact, main unchanged, **UI-03–UI-16 unstarted**. Stop after UI-02; no deployment.
+
 ## UI-01 harmonized visual foundations — 2026-10-09
 
 The approved redesign starts with UI-01 only from synchronized `feat/mvp-foundation` / `2fb9f2a`. Shared navy/blue/emerald tokens, semantic controls/statuses, accessible dialogs/tabs and responsive containers are implemented. AuthForm now supplies unique field/error IDs, safe focused error summaries and duplicate-submit protection while preserving transport and secret clearing. [Approved sequence](../docs/superpowers/plans/2026-10-09-uiux-implementation-roadmap.md), [verification and limits](../docs/qa/ui-01-foundations-verification.md).

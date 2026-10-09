@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { churchId, otherChurchId, json, expectNoSeriousAccessibilityIssues } from './support'
+import { openChurchDestination } from './navigation-support'
 
 test.use({ serviceWorkers: 'block' })
 
@@ -33,12 +34,16 @@ for (const role of ['owner', 'teacher'] as const) {
     await expect(page.getByRole('heading', { name: 'Students', exact: true })).toBeVisible()
     await page.evaluate(() => { document.documentElement.setAttribute('data-workspace-document', 'retained') })
     const wideNavigation = page.getByRole('navigation', { name: 'Main navigation', exact: true })
-    const navigationProof = await wideNavigation.isVisible() ? wideNavigation : page.getByRole('navigation', { name: 'Phone navigation', exact: true })
+    const phoneNavigation = page.getByRole('navigation', { name: 'Phone navigation', exact: true })
+    const navigationProof = await wideNavigation.isVisible() ? wideNavigation : await phoneNavigation.isVisible() ? phoneNavigation : page.locator('.workspace-header')
     await navigationProof.evaluate(element => { element.setAttribute('data-workspace-sidebar', 'retained') })
     for (const [label, heading] of [['Review', 'Attendance review'], ['Reports', 'Attendance reports'], ['Birthdays', "Today's Birthdays"], ['Ministries', 'Ministries'], ['Students', 'Students'], ['Import', 'Import students']]) {
-      const navigation = page.getByRole('navigation', { name: 'Main navigation', exact: true })
-      const phone = page.getByRole('navigation', { name: 'Phone navigation', exact: true })
-      await (await navigation.isVisible() ? navigation : phone).getByRole('link', { name: label, exact: true }).click()
+      if (role === 'teacher' && (label === 'Review' || label === 'Import')) {
+        // UI-02 removes Owner destinations from Teacher navigation; legacy direct routes remain guarded.
+        await expect(page.getByRole('link', { name: label, exact: true })).toHaveCount(0)
+        const path = label === 'Review' ? '/account/conflicts' : '/account/imports'
+        await page.evaluate(path => { history.pushState(null, '', path); window.dispatchEvent(new PopStateEvent('popstate')) }, path)
+      } else await openChurchDestination(page, label, role)
       await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible()
       await expect(page.locator('html')).toHaveAttribute('data-workspace-document', 'retained')
       await expect(navigationProof).toHaveAttribute('data-workspace-sidebar', 'retained')

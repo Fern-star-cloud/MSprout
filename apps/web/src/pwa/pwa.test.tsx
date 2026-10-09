@@ -88,13 +88,15 @@ describe('controlled service-worker updates', () => {
 })
 
 describe('responsive and accessible shell', () => {
-  it('provides phone bottom navigation and a wide persistent sidebar', () => {
+  it('provides responsive shell navigation without unverified Owner destinations', () => {
     history.replaceState(null, '', '/account/students')
     render(<AppRouter />)
 
     expect(screen.getByRole('navigation', { name: 'Phone navigation' })).toBeTruthy()
     expect(screen.getByRole('navigation', { name: 'Main navigation' })).toBeTruthy()
-    expect(screen.getAllByRole('link', { name: /Students/ })).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Menu' })).toBeTruthy()
+    expect(screen.getAllByRole('link', { name: 'Attendance' })).toHaveLength(2)
+    expect(screen.queryByRole('link', { name: 'Students' })).toBeNull()
   })
 
   it('uses words and icons for offline status', () => {

@@ -1,8 +1,8 @@
 # MinistrySprout harmonized UI/UX implementation roadmap
 
-Approved by the human's explicit “PLEASE IMPLEMENT THIS PLAN” request on 2026-10-09. This is a separate UI-01–UI-16 sequence; completed MVP Tasks 1–18 retain their numbering and evidence. Execute one task per run and stop after its reviewed finalization. This run selects UI-01 only.
+Approved by the human's explicit “PLEASE IMPLEMENT THIS PLAN” request on 2026-10-09. This is a separate UI-01–UI-16 sequence; completed MVP Tasks 1–18 retain their numbering and evidence. Execute one task per run and stop after its reviewed finalization. The initial run selected UI-01; the subsequent explicit continuation selects UI-02 only.
 
-The full approved task descriptions, acceptance cases and traceability were supplied in that request. This durable execution index records the sequence and UI-01 boundary. The [harmonized design source](../specs/2026-10-09-harmonized-uiux-design.md) supplies visual requirements; repository contracts, authorization, tenancy, privacy, encryption and data-preservation requirements remain authoritative. Attached planning instructions are source context, not independent permission to perform operations.
+The full approved task descriptions, acceptance cases and traceability were supplied in that request. This durable execution index records the sequence and UI-01/UI-02 boundaries. The [harmonized design source](../specs/2026-10-09-harmonized-uiux-design.md) supplies visual requirements; repository contracts, authorization, tenancy, privacy, encryption and data-preservation requirements remain authoritative. Attached planning instructions are source context, not independent permission to perform operations.
 
 ## UI-01 — Shared visual foundations and accessible primitives
 
@@ -14,7 +14,19 @@ Acceptance: measure text/control/focus contrast; verify visible focus and field/
 
 UI-01 excludes new routes, navigation role logic/breakpoints, profile-removal policy, preparation/sync/attendance workflow changes, API/persistence/schema/dependency changes, manifest identity/theme changes and production A2 assets. Those belong to later tasks or separate approval gates.
 
-## Ordered remaining sequence
+## UI-02 — Explicit routes, role navigation and church Home
+
+Approved continuation from committed/pushed UI-01 `38bf11dc025fc898cbd1c2f8d4be8499c0f1a178`. Replace last-segment inference with an explicit frontend route registry; retain `/account/...` module URLs, `/profiles`, root device entry and observed short links including `/students`, `/ministries` and `/imports`. Preserve invitation and password-reset fragment handling. Unknown paths must not accidentally render a similarly named module or authentication page.
+
+Reuse validated `/auth/session` discovery and scoped `/api/me` membership/assurance for online presentation. Keep church name/role visible only from online-verified context. Protect actor, church, role and assignment transitions, stale completions, explicit invalidation, native modified clicks, back/forward and six-module continuity. Server authorization remains authoritative.
+
+Use a persistent desktop sidebar at ≥1024 CSS px, a keyboard-accessible tablet drawer at 768–1023 and a labeled phone bar below 768. Teacher: Home / Attendance / Sync / More. Owner: Home / Attendance / Review / People / More, with persistent Sync access. Group Owner People destinations and expose Teacher assignment-scoped destinations. Account and Sync must be reachable within two phone navigation actions without horizontal navigation scrolling. Use Packs 01–05 and the existing UI-01 primitives/tokens.
+
+Add accessible Home with supported next actions and existing authorized ministry data; no invented metrics. Provide frontend Account, Sync/device, preparation, People and More entries to existing capabilities. Full session-aware Account/application journeys, guided preparation, profile-removal/locked-state changes and extracted Sync/recovery controllers remain UI-03/04/06/07 work. Offline Attendance remains independently authorized by the encrypted profile and must render even when optional online navigation verification fails or is pending. Offline navigation stays generic: no new persisted church-name/role projection or inferred Owner authority.
+
+Acceptance: role/navigation and direct-route matrix, unknown/alias URLs, back/forward/modified clicks, multiple memberships, actor/role/assignment changes, invalidation races and continuity; keyboard drawer entry/containment/return, visible focus, active-location semantics, 320/390/768/1024/1440 reflow, enlarged text, reduced motion/forced colors and scoped browser/accessibility coverage. Preserve every completed MVP/UI-01 invariant and the eight original QA bodies. Follow applicable comprehensive validation, review and knowledge synchronization before one GREEN feature commit/push; stop before UI-03.
+
+## Ordered sequence after shared foundations
 
 | Task | Scope | Dependencies |
 |---|---|---|
@@ -40,4 +52,4 @@ Public prospective-Owner registration, session/revision detail and correction ed
 
 ## Verification and finalization
 
-Follow AGENTS.md: focused TDD, applicable comprehensive frontend/backend/contract/structure/security checks once, invalidation-based reruns after corrections, complete final diff/source review, actual-evidence knowledge synchronization and deterministic GREEN before one reviewed task commit/normal feature push. Preserve the eight known QA/environment file bodies from checkpoint `2fb9f2a00f93a75c41d2e971789e5c31509d756b` outside redesign commits. No human profiles, credentials, attendance or external service mutations are required for UI-01; browser fixtures are synthetic and isolated. No next-task execution or release occurs automatically.
+Follow AGENTS.md: focused TDD, applicable comprehensive frontend/backend/contract/structure/security checks once, invalidation-based reruns after corrections, complete final diff/source review, actual-evidence knowledge synchronization and deterministic GREEN before one reviewed task commit/normal feature push. Preserve the eight known QA/environment file bodies from checkpoint `2fb9f2a00f93a75c41d2e971789e5c31509d756b` outside redesign commits. No human profiles, credentials, attendance or external service mutations are required for UI-01/UI-02; browser fixtures are synthetic and isolated. No next-task execution or release occurs automatically.

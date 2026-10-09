@@ -38,6 +38,7 @@ test('two encrypted PIN profiles keep assigned rosters and actors separate', asy
 })
 
 test('a simulated storage quota failure stops attendance before claiming success', async ({ page, context }) => {
+  await mockCsrf(context)
   await context.route('**/api/offline/bootstrap**', route => json(route, bootstrap('11', undefined, new URL(route.request().url()).searchParams.get('device_id')!)))
   await page.goto(`/profiles?church=${churchId}`)
   await page.getByRole('button', { name: 'Add profile' }).click()

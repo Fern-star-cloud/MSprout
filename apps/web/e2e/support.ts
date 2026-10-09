@@ -36,6 +36,9 @@ export async function mockOwner(context: BrowserContext) {
 }
 
 export async function mockCsrf(context: BrowserContext) {
+  // Device-only fixtures keep UI-02's optional account read inside this synthetic context.
+  // Tests for a verified session register their more specific response afterward.
+  await context.route('**/auth/session', route => json(route, { code: 'unauthenticated' }, 401))
   await context.addCookies([{ name: 'XSRF-TOKEN', value: 'pilot-token', url: 'http://127.0.0.1:4173' }])
   await context.route('**/sanctum/csrf-cookie', route => route.fulfill({ status: 204 }))
 }

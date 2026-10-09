@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { components } from '../../api/generated'
 import { authRequest, safeAuthMessage } from '../auth/transport'
+import { useWorkspaceChurchId } from '../../app/workspace-context'
 
 const labels: Record<string, string> = {
   'teacher.invited': 'Teacher invited', 'invitation.accepted': 'Invitation accepted', 'invitation.revoked': 'Invitation revoked',
@@ -15,7 +16,8 @@ const labels: Record<string, string> = {
 }
 
 export function AuditScreen({ platform = false }: { platform?: boolean }) {
-  const [church, setChurch] = useState(() => new URLSearchParams(location.search).get('church') ?? '')
+  const workspaceChurch = useWorkspaceChurchId(new URLSearchParams(location.search).get('church') ?? '')
+  const [church, setChurch] = useState(platform ? '' : workspaceChurch)
   const [input, setInput] = useState(church)
   const [page, setPage] = useState(1)
   const [data, setData] = useState<components['schemas']['AuditPage'] | null>(null)
