@@ -7,6 +7,7 @@ test('verified application, platform approval, Owner MFA, roster setup, and Teac
   test.setTimeout(60_000)
   await mockCsrf(context)
   await context.route('**/platform/csrf-token', route => json(route, { csrf_token: 'pilot-platform-token' }))
+  await context.route('**/platform/me', route => json(route, { handle: 'sage.dev', online_only: true }))
   await page.addInitScript(() => {
     Object.defineProperty(window, 'turnstile', { value: {
       render: (_element: HTMLElement, options: { callback(token: string): void }) => { options.callback('pilot-captcha'); return 'pilot-widget' },

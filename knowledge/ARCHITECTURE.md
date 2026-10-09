@@ -1,5 +1,9 @@
 # Architecture
 
+## Verified separate Platform presentation — 2026-10-10
+
+PlatformSessionBoundary protects every supported platform review/Account route with the existing authoritative /platform/me response. Strict handle/online-only projection complements server MFA/active/verified/recovery checks; route guards remain server-enforced. Separate Platform shell uses no church navigation context or device storage. Route/session generations and a fresh resource subtree discard invalidated responses. Platform-only transport lifecycle events clear presentation before logout CSRF and distinguish completed/uncertain outcomes without revoking church authority. Online-only setup clears pending keys/codes on invalidation and truthfully guides private-invitation recovery. Existing platform-login serves Account after verification; successful login/activation prefers Applications. [Evidence](../docs/qa/ui-05-platform-shell-verification.md).
+
 ## Session-aware Account and application presentation — 2026-10-10
 
 UI-04 reads existing AccountSession/current-application contracts and validates presentation state fail closed. Account distinguishes enrollment from current-session assurance; church Home retains authoritative membership/MFA gating. Internal return links are canonical/allowlisted and require explicit continuation. Application inputs stay in component memory, clear on actor change and never enter device storage. Generation guards discard invalidated session/status/authentication completions, including setup keys/recovery codes. Unknown application mutations reconcile through existing GET before retry; uncertain invitation redemption stops repeats and requests existing Account/Owner verification. Production Cloudflare widget/action and server validation remain authoritative. No new API/schema/authentication permission or storage change. [Evidence](../docs/qa/ui-04-account-application-verification.md).

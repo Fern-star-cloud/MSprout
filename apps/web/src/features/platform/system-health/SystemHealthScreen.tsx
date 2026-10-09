@@ -15,7 +15,7 @@ export function SystemHealthScreen() {
   const [online, setOnline] = useState(navigator.onLine)
 
   useEffect(() => {
-    const update = () => { setOnline(navigator.onLine); setHealth(null); setLoading(true) }
+    const update = () => { const connected = navigator.onLine; setOnline(connected); if (!connected) { setHealth(null); setLoading(true) } }
     window.addEventListener('online', update); window.addEventListener('offline', update)
     return () => { window.removeEventListener('online', update); window.removeEventListener('offline', update) }
   }, [])

@@ -42,6 +42,10 @@ function invalidateWorkspace(status: number, churchId?: string): void {
   globalThis.dispatchEvent?.(new CustomEvent('church-workspace-invalidated', { detail: { status, churchId } }))
 }
 
+function invalidatePlatform(status: number, reason?: string): void {
+  globalThis.dispatchEvent?.(new CustomEvent('platform-session-invalidated', { detail: { status, ...(reason ? { reason } : {}) } }))
+}
+
 function invalidateDeniedRequest(error: unknown, churchId?: string): void {
   if (error instanceof ApiError && ([401, 419].includes(error.status) || (error.status === 403 && churchId))) {
     invalidateWorkspace(error.status, churchId)
@@ -53,6 +57,8 @@ export async function authRequest<T = Record<string, unknown>>(
 ): Promise<T> {
   if (globalThis.navigator?.onLine === false) throw new Error('Connect to the internet and try again.')
   if (!path.startsWith('/') || path.startsWith('//') || path.includes('\\')) throw new Error('Invalid authentication path')
+  const platformLogout = path === '/platform/logout' && method === 'POST'
+  if (platformLogout) invalidatePlatform(0, 'logout-started')
   const headers: Record<string, string> = {
     Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-Correlation-Id': crypto.randomUUID(),
   }
@@ -75,6 +81,7 @@ export async function authRequest<T = Record<string, unknown>>(
       headers['Content-Type'] = 'application/json'
     }
     const result = await readResponse(await fetch(path, { ...options, method, headers, body: body ? JSON.stringify(body) : undefined })) as T
+    if (platformLogout) invalidatePlatform(401, 'logout')
     if (!path.startsWith('/platform/') && method !== 'GET') {
       if (path === '/logout' || path === '/api/ownership-transfer') invalidateWorkspace(401)
       else if (['/login', '/two-factor-challenge', '/user/confirmed-two-factor-authentication', '/user/profile-information', '/user/password'].includes(path)
@@ -82,7 +89,10 @@ export async function authRequest<T = Record<string, unknown>>(
     }
     return result
   } catch (error) {
-    if (!path.startsWith('/platform/')) invalidateDeniedRequest(error, churchId)
+    if (path.startsWith('/platform/')) {
+      if (platformLogout) invalidatePlatform(0, 'logout-uncertain')
+      else if (error instanceof ApiError && [401,403,419].includes(error.status)) invalidatePlatform(error.status)
+    } else invalidateDeniedRequest(error, churchId)
     throw error
   }
 }

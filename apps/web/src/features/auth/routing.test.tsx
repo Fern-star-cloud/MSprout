@@ -20,6 +20,13 @@ it.each([
   ['/account/reports', 'Attendance reports'],
   ['/account/teacher-invitation', 'Teacher invitation'],
 ])('opens %s from a direct browser visit', async (path, heading) => {
+  if (path === '/account/platform-login' || path === '/account/platform-applications') {
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async endpoint => {
+      if (endpoint === '/platform/me') return path === '/account/platform-login'
+        ? Response.json({}, { status: 401 }) : Response.json({ handle: 'sage.dev', online_only: true })
+      return Response.json({ data: [], has_more: false })
+    }))
+  }
   if (path === '/account/reports' || path === '/account/teachers') {
     const church = '11111111-1111-4111-8111-111111111111'
     vi.stubGlobal('fetch', vi.fn().mockImplementation(async endpoint => {

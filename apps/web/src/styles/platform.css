@@ -1,0 +1,37 @@
+/* UI-05: platform assurance and navigation are independent of the church shell. */
+.platform-shell { min-height: 100vh; }
+.platform-sidebar, .platform-menu { display: none; }
+.platform-workspace, .platform-brand { min-width: 0; }
+.platform-header { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-4); background: var(--color-navy); color: white; }
+.platform-header .brand-link, .platform-tools > a { color: white; }
+.platform-brand, .platform-identity, .platform-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.platform-brand { width: 100%; }
+.platform-identity > span { font-weight: 600; }
+.platform-tools > a { display: inline-flex; align-items: center; min-height: var(--touch-target); }
+.platform-header .ui-button-secondary, .platform-drawer .ui-button-secondary { background: transparent; border-color: white; color: white; }
+.platform-header :focus-visible, .platform-sidebar :focus-visible, .platform-drawer :focus-visible { outline-color: white; }
+.platform-content { padding: var(--space-4) var(--space-4) calc(7rem + env(safe-area-inset-bottom)); }
+.platform-content main { width: min(100%, 72rem); margin: 0 auto; }
+.platform-content .auth-card { max-width: none; }
+.platform-phone-navigation { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); position: fixed; z-index: 10; left: 0; right: 0; bottom: 0; padding: var(--space-2) var(--space-1) calc(var(--space-2) + env(safe-area-inset-bottom)); border-top: 1px solid var(--color-border); background: var(--color-surface); }
+.platform-phone-navigation a { min-height: var(--touch-target); display: flex; align-items: center; justify-content: center; padding: var(--space-2); color: var(--color-ink); text-align: center; text-decoration: none; font-size: var(--font-supporting); overflow-wrap: anywhere; }
+.platform-phone-navigation a[aria-current] { color: var(--color-brand-strong); background: var(--color-brand-soft); border-bottom: 3px solid var(--color-brand); font-weight: 600; }
+.platform-shell .ui-dialog:has(.platform-drawer) { width: min(22rem,calc(100% - var(--space-8))); height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; background: var(--color-navy); color: white; }
+.platform-drawer nav, .platform-sidebar nav { display: grid; gap: var(--space-2); margin-top: var(--space-4); }
+.platform-drawer nav a, .platform-sidebar nav a { display: flex; align-items: center; min-height: var(--touch-target); padding: var(--space-3); border-radius: var(--radius-small); color: white; text-decoration: none; }
+.platform-drawer a[aria-current], .platform-sidebar a[aria-current] { color: var(--color-brand-strong); background: var(--color-brand-soft); font-weight: 600; }
+@media (min-width:768px) {
+ .platform-phone-navigation { display: none; }
+ .platform-menu { display: inline-flex; }
+ .platform-brand { width: auto; }
+ .platform-tools { margin-left: auto; }
+ .platform-content { padding: var(--space-6); }
+}
+@media (min-width:1024px) {
+ .platform-shell { display: grid; grid-template-columns: var(--sidebar-width) minmax(0,1fr); }
+ .platform-sidebar { display: flex; flex-direction: column; gap: var(--space-4); position: sticky; top: 0; height: 100dvh; align-self: start; overflow-y: auto; padding: var(--space-6); background: var(--color-navy); color: white; }
+ .platform-sidebar .brand-link { color: white; }
+ .platform-brand { display: none; }
+ .platform-content { padding: var(--space-8); }
+}
+@media (forced-colors:active) { .platform-phone-navigation a[aria-current], .platform-sidebar a[aria-current], .platform-drawer a[aria-current] { border: 2px solid CanvasText; } }

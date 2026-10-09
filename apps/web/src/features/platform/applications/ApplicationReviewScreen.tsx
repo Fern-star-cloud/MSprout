@@ -16,7 +16,7 @@ export function ApplicationReviewScreen() {
   const [revision, setRevision] = useState(0)
   const [online, setOnline] = useState(navigator.onLine)
   useEffect(() => {
-    const update = () => { setOnline(navigator.onLine); setSelected(null); setItems([]) }
+    const update = () => { const connected = navigator.onLine; setOnline(connected); if (!connected) { setSelected(null); setItems([]) } }
     window.addEventListener('online', update); window.addEventListener('offline', update)
     return () => { window.removeEventListener('online', update); window.removeEventListener('offline', update) }
   }, [])

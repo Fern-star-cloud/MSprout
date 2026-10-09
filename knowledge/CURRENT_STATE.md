@@ -1,5 +1,15 @@
 # Current State
 
+## UI-05 separate Platform shell and session lifecycle — 2026-10-10
+
+UI-01–UI-04 are GREEN and finalized; UI-04 HEAD/live tracking at entry was `abd1ee9c27f8e8b5b3c446d86b1b4485c0379d88`, feature0/0, main unchanged at5dcbfeb. UI-05 is implemented, validated and reviewed before its single task finalization on `feat/mvp-foundation`. [Verification](../docs/qa/ui-05-platform-shell-verification.md). Resolve finalization through commit subject `feat: add verified platform shell and session lifecycle` and Git; this receipt precedes commit creation.
+
+Platform routes now use a separate online-only shell. Existing /platform/me verifies active, verified, recovery-acknowledged current-session MFA before protected navigation/resources. Applications is the verified authentication landing. Existing platform-login is the session-aware Platform Account destination; Account/sign-out remain discoverable with desktop sidebar, tablet modal drawer and labeled phone navigation. Route changes, expiry/denial, logout and offline clear protected presentation and discard stale session/resource/setup completions. Unknown logout remains private until deliberate session verification; repeated connectivity events cannot strand the shell or empty verified resources. Platform events/cookies/CSRF stay separate from church authority and encrypted local work.
+
+Actual proof: focused **69 tests/8 files**, final frontend **380/48**, serial isolated backend **268/1903**, all **120 unique browser outcomes**, including32 new Platform outcomes. Types/lint/production-PWA build/contract/structure/Pint/Composer validation/audits/whitespace and secret/OWASP gates pass. Platform/auth/audit/health/session/tenancy OWASP99 rules/102 targets/zero findings; final fixture delta76/3/zero findings/errors/~100% parsed. Four unchanged generic mock parse spans reviewed; all production parsed. No BLOCKING or SHOULD FIX finding remains.
+
+No backend/API/schema/permission/dependency/persistence/crypto/sync/governance changes or UI-14 decision-workflow expansion. Eight original QA/environment bodies remain hash-preserved outside the task commit, with only additive UI-05 knowledge. No human account/profile/attendance/storage was operated on. Browser fixtures are isolated and synthetic; physical devices, human screen readers, actual400% zoom, live external CAPTCHA commissioning and hosted CI execution remain unverified. **UI-06–UI-16 are NOT STARTED; stop after UI-05.**
+
 ## UI-04 church Account, assurance and application — 2026-10-10
 
 UI-01–UI-03 are GREEN and finalized; UI-03 HEAD/live tracking at entry was `7332b1a6236f6efa79f1f0a03aac428395dce33d`, feature ahead/behind0/0, main unchanged at5dcbfeb. UI-04 is implemented, validated and reviewed before its single task finalization on `feat/mvp-foundation`. [Verification](../docs/qa/ui-04-account-application-verification.md). Resolve finalization through commit subject `feat: improve church account assurance and application journeys` and Git; this receipt precedes commit creation.

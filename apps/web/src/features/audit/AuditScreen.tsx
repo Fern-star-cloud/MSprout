@@ -26,7 +26,7 @@ export function AuditScreen({ platform = false }: { platform?: boolean }) {
   const [online, setOnline] = useState(navigator.onLine)
 
   useEffect(() => {
-    const update = () => { setOnline(navigator.onLine); setData(null); setLoading(true) }
+    const update = () => { const connected = navigator.onLine; setOnline(connected); if (!connected) { setData(null); setLoading(true) } }
     window.addEventListener('online', update); window.addEventListener('offline', update)
     return () => { window.removeEventListener('online', update); window.removeEventListener('offline', update) }
   }, [])

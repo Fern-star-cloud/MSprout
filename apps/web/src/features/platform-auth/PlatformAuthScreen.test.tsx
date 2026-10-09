@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { PlatformAuthScreen } from './PlatformAuthScreen'
 import { authRequest } from '../auth/transport'
@@ -46,4 +46,17 @@ it('rejects an external setup link without sending any request', () => {
   render(<PlatformAuthScreen setup fragment={encodeURIComponent('https://attacker.test/platform/setup/11111111-1111-4111-8111-111111111111?expires=1&signature=a')} />)
   expect(screen.getByRole('alert').textContent).toContain('valid setup link')
   expect(authRequest).not.toHaveBeenCalled()
+})
+
+it('does not revive a late setup secret after going offline and returning online',async()=>{
+ const invitation='/platform/setup/11111111-1111-4111-8111-111111111111?generation=2&expires=123&signature=abc'
+ let release!:(value:unknown)=>void
+ vi.mocked(authRequest).mockImplementation(()=>new Promise(resolve=>{release=resolve}))
+ render(<PlatformAuthScreen setup fragment={encodeURIComponent(location.origin+invitation)}/>)
+ fireEvent.change(screen.getByLabelText('New password'),{target:{value:crypto.randomUUID()}})
+ fireEvent.change(screen.getByLabelText('Confirm new password'),{target:{value:crypto.randomUUID()}})
+ fireEvent.click(screen.getByRole('button',{name:'Begin secure setup'}));await waitFor(()=>expect(release).toBeTypeOf('function'))
+ await act(async()=>{fireEvent(window,new Event('offline'));release({secret:'late-private-key',recovery_codes:['late-private-code'],qr_code:''})})
+ fireEvent(window,new Event('online'))
+ expect(screen.queryByText('late-private-key')).toBeNull();expect(screen.queryByText('late-private-code')).toBeNull()
 })

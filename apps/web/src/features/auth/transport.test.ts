@@ -71,6 +71,40 @@ it('uses the isolated platform CSRF token rather than the church token', async (
   expect(fetcher.mock.calls[1][1].headers['X-XSRF-TOKEN']).toBeUndefined()
 })
 
+it.each([401,403,419])('invalidates only platform presentation on platform HTTP %s denial',async status=>{
+ const platform=vi.fn(),church=vi.fn()
+ window.addEventListener('platform-session-invalidated',platform);window.addEventListener('church-workspace-invalidated',church)
+ try{
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue(Response.json({}, {status})))
+  await expect(authRequest('/platform/system-health')).rejects.toMatchObject({status})
+  expect(platform).toHaveBeenCalledTimes(1);expect(church).not.toHaveBeenCalled()
+ }finally{window.removeEventListener('platform-session-invalidated',platform);window.removeEventListener('church-workspace-invalidated',church)}
+})
+
+it('invalidates platform presentation after logout without invalidating church access',async()=>{
+ const platform=vi.fn(),church=vi.fn()
+ window.addEventListener('platform-session-invalidated',platform);window.addEventListener('church-workspace-invalidated',church)
+ try{
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(async path=>path==='/platform/csrf-token'?Response.json({csrf_token:'synthetic-platform-only'}):new Response(null,{status:204})))
+  await authRequest('/platform/logout','POST')
+  expect(platform).toHaveBeenCalledTimes(2);expect(church).not.toHaveBeenCalled()
+  expect((platform.mock.calls[0][0] as CustomEvent).detail).toEqual({status:0,reason:'logout-started'})
+  expect((platform.mock.calls[1][0] as CustomEvent).detail).toEqual({status:401,reason:'logout'})
+ }finally{window.removeEventListener('platform-session-invalidated',platform);window.removeEventListener('church-workspace-invalidated',church)}
+})
+
+it('clears platform presentation before logout CSRF completes and reports an uncertain failure',async()=>{
+ const platform=vi.fn();window.addEventListener('platform-session-invalidated',platform)
+ let reject!:(value:unknown)=>void
+ try{
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(()=>new Promise((_,fail)=>{reject=fail})))
+  const result=authRequest('/platform/logout','POST').catch(error=>error)
+  expect(platform).toHaveBeenCalledTimes(1)
+  reject(new TypeError('synthetic lost CSRF response'));await result
+  expect((platform.mock.calls[1][0] as CustomEvent).detail).toEqual({status:0,reason:'logout-uncertain'})
+ }finally{window.removeEventListener('platform-session-invalidated',platform)}
+})
+
 it('does not send authentication requests while offline', async () => {
   vi.spyOn(navigator, 'onLine', 'get').mockReturnValueOnce(false)
   const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher)

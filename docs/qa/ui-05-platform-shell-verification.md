@@ -1,0 +1,58 @@
+# UI-05 — Separate Platform Shell & Session Lifecycle
+
+2026-10-10. UI-05 only: approved UI-01–UI-16 roadmap, Packs01–05 shared visual authority and Pack11 Platform workflow authority. Existing UI-01 tokens/primitives and production assets remain in use. UI-06–UI-16 remain unstarted; UI-14 decision-workflow redesign is excluded.
+
+## Checkpoint and preservation
+
+UI-04 `abd1ee9c27f8e8b5b3c446d86b1b4485c0379d88` matched local HEAD, tracking and live `origin/feat/mvp-foundation`, ahead/behind0/0. UI-01–UI-04 ancestry and GREEN evidence were verified. `origin/main` and live main remained `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f`. Staging was empty; only the six pre-existing tracked modifications and two untracked QA documents existed. All eight current bodies matched the UI-04 final preservation receipt and were independently backed up/hash-checked before work. Remote state was fetched/reverified without divergence before finalization.
+
+Preserved bodies: `apps/web/.env.example`, `docs/qa/MSPROUT_SYSTEM_HANDOFF.md`, `docs/qa/shared-workspace-context-verification.md`, `knowledge/CURRENT_STATE.md`, `knowledge/MANUAL_TESTING.md`, `knowledge/TESTING_ENVIRONMENT.md`, and the MT-02/MT-APP-001-SECOND-ATTEMPT-PROCEDURE documents under `docs/qa/manual-runs/MTQA-20261001-01/`. Their unrelated changes never enter this task commit. CURRENT_STATE/TESTING_ENVIRONMENT receive additive UI-05 sections, with the entire original body preserved byte-for-byte.
+
+## Implemented behavior
+
+- Supported Platform routes use a separate online-only shell. Protected navigation/resources mount only after existing `/platform/me` verifies active/verified/enrolled/recovery-acknowledged current-session MFA. The client accepts only the supported `sage.dev`/`online_only:true` projection; server guards remain authoritative. Initial loading, anonymous, denied, expired, unknown-error and offline states contain generic presentation and no protected navigation.
+- Applications is the preferred landing after authoritative login/challenge/setup completion. Existing `/account/platform-login` is the reloadable Platform Account destination when verified; anonymous sessions retain sign-in. No new route/API/settings/account-switching capability is introduced.
+- Applications, System Health, Platform Audit and Account are addressable destinations. Desktop has a navy sidebar; tablet has the shared native modal drawer; phones have four labeled destinations. Account and Sign out of platform appear in the header. Shared navy/action-blue/surface/status tokens, touch targets, skip link, active-state semantics, keyboard focus and responsive reflow remain consistent with UI-01–UI-04.
+- Route/context changes synchronously hide the prior checked route. Generations discard old session checks; renewed verification mounts a fresh resource subtree. Focus renews previously verified assurance. Platform-only401/403/419 events, offline and logout remove protected resources/navigation. Late health/application/audit/authentication/setup responses cannot revive unmounted or invalidated presentation.
+- Logout clears presentation before its CSRF request, preserves loading until completion, and handles confirmed versus uncertain results across route changes. Unknown sign-out stays private until deliberate existing-session verification. Repeated online notifications cannot strand verification or empty already-loaded resources; real reconnect verifies before protected mounting.
+- Platform login/challenge uncertain outcomes disable repeat form submission until a deliberate session check. Signed one-use setup validates its response and clears keys/codes on offline/invalidation/activation/unmount; an interrupted/lost setup key directs the responsible private-invitation operator. No invented reset, setup replay or storage-clearing recovery.
+- Church and Platform session cookies, CSRF headers, guards, invalidation events and navigation contexts remain separate. Platform lifecycle does not mutate encrypted profiles, keys, leases, drafts, outbox records, conflicts, cursors or metadata. Existing backend application decisions, sanitized audit projection, aggregate health function and forced tenant isolation remain unchanged.
+
+## Validation ledger
+
+Focused TDD exposed missing pre-navigation assurance/stale-response protection, transport logout lifecycle and late setup-key revocation. The initial shell run's three extra errors came from deliberately incomplete resource fixtures reached by the old unguarded router; the verified boundary prevents those requests. Repeated-online stranding was separately reproduced failing before correction. Focused final Platform/auth/transport/audit/direct-route proof: **69 tests in8 files PASS**. Complete frontend: **380 tests in48 files PASS**. Serial guarded PostgreSQL backend: **268 tests/1,903 assertions PASS**.
+
+| Gate | Actual evidence |
+|---|---|
+| Full frontend | `pnpm --dir apps/web test --run --maxWorkers 2`:380/48 PASS |
+| Full backend | `php artisan test`:268/1903 PASS; isolated test DB/runtime role; one suite at a time |
+| Typecheck / lint / production PWA build | PASS; final fixture receives focused ESLint closure |
+| OpenAPI drift | Actual `api:check` PASS; temporary LF normalization restored exact generated-client bytes |
+| Structure | PASS; existing Alpine executes the complete strict read-only script body from repository root; no omitted check/pipeline |
+| Pint / strict Composer validation | PASS |
+| Composer audit / pnpm high audit | PASS, no known advisories |
+| Whitespace / local documentation references | PASS at closure |
+| Gitleaks | Complete tracked/new source plus lock text alias and56-commit history: zero findings; source refreshed after knowledge |
+| OWASP Semgrep |99 rules/102 targets/zero findings/~99.9% parsed; final two-fixture delta76 rules/3 targets/zero findings/errors/~100% parsed |
+
+The first aggregate exposed two older routing fixtures that omitted `/platform/me`; explicit anonymous/verified fixtures preserve their original heading assertions. A later default parallel run under concurrent browser/scanner work exceeded an unchanged50ms lease timing boundary and5000ms attendance-test limit. The complete two-worker aggregate passes every assertion with no test/timeout/product weakening. The verify-wrapper stopped at those frontend failures; its full frontend/types/build/backend constituents subsequently completed separately, avoiding redundant backend testing.
+
+Explicit OWASP scope includes all changed/new production, Platform/auth/audit/health/shared UI/routes and relevant backend controllers, middleware, session/cookie/CSRF handling, audit writers, authentication configuration and Platform/Auth/Audit/Operations/Tenancy tests. Empty ignore/no-git-ignore includes new source. Four partial parse spans are unchanged generic Vitest mock syntax in AuthScreen, PlatformAuthScreen, ApplicationReviewScreen and SystemHealthScreen tests; each span was reviewed. No production parse omission, suppressed finding or weakened exclusion. UI-03's expanded416-target comprehensive baseline remains applicable to unchanged backend/crypto/storage/sync/infrastructure; unrelated UI-04 foundation proof remains valid. The full configured CI security scan is unchanged.
+
+Source stabilized before final green comprehensive gates. Later changes are only route-test fixtures and a browser durable-save wait: routing received focused/full frontend/lint proof, preservation received all four browser targets/focused lint, and both fixtures received security delta proof. Those test-only changes do not invalidate unchanged backend, production build, contract, audits or production security evidence. Knowledge-only closure receives references/whitespace/exact-body/source-secret validation. Existing Node24/pnpm10/PHP8.3/WebKit2336/trusted CA remain process-scoped, with TLS enabled and no runtime installation/global configuration.
+
+## Browser and accessibility qualification
+
+Initial nine-spec four-project matrix: **119/120 PASS**. One WebKit-phone fingerprint was captured before the synthetic attendance mark finished: the initial `outboxCount>0` could already be satisfied by the draft-start event. The corrected fixture additionally waits for the mark's pressed state and enabled button after durable save. Its exact all-store fingerprint assertion is unchanged and passes **4/4** on desktop Chrome, Pixel7 Chrome emulation, iPhone WebKit and iPad WebKit. **All120 unique outcomes have current green evidence**, including32 UI-05 outcomes; no second complete120-case invocation is claimed.
+
+The new eight cases per project prove verified navigation/direct links, Applications landing, separate platform CSRF, Account reload/responsive navigation, expiry with late health response, offline accessibility-tree privacy/reconnect, church/platform authority separation, all-seven-store encrypted attendance preservation, and uncertain logout across route changes. Five widths320/390/768/1024/1440, drawer initial focus/Escape/return, route-main focus, enlarged text, reduced motion/forced colors, horizontal reflow and Axe assertions pass. Desktop/phone/tablet/enlarged screenshots were inspected. Initial smoke locator ambiguity was corrected with exact selectors; the subsequent reconnect defect received failing-then-passing lifecycle proof, stable smoke8/8 and four-project closure.
+
+Existing church Account/application/login/onboarding, Owner/Teacher navigation and scope, attendance lost-response/restart/convergence, shared encrypted profiles/quota handling, authorization recovery and authenticated sync/referrer regressions pass. Backend proof includes real artisan HTTP platform sessions, separate guards/database sessions, MFA/recovery consumption, actual CSRF middleware, sanitized audit/health access and forced-RLS church isolation.
+
+Browser fixtures intercept local APIs in fresh disposable contexts; identities, profiles and attendance are synthetic. The Platform logout preservation scenario compares SHA-256 over every record in every IndexedDB store, asserts no church logout and unchanged church CSRF. No human profiles/credentials/attendance/storage were operated on or cleared. Physical devices, human screen-reader operation, actual400% browser zoom, live external CAPTCHA commissioning and hosted CI execution remain unverified, not represented as PASS.
+
+## Review and finalization
+
+One complete final source/diff review covers all17 application source/test paths and their server/contract, cookie/CSRF, shared controls, church workspace and encrypted attendance/sync interactions. Corrected routing and preservation portions were reviewed without restarting unrelated review. **No BLOCKING or SHOULD FIX findings remain.** No new backend/API/schema/permission/dependency, cryptography/persistence/sync algorithm, governance change, unrestricted church access, impersonation, bulk approval, debug/runner artifact, weakened assertion or later-task implementation.
+
+Knowledge is synchronized before one reviewed task commit; this is a pre-finalization receipt. Resolve final commit/push through subject `feat: add verified platform shell and session lifecycle` and Git. Established hash-checked filtered additive-knowledge staging preserves the eight original bodies outside the task commit, materializes a clean reviewed commit/push state and restores exact original bodies afterward. Evidence/scripts/builds/traces/screenshots/receipts remain ignored in `.git/msprout-ui05-20261010/`. Normal existing-feature push only; no reset/clean/amend/rebase/force/main mutation/deployment. **Stop after UI-05.**

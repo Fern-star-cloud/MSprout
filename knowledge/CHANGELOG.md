@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-10 — UI-05 separate Platform shell and session lifecycle
+
+Add verified online Platform navigation, Applications landing, session-aware Account and discoverable sign-out across desktop/tablet/phone. Clear protected data and stale completions on route/assurance/offline/logout changes; preserve church/device boundaries and safe interrupted setup. Focused69/frontend380/backend268+1903/browser120 and applicable/security gates pass; final review has no open findings. Eight original QA/environment bodies remain preserved; stop before UI-06. [Verification](../docs/qa/ui-05-platform-shell-verification.md).
+
 ## 2026-10-10 — UI-04 church Account, assurance and application
 
 Add session-aware Account, explicit assurance/recovery paths, safe deliberate returns, truthful application states and reconciled uncertain submissions. Preserve non-secret inputs, invitation identity restrictions, real Turnstile verification and server validation; discard stale authentication completions and secrets. Final frontend357/backend268+1903, all104 browser outcomes and applicable/security gates pass; review queue closed. Preserve eight original QA/environment bodies and stop before UI-05. [Verification](../docs/qa/ui-04-account-application-verification.md).

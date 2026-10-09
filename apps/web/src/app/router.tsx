@@ -23,6 +23,8 @@ import { ChurchNavigationContext } from './workspace-context'
 import { HomeScreen } from './HomeScreen'
 import { navigationFor } from './navigation'
 import { resolveRoute, type PresentationRoute } from './routes'
+import { PlatformSessionBoundary } from './PlatformSessionBoundary'
+import { PlatformPublicShell } from './layouts/PlatformShell'
 
 function DestinationList({ people = false }: { people?: boolean }) {
   const { workspace } = useContext(ChurchNavigationContext)
@@ -61,10 +63,6 @@ function PublicPage({ route, fragment, navigate }: { route: PresentationRoute; f
     case 'account': return <><h1>Account</h1><AuthScreen initialPage="account" /></>
     case 'teacher-invitation': return <TeacherInvitationScreen fragment={fragment} />
     case 'application': return <ApplicationScreen />
-    case 'platform-applications': return <ApplicationReviewScreen />
-    case 'platform-audit': return <AuditScreen platform />
-    case 'platform-system-health': return <SystemHealthScreen />
-    case 'platform-login': case 'platform-setup': return <PlatformAuthScreen setup={route.id === 'platform-setup'} fragment={fragment} />
     default: return <AuthScreen key={route.id} initialPage={route.id as AuthPage} fragment={fragment} />
   }
 }
@@ -101,7 +99,9 @@ export function AppRouter() {
   }
   const route = resolveRoute(entry.path)
   const churchShell = route && (route.kind === 'church' || route.kind === 'device')
-  return <div onClick={followInternalLink}>{churchShell ? <ChurchWorkspaceBoundary routeKey={routeKey} independent={route.kind === 'device'} allowOffline={route.id === 'birthdays'} renderShell={content => <ChurchShell route={route} routeKey={routeKey}>{content}</ChurchShell>}><ChurchPage key={route.id} route={route} navigate={navigate} /></ChurchWorkspaceBoundary> : <div className="public-layout">
+  const platform = route?.kind === 'platform'
+  const platformPage = route?.id === 'platform-applications' ? <ApplicationReviewScreen /> : route?.id === 'platform-system-health' ? <SystemHealthScreen /> : route?.id === 'platform-audit' ? <AuditScreen platform /> : null
+  return <div onClick={followInternalLink}>{platform ? route.id === 'platform-setup' ? <PlatformPublicShell><PlatformAuthScreen key={route.id + entry.fragment} setup fragment={entry.fragment} onAuthenticated={() => navigate('/account/platform-applications')} /></PlatformPublicShell> : <PlatformSessionBoundary route={route} routeKey={routeKey} anonymous={route.id === 'platform-login' ? <PlatformAuthScreen onAuthenticated={() => navigate('/account/platform-applications')} /> : undefined}>{platformPage}</PlatformSessionBoundary> : churchShell ? <ChurchWorkspaceBoundary routeKey={routeKey} independent={route.kind === 'device'} allowOffline={route.id === 'birthdays'} renderShell={content => <ChurchShell route={route} routeKey={routeKey}>{content}</ChurchShell>}><ChurchPage key={route.id} route={route} navigate={navigate} /></ChurchWorkspaceBoundary> : <div className="public-layout">
     <header className="brand"><h1>MinistrySprout</h1><p>Children&apos;s ministry, ready anywhere.</p></header>
     <main id="main-content" tabIndex={-1}>{route ? <PublicPage key={route.id} route={route} fragment={entry.fragment} navigate={navigate} /> : <section className="auth-card"><h2>Page not found</h2><p>Choose a supported MinistrySprout destination.</p><a href="/account/home">Open Home</a></section>}</main>
     <footer><ConnectivityStatus /><a href="/account">Account</a><a href="/profiles">Device profiles</a><a href="/account/attendance">Attendance</a><a href="/account/sync">Sync &amp; device</a><a href="/account/platform-login">Platform administration</a></footer>
