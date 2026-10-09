@@ -58,7 +58,7 @@ function ChurchPage({ route, navigate }: { route: PresentationRoute; navigate: (
 function PublicPage({ route, fragment, navigate }: { route: PresentationRoute; fragment: string; navigate: (path: string) => void }) {
   switch (route.id) {
     case 'profiles': return <DeviceProfilesScreen onUnlocked={() => navigate('/account/attendance')} />
-    case 'account': return <><h1>Account</h1><p>Sign in or deliberately verify your existing session below.</p><AuthScreen initialPage="login" /></>
+    case 'account': return <><h1>Account</h1><AuthScreen initialPage="account" /></>
     case 'teacher-invitation': return <TeacherInvitationScreen fragment={fragment} />
     case 'application': return <ApplicationScreen />
     case 'platform-applications': return <ApplicationReviewScreen />

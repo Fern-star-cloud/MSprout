@@ -12,8 +12,9 @@ function loadWidget(): Promise<Turnstile> {
     const script = document.createElement('script')
     script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
     script.async = true
-    script.onload = () => window.turnstile ? resolve(window.turnstile) : reject(new Error('Verification unavailable'))
-    script.onerror = () => { loading = undefined; script.remove(); reject(new Error('Verification unavailable')) }
+    const fail = () => { loading = undefined; script.remove(); reject(new Error('Verification unavailable')) }
+    script.onload = () => window.turnstile ? resolve(window.turnstile) : fail()
+    script.onerror = fail
     document.head.append(script)
   })
 }
@@ -35,10 +36,10 @@ export function CaptchaChallenge({ onToken }: { onToken: (token: string) => void
         'expired-callback': () => { if (active) onToken('') },
         'error-callback': () => { if (active) { onToken(''); setFailed(true) } },
       })
-    }).catch(() => { if (active) setFailed(true) })
+    }).catch(() => { if (active) { onToken(''); setFailed(true) } })
     return () => { active = false; if (widget !== undefined) api?.remove(widget) }
   }, [onToken, sitekey])
-  return <div><div ref={element} aria-label="Application verification" />
+  return <div><div ref={element} role="group" aria-label="Application verification" />
     {(!sitekey || failed) && <p role="alert">Verification is unavailable. Please try again later.</p>}
   </div>
 }

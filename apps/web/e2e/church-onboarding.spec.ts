@@ -15,7 +15,7 @@ test('verified application, platform approval, Owner MFA, roster setup, and Teac
   })
 
   let application: Record<string, unknown> | null = null
-  await context.route('**/auth/session', route => json(route, { id: 1, email: 'owner@example.test', email_verified: true, mfa_confirmed: false }))
+  await context.route('**/auth/session', route => json(route, { id: 1, workspaces: [], email: 'owner@example.test', email_verified: true, mfa_confirmed: false }))
   await context.route('**/api/church-applications/current', route => json(route, { application }))
   await context.route('**/api/church-applications', async route => {
     application = {

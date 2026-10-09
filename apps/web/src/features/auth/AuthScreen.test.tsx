@@ -41,12 +41,13 @@ it('requests password recovery with a non-enumerating success message', async ()
 
 it('enrolls MFA only after password confirmation and shows recovery codes after confirmation', async () => {
   vi.mocked(authRequest).mockImplementation(async (path) => {
+    if (path === '/auth/session') return { id: 11, email_verified: true, mfa_confirmed: false, workspaces: [] }
     if (path === '/user/two-factor-secret-key') return { secretKey: 'test-enrollment-key' }
     if (path === '/user/two-factor-recovery-codes') return ['test-recovery-code']
     return {}
   })
   render(<AuthScreen initialPage="mfa" />)
-  fireEvent.change(screen.getByLabelText('Current password'), { target: { value: crypto.randomUUID() } })
+  fireEvent.change(await screen.findByLabelText('Current password'), { target: { value: crypto.randomUUID() } })
   fireEvent.click(screen.getByRole('button', { name: 'Set up authenticator' }))
   expect(await screen.findByText('test-enrollment-key')).toBeTruthy()
   fireEvent.change(screen.getByLabelText('Authenticator code'), { target: { value: '123456' } })
@@ -69,13 +70,13 @@ it('uses the email reset token without putting it into form fields or storage', 
 
 it('keeps a verification link available after signing in', async () => {
   const invitation = '/email/verify/12/abcdef?expires=123&signature=abc'
-  vi.mocked(authRequest).mockResolvedValue({ email_verified: true, mfa_confirmed: false })
+  vi.mocked(authRequest).mockResolvedValue({ id: 11, workspaces: [], email_verified: true, mfa_confirmed: false })
   render(<AuthScreen initialPage="verify-email" fragment={encodeURIComponent(location.origin + invitation)} />)
   expect(screen.getByRole('link', { name: 'Sign in to verify' }).getAttribute('href')).toContain('#')
 })
 
 it('checks an existing session after a reload without submitting credentials', async () => {
-  vi.mocked(authRequest).mockResolvedValue({ email_verified: true, mfa_confirmed: false })
+  vi.mocked(authRequest).mockResolvedValue({ id: 11, workspaces: [], email_verified: true, mfa_confirmed: false })
   render(<AuthScreen initialPage="login" />)
   await userEvent.click(screen.getByRole('button', { name: 'Continue signed-in session' }))
   expect(await screen.findByRole('heading', { name: 'Your account' })).toBeTruthy()
@@ -84,7 +85,7 @@ it('checks an existing session after a reload without submitting credentials', a
 
 it('verifies a signed email link only once before checking account state', async () => {
   const invitation = '/email/verify/12/abcdef?expires=123&signature=abc'
-  vi.mocked(authRequest).mockResolvedValue({ email_verified: true, mfa_confirmed: false })
+  vi.mocked(authRequest).mockResolvedValue({ id: 11, workspaces: [], email_verified: true, mfa_confirmed: false })
   render(<AuthScreen initialPage="verify-email" fragment={encodeURIComponent(location.origin + invitation)} />)
   await userEvent.click(screen.getByRole('button', { name: 'Verify email' }))
   expect(await screen.findByRole('heading', { name: 'Your account' })).toBeTruthy()

@@ -34,4 +34,20 @@ it.each([
   expect((await screen.findByRole('alert')).textContent).toContain(message)
   expect(screen.queryByText('untrusted response text')).toBeNull()
   expect(authRequest).toHaveBeenCalledExactlyOnceWith('/api/teacher-invitations/accept', 'POST', { ...proof, email: 'invited@example.test', name: 'Invited Teacher', password })
+  expect((screen.getByLabelText('Invited email') as HTMLInputElement).value).toBe('invited@example.test')
+  expect((screen.getByLabelText('Display name') as HTMLInputElement).value).toBe('Invited Teacher')
+  expect((screen.getByLabelText('New password') as HTMLInputElement).value).toBe('')
+})
+
+it('blocks repeat redemption when the invitation outcome is unknown', async()=>{
+ const proof={church_id:'12345678-1234-4234-8234-123456789012',invitation_id:'87654321-4321-4321-8321-210987654321',token:'a'.repeat(64),signature:'b'.repeat(64),expires:2000000000}
+ vi.mocked(authRequest).mockRejectedValue(new TypeError('synthetic lost response'))
+ const user=userEvent.setup();render(<TeacherInvitationScreen fragment={encodeURIComponent(JSON.stringify(proof))}/>)
+ await user.type(screen.getByLabelText('Invited email'),'invited@example.test')
+ await user.click(screen.getByRole('button',{name:'Accept invitation'}))
+ await screen.findByRole('alert')
+ expect(screen.getByRole('button',{name:'Accept invitation'}).hasAttribute('disabled')).toBe(true)
+ await user.click(screen.getByRole('button',{name:'Accept invitation'}))
+ expect(authRequest).toHaveBeenCalledTimes(1)
+ expect(screen.getByText(/Check Account and ask your church Owner/)).toBeTruthy()
 })

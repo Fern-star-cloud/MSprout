@@ -1,5 +1,9 @@
 # Architecture
 
+## Session-aware Account and application presentation — 2026-10-10
+
+UI-04 reads existing AccountSession/current-application contracts and validates presentation state fail closed. Account distinguishes enrollment from current-session assurance; church Home retains authoritative membership/MFA gating. Internal return links are canonical/allowlisted and require explicit continuation. Application inputs stay in component memory, clear on actor change and never enter device storage. Generation guards discard invalidated session/status/authentication completions, including setup keys/recovery codes. Unknown application mutations reconcile through existing GET before retry; uncertain invitation redemption stops repeats and requests existing Account/Owner verification. Production Cloudflare widget/action and server validation remain authoritative. No new API/schema/authentication permission or storage change. [Evidence](../docs/qa/ui-04-account-application-verification.md).
+
 ## Safe encrypted profile lifecycle — 2026-10-10
 
 LocalProfileStore removal verifies all seven selected-profile stores, active key, matching encrypted lease and synchronization certainty. Confirmation identifies the exact target; fresh snapshot comparison and deletion share one readwrite transaction. All source writers include the profiles table and verify profile existence, serializing removal against queued writes across connections. Disappearing profiles dispose active in-memory keys. Locked or unauthorized UI shows generic labels and no protected status. Existing IndexedDB schema, encryption formats, server authorization and APIs remain unchanged. [UI-03 verification](../docs/qa/ui-03-profile-management-verification.md).

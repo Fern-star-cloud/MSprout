@@ -4,6 +4,10 @@ Manual QA governance decision — 2026-10-07, explicit user direction: retain MT
 
 Only decisions established by the approved design, roadmap, committed implementation, or a validated current worktree belong here.
 
+## UI-04 assurance and uncertain outcomes — 2026-10-10
+
+AccountSession.mfa_confirmed describes enrollment, not current-session assurance. Keep enrollment separate from deliberate sign-out/sign-in renewal and verify current membership/MFA at Home through existing boundaries. Do not automatically replay a protected return after authentication. A lost application response is reconciled with authenticated current-state GET; existing serialized uniqueness remains authoritative. Invitation acceptance has no invited-user status endpoint, so unknown redemption must block repeats and direct Account/Owner verification instead of inventing an API or account-switch/reset shortcut. This implements the approved UI-04 workflow. [Evidence](../docs/qa/ui-04-account-application-verification.md).
+
 ## UI-03 preservation before local removal — 2026-10-10
 
 The existing contract lacks an authoritative discard/rehydration receipt for retained attendance drafts. Therefore every draft, including apparently finalized records, blocks profile removal; an empty outbox does not prove safety. Unknown cache/metadata, incomplete synchronization and invalid authorization also fail closed. Recheck under the mutation transaction and serialize every source writer through profile existence so prepared encrypted writes cannot resurrect data after key deletion. Local church authentication cannot reset the encryption PIN. This implements approved UI-03 preservation requirements without inventing an API/schema change. [UI-03 verification](../docs/qa/ui-03-profile-management-verification.md).
