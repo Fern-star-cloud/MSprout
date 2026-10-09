@@ -1,5 +1,15 @@
 # Testing Environment
 
+## UI-03 validation receipt — 2026-10-10
+
+Persisted logs verified on interruption resume. Frontend aggregate **307 tests/43 files**; late isolated UI behavior and added cases **93/10**; final storage proof **46/2**. Serial guarded PostgreSQL backend **268 tests/1903 assertions**. Types/lint/production-PWA build, OpenAPI drift, structure, Pint, strict Composer validation, Composer/pnpm audits and whitespace pass. Repository verify wrapper components were executed separately with process-scoped tools; no duplicate backend run.
+
+Full browser matrix completed **164/172**. Four old-preview authorization-guidance failures close with corrected recovery **8/8** across Chrome desktop/phone and WebKit phone/tablet; three interrupted/slower WebKit-phone cases close **3/3** without assertion/timeout changes; unchanged mobile drawer focus rerun **1/1**. All172 case outcomes have current green evidence; no second full matrix claimed. This includes20 UI-03 cases, offline attendance/restart/lock/guest preservation, idempotent sync, tenant/profile isolation and accessibility-tree checks.
+
+Expanded application OWASP **108 rules/416 targets/zero findings/~99.9% parsed**, explicit no-git-ignore snapshot including PHP tests. Five partial parses are unchanged generic Vitest mocks; no changed/new production input skipped. Final changed-input scan **76 rules/15 targets/zero findings/errors/~100% parsed**. Gitleaks complete tracked/new source, lock text alias and54-commit history: zero leaks; final snapshot refreshed after knowledge.
+
+No backend/API/contract/dependency changes after their comprehensive passes. Isolated current-state recovery guidance received failing-then-passing focused proof, types/lint/build and affected browser rerun; unrelated gates retain validity under effect-based invalidation. Documentation-only closure receives complete-source secret, local-reference and whitespace checks. Existing Node24/pnpm10/PHP8.3/WebKit2336/trusted-CA setup stays process-scoped with TLS enabled; no host installation/global configuration. Ignored receipts/logs/bundles under `.git/msprout-ui03-20261010/`. [UI-03 verification](../docs/qa/ui-03-profile-management-verification.md).
+
 ## UI-02 navigation validation — 2026-10-09
 
 Starting UI-01 checkpoint38bf11d matched live feature/tracking0/0; main5dcbfeb and all eight original bodies verified. Initial focused TDD observed absent route/role behavior; final navigation/workspace focus **63/2**, server-rendering/PWA correction **8/2**, and final aggregate frontend **285/42 PASS**. Serial guarded PostgreSQL backend **268/1903 PASS**. Typecheck/lint/canonical production-PWA build, Pint, actual OpenAPI check (temporary LF/exact-byte restoration), structure, strict Composer validation, Composer audit and pnpm high audit pass. Explicit constituents cover the verification aggregate; no literal `pnpm run verify` invocation is claimed.

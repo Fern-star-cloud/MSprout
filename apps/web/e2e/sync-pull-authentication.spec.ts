@@ -97,7 +97,12 @@ for (const failPull of [false, true]) {
     await expect.poll(() => outboxCount(page)).toBe(0)
     await expect(page).toHaveURL(/\/profiles$/)
     await expect(page.getByRole('heading', { name: 'Take attendance' })).toHaveCount(0)
-    await expect(page.getByText(failPull ? /0 pending uploads.*Downloads incomplete/ : /0 pending uploads.*Downloads complete$/)).toBeVisible()
+    if (failPull) {
+      // UI-03 hides protected status after authorization is invalidated. Durable
+      // acknowledgement/completion flags are still asserted directly below.
+      await expect(page.getByText(/Protected status is unavailable/)).toBeVisible()
+      await expect(page.getByText(/0 pending uploads.*Downloads incomplete/)).toHaveCount(0)
+    } else await expect(page.getByText(/0 pending uploads.*Downloads complete$/)).toBeVisible()
     if (failPull) await expect(page.getByText(/Online sign-in required.*Synchronization is incomplete/)).toBeVisible()
     else await expect(page.getByText(/Synchronization complete.*download pages/)).toBeVisible()
     expect(accepted).toBe(3)

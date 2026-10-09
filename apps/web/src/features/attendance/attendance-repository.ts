@@ -89,7 +89,7 @@ export class AttendanceRepository {
     const encryptedEvent = await this.codec.encrypt(input.profileId, `outbox-event:${event.id}`, event)
 
     let created = false
-    await this.db.transaction('rw', this.db.attendanceDrafts, this.db.outboxEvents, async () => {
+    await this.db.writeForProfile(input.profileId, [this.db.attendanceDrafts, this.db.outboxEvents], async () => {
       if (await this.db.attendanceDrafts.get([input.profileId, draft.id])) return
       await this.db.attendanceDrafts.add({ profileId: input.profileId, id: draft.id, encrypted: encryptedDraft, updatedAt: now })
       await this.db.outboxEvents.add({ profileId: input.profileId, id: event.id, encrypted: encryptedEvent, updatedAt: now })
@@ -195,7 +195,7 @@ export class AttendanceRepository {
     const encryptedDraft = await this.codec.encrypt(profileId, `attendance-draft:${draft.id}`, draft)
     const encryptedEvent = await this.codec.encrypt(profileId, `outbox-event:${event.id}`, event)
 
-    await this.db.transaction('rw', this.db.attendanceDrafts, this.db.outboxEvents, async () => {
+    await this.db.writeForProfile(profileId, [this.db.attendanceDrafts, this.db.outboxEvents], async () => {
       const current = await this.db.attendanceDrafts.get([profileId, draftId])
       if (!current || current.updatedAt !== stored.updatedAt || current.encrypted.ciphertext !== stored.encrypted.ciphertext) {
         throw new Error('Attendance draft changed on this device. Reload it before continuing.')

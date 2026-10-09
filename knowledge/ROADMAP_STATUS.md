@@ -7,8 +7,9 @@ Separate [approved UI-01–UI-16 sequence](../docs/superpowers/plans/2026-10-09-
 | Task | Status | Evidence |
 |---|---|---|
 | UI-01 — Shared visual foundations and accessible primitives | GREEN / COMMITTED / PUSHED | `38bf11dc025fc898cbd1c2f8d4be8499c0f1a178`; [verification](../docs/qa/ui-01-foundations-verification.md); synchronized at UI-02 entry |
-| UI-02 — Explicit routes, role navigation and church Home | COMPLETE / VALIDATED (pre-finalization receipt) | [Current-run verification](../docs/qa/ui-02-navigation-verification.md); single reviewed commit subject `feat: add explicit routes and role-aware church navigation` identifies finalization through Git |
-| UI-03–UI-16 | NOT STARTED | Stop after UI-02; subsequent tasks require individual selection; conditional capabilities remain gated |
+| UI-02 — Explicit routes, role navigation and church Home | GREEN / COMMITTED / PUSHED | `32b41c29d983fad1da43b5c0c11016c0e1c37bec`; [verification](../docs/qa/ui-02-navigation-verification.md); synchronized at UI-03 entry |
+| UI-03 — Safe profile management and locked-state privacy | COMPLETE / VALIDATED (pre-finalization receipt) | [Verification](../docs/qa/ui-03-profile-management-verification.md); single reviewed commit subject `feat: protect device profile removal and locked-state privacy` identifies finalization through Git |
+| UI-04–UI-16 | NOT STARTED | Stop after UI-03; subsequent tasks require individual selection; conditional capabilities remain gated |
 
 
 Manual QA policy effective 2026-10-07: implementation Tasks 1–18 remain complete with their existing commit evidence. MT-00…MT-22 are optional risk-based references; 211-case sequential completion is not a development, merge, deployment or release requirement. MT-00/01 PASS and partial MT-02 results/blockers remain preserved in [manual knowledge](MANUAL_TESTING.md). Applicable automated/security/CI/deployment requirements and unresolved release-critical defects remain release criteria. No implementation task or manual phase is started by this governance update.

@@ -340,7 +340,7 @@ export class SyncClient {
       ? { profileId: profile.id, key: 'ministries', encrypted: await this.access.encrypt(profile.id, 'ministries', ministryValues), updatedAt: now }
       : null
     await assertAccess()
-    await this.db.transaction('rw', [this.db.profiles, this.db.encryptedBlobs, this.db.attendanceDrafts, this.db.outboxEvents, this.db.conflicts, this.db.serverCursors], async () => {
+    await this.db.writeForProfile(profile.id, [this.db.encryptedBlobs, this.db.attendanceDrafts, this.db.outboxEvents, this.db.conflicts, this.db.serverCursors], async () => {
       // Crypto/lease checks completed before the transaction; check the key remains
       // present without introducing crypto waits into the IndexedDB transaction.
       assertUnlocked()

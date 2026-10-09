@@ -75,7 +75,7 @@ export class ProfileOutbox {
       deleted.push(record.id)
     }
 
-    await this.db.transaction('rw', this.db.outboxEvents, this.db.conflicts, async () => {
+    await this.db.writeForProfile(profileId, [this.db.outboxEvents, this.db.conflicts], async () => {
       if (quarantined.length > 0) await this.db.conflicts.bulkPut(quarantined)
       await this.db.outboxEvents.bulkDelete(deleted.map(id => [profileId, id]))
     })

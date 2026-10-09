@@ -4,6 +4,10 @@ Manual QA governance decision — 2026-10-07, explicit user direction: retain MT
 
 Only decisions established by the approved design, roadmap, committed implementation, or a validated current worktree belong here.
 
+## UI-03 preservation before local removal — 2026-10-10
+
+The existing contract lacks an authoritative discard/rehydration receipt for retained attendance drafts. Therefore every draft, including apparently finalized records, blocks profile removal; an empty outbox does not prove safety. Unknown cache/metadata, incomplete synchronization and invalid authorization also fail closed. Recheck under the mutation transaction and serialize every source writer through profile existence so prepared encrypted writes cannot resurrect data after key deletion. Local church authentication cannot reset the encryption PIN. This implements approved UI-03 preservation requirements without inventing an API/schema change. [UI-03 verification](../docs/qa/ui-03-profile-management-verification.md).
+
 ## Repository and delivery
 
 1. **Independent monorepo.** React, Laravel, OpenAPI, documentation, and CI live together for atomic review. The legacy Expo project is behavioral reference only and contributes no Git history, remote, submodule, deployment, or automatic data migration. Source: approved design sections 3–4.

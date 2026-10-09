@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-10 — UI-03 safe profiles and locked-state privacy
+
+Add generic locked labels, authenticated status visibility, accessible PIN delay/error feedback, truthful recovery guidance and explicit typed removal confirmation. Enforce preservation and concurrent-write safety in storage; retain every uncertain draft/outbox/conflict and isolate other profiles/churches. All172 browser outcomes have green evidence, focused93 plus storage46 and aggregate307/backend268+1903 pass, required/security gates pass, review queue closed. Preserve eight original QA/environment bodies and stop before UI-04. [UI-03 verification](../docs/qa/ui-03-profile-management-verification.md).
+
 ## 2026-10-09 — UI-02 explicit routes and role-aware navigation
 
 Add an explicit compatible route registry, verified Owner/Teacher Home and grouped navigation, desktop sidebar, accessible tablet drawer and compact phone bars. Make Account/Sync/device preparation discoverable through existing capabilities while retaining independent offline Attendance. Preserve guarded workspace transitions, native modified links and existing APIs/data. Frontend285/backend268+1903, all152 browser case outcomes and applicable/security gates are green; final review findings are closed and eight original QA bodies preserved. Stop before UI-03. [Evidence and limits](../docs/qa/ui-02-navigation-verification.md).

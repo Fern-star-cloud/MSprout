@@ -1,5 +1,9 @@
 # Architecture
 
+## Safe encrypted profile lifecycle — 2026-10-10
+
+LocalProfileStore removal verifies all seven selected-profile stores, active key, matching encrypted lease and synchronization certainty. Confirmation identifies the exact target; fresh snapshot comparison and deletion share one readwrite transaction. All source writers include the profiles table and verify profile existence, serializing removal against queued writes across connections. Disappearing profiles dispose active in-memory keys. Locked or unauthorized UI shows generic labels and no protected status. Existing IndexedDB schema, encryption formats, server authorization and APIs remain unchanged. [UI-03 verification](../docs/qa/ui-03-profile-management-verification.md).
+
 ## Explicit routes and independently authorized device presentation
 
 UI-02 replaces suffix inference with `app/routes.ts`, ordinary same-origin history navigation and compatibility aliases. `ChurchWorkspaceBoundary` supplies existing scoped module context plus a separate online-only navigation context. Its generation/invalidation checks and actor/church/role/assignment subtree key govern protected data; URL scope withdrawal hides old content immediately. Device destinations render independently while optional account assurance supplies navigation only. Offline encrypted profiles supply no new persisted role/name projection. Teacher Home intersects existing authorized ministry data with validated assignment IDs. `ChurchShell` composes role navigation, native tablet dialog and responsive phone/desktop layouts; public church/platform authentication and platform guards remain separate. [Scope and proof](../docs/qa/ui-02-navigation-verification.md).

@@ -28,6 +28,16 @@ export class OfflineDatabase extends Dexie {
       metadata: '&[profileId+key], profileId',
     })
   }
+
+  // All domain writes share the profile table with removal. IndexedDB serializes
+  // these transactions across connections, including writes prepared by crypto
+  // before removal commits. Deleted profiles must never acquire orphaned work.
+  async writeForProfile<T>(profileId: string, tables: Table[], write: () => Promise<T>): Promise<T> {
+    return this.transaction('rw', [this.profiles, ...tables], async () => {
+      if (!await this.profiles.get(profileId)) throw new Error('This device profile is no longer available. No changes were saved.')
+      return write()
+    })
+  }
 }
 
 export function createOfflineDatabase(name?: string): OfflineDatabase {

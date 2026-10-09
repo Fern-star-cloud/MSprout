@@ -1,5 +1,15 @@
 # Current State
 
+## UI-03 safe profiles and locked-state privacy — 2026-10-10
+
+UI-03 is implemented, validated and reviewed before its single task finalization on `feat/mvp-foundation`, continuing UI-02 `32b41c29d983fad1da43b5c0c11016c0e1c37bec`. [UI-03 verification](../docs/qa/ui-03-profile-management-verification.md). Resolve finalization through the reviewed commit subject `feat: protect device profile removal and locked-state privacy` and Git; this receipt precedes commit creation.
+
+Generic labels and encrypted-lease authorization withhold protected status while locked/unauthorized. Accessible incorrect-PIN and persisted retry-delay feedback preserve the distinction between local PIN and church sign-in. Explicit typed removal confirmation calls fail-closed storage checks; every draft, outbox, conflict, uncertain/unverified state or concurrent change prevents deletion. Shared profile-table transactions prevent delayed writes from creating orphaned attendance; other connections clear keys after confirmed removal. Recovery requires the existing PIN and supported same-teacher authorization, with no reset/storage-clearing shortcut. No API/schema/dependency/server-policy change.
+
+Verified evidence: aggregate frontend **307/43**, final focused **93/10**, additional storage **46/2**; serial isolated backend **268/1903 assertions**; all **172 browser case outcomes** have green evidence (initial164/172 plus corrected recovery8/8, affected WebKit3/3 and drawer1/1). Required build/types/lint/contract/structure/Pint/validation/audits and secret/OWASP gates pass. Expanded OWASP108 rules/416 files/zero findings, final affected delta76/15/zero errors/findings. No BLOCKING or SHOULD FIX review finding remains.
+
+Six original tracked QA/environment bodies and two untracked QA documents remain outside this task commit, hash-checked and restored with only additive task knowledge after clean commit/push. No human profiles, attendance, credentials or device storage were operated on. Physical-device, human screen-reader and actual400% zoom certification remain unverified. **UI-04–UI-16 remain NOT STARTED; stop after UI-03.**
+
 ## UI-02 explicit routes and role navigation — 2026-10-09
 
 Selected continuation from UI-01 GREEN: `38bf11dc025fc898cbd1c2f8d4be8499c0f1a178`, committed/pushed on `feat/mvp-foundation`, live tracking HEAD equal and ahead/behind0/0 at entry. UI-01 had no unresolved task blocker. [Approved scope](../docs/superpowers/plans/2026-10-09-uiux-implementation-roadmap.md), [UI-02 verification](../docs/qa/ui-02-navigation-verification.md).

@@ -401,7 +401,11 @@ describe('isolated local profiles', () => {
     const first = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
     const second = await store.createProfile({ actorId: '12', churchId: lease('', '', '', '').church_id, pin: '934175' })
     await store.unlockProfile(first.id, '184629')
-    await store.saveEncryptedRoster(first.id, [{ id: 'student-a' }])
+    await store.saveBootstrap(first.id, {
+      actor: { id: '11' }, ministries: [], roster: [{ id: 'student-a' }], server_cursor: '1',
+      lease: lease(first.id, '11', first.deviceId, '2026-10-12T00:00:00Z'),
+    })
+    await db.profiles.update(first.id, { syncNeedsPull: false })
     store.lockProfile(first.id)
     await store.unlockProfile(second.id, '934175')
     await store.saveBootstrap(second.id, {
@@ -409,9 +413,11 @@ describe('isolated local profiles', () => {
       lease: lease(second.id, '12', second.deviceId, '2026-10-12T00:00:00Z'),
     })
 
-    await store.purgeProfile(first.id)
+    await store.unlockProfile(first.id, '184629')
+    await store.purgeProfile(first.id, { confirmedProfileId: first.id })
 
     expect(await store.listProfiles()).toHaveLength(1)
+    await store.unlockProfile(second.id, '934175')
     expect(await store.readEncryptedRoster(second.id)).toEqual([{ id: 'student-b' }])
   })
 
@@ -444,13 +450,38 @@ describe('isolated local profiles', () => {
     expect((await db.profiles.get(profile.id))?.requiresReauthentication).toBe(true)
   })
 
-  it('adds increasing delay after failed PIN attempts and allows reset only after online authentication', async () => {
+  it('adds retry delay after a failed PIN and does not turn online authentication into a reset shortcut', async () => {
     const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
     await expect(store.unlockProfile(profile.id, '000000')).rejects.toThrow('incorrect')
     expect((await db.profiles.get(profile.id))?.failedAttempts).toBe(1)
     await expect(store.unlockProfile(profile.id, '184629')).rejects.toThrow('later')
     await expect(store.resetProfileAfterOnlineAuthentication(profile.id, false)).rejects.toThrow('Online authentication')
-    await store.resetProfileAfterOnlineAuthentication(profile.id, true)
-    expect(await db.profiles.get(profile.id)).toBeUndefined()
+    await expect(store.resetProfileAfterOnlineAuthentication(profile.id, true)).rejects.toThrow('cannot reset')
+    expect(await db.profiles.get(profile.id)).toBeDefined()
+  })
+
+  it('enforces another connection’s retry deadline after an earlier correct PIN unwrap finishes', async () => {
+    const profile = await store.createProfile({ actorId: '11', pin: '184629' })
+    const second = createOfflineDatabase(db.name)
+    let started!: () => void
+    let release!: () => void
+    const captured = new Promise<void>(resolve => { started = resolve })
+    const pause = new Promise<void>(resolve => { release = resolve })
+    const otherStore = new LocalProfileStore(second, { ...storeOptions, unwrapKey: async (...args) => {
+      const key = await storeOptions!.unwrapKey!(...args)
+      started()
+      await pause
+      return key
+    } })
+    const pending = otherStore.unlockProfile(profile.id, '184629').then(() => 'unlocked', error => (error as Error).message)
+    try {
+      await captured
+      await expect(store.unlockProfile(profile.id, '000000')).rejects.toThrow('incorrect')
+      const delayed = await db.profiles.get(profile.id)
+      release()
+      expect(await pending).toMatch('later')
+      expect(otherStore.isUnlocked(profile.id)).toBe(false)
+      expect(await db.profiles.get(profile.id)).toEqual(delayed)
+    } finally { release(); await pending; otherStore.dispose(); second.close() }
   })
 })

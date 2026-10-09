@@ -18,8 +18,13 @@ describe('offline attendance repository', () => {
   let repository: AttendanceRepository
   let sequence: number
 
-  beforeEach(() => {
+  beforeEach(async () => {
     db = createOfflineDatabase(`attendance-${crypto.randomUUID()}`)
+    await db.profiles.add({
+      id: 'profile-a', actorId: '11', churchId: '00000000-0000-4000-8000-000000000001', deviceId: 'synthetic', createdAt: '2026-09-28T00:00:00Z',
+      failedAttempts: 0, retryAfter: null, leaseExpiresAt: null, leaseSignature: null, requiresReauthentication: true,
+      salt: 'synthetic', iterations: 600_000, wrappedDataKey: { algorithm: 'AES-256-GCM', iv: 'test', ciphertext: 'test', schemaVersion: 1 },
+    })
     sequence = 0
     repository = new AttendanceRepository(db, codec, {
       now: () => new Date(`2026-09-28T00:00:0${sequence}Z`),
