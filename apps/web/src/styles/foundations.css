@@ -1,0 +1,43 @@
+/* Shared primitives; workflow-specific styling stays with its existing screen. */
+.ui-button { min-width: var(--touch-target); overflow-wrap: anywhere; }
+.ui-button-secondary, button.secondary { color: var(--color-brand); background: var(--color-surface); border-color: var(--color-brand); }
+.ui-button-secondary:hover, button.secondary:hover { color: var(--color-brand-strong); background: var(--color-brand-soft); }
+.ui-button-danger { color: white; background: var(--color-danger); }
+.ui-button-danger:hover { background: #921e2c; }
+.ui-field-hint, .ui-field-error { margin: var(--space-2) 0; font-size: var(--font-supporting); }
+.ui-field-hint { color: var(--color-muted); }
+.ui-field-error { color: var(--color-danger); }
+.ui-error-summary { border: 1px solid var(--color-danger); }
+.ui-error-summary p { margin: 0; }
+.ui-error-summary ul { margin-bottom: 0; padding-left: var(--space-6); }
+.ui-error-summary a { color: inherit; display: inline-flex; align-items: center; min-height: var(--touch-target); }
+.ui-status-badge { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); border: 1px solid currentColor; border-radius: 999px; font-size: var(--font-supporting); overflow-wrap: anywhere; }
+.ui-status-banner { padding: var(--space-4); border: 1px solid currentColor; border-radius: var(--radius-small); overflow-wrap: anywhere; }
+.tone-neutral { color: var(--color-neutral); background: var(--color-neutral-soft); }
+.tone-info { color: var(--color-brand); background: var(--color-brand-soft); }
+.tone-success { color: var(--color-success); background: var(--color-success-soft); }
+.tone-warning { color: var(--color-warning-ink); background: var(--color-warning-soft); }
+.tone-danger { color: var(--color-danger); background: var(--color-danger-soft); }
+.ui-empty-state { padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-medium); background: var(--color-surface); overflow-wrap: anywhere; }
+.ui-empty-state h2 { margin-top: 0; }
+.ui-empty-state p { color: var(--color-muted); }
+.ui-dialog { width: min(32rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); margin: auto; padding: var(--space-6); border: 1px solid var(--color-control-border); border-radius: var(--radius-medium); color: var(--color-ink); background: var(--color-surface); overflow: auto; overflow-wrap: anywhere; }
+.ui-dialog::backdrop { background: rgb(16 44 70 / 60%); }
+.ui-dialog h2 { margin-top: 0; }
+.ui-dialog-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-6); }
+.ui-dialog-actions > button { flex: 1; }
+.ui-tabs [role="tablist"] { display: flex; flex-wrap: wrap; gap: var(--space-2); border-bottom: 1px solid var(--color-control-border); padding: var(--space-1) 0 var(--space-3); }
+.ui-tabs [role="tab"] { flex: 1 1 7rem; color: var(--color-muted); background: var(--color-surface); border-color: var(--color-control-border); }
+.ui-tabs [role="tab"][aria-selected="true"] { color: var(--color-brand); background: var(--color-brand-soft); border-color: var(--color-brand); box-shadow: inset 0 -3px var(--color-brand); font-weight: 700; }
+.ui-tabs [role="tabpanel"] { padding: var(--space-4) 0; }
+.ui-table-region { max-width: 100%; overflow-x: auto; border: 1px solid var(--color-border); border-radius: var(--radius-small); }
+.ui-table-region table { width: 100%; min-width: 24rem; border-collapse: collapse; }
+.ui-table-region caption { text-align: left; font-weight: 600; padding: var(--space-4); }
+.ui-table-region th, .ui-table-region td { text-align: left; vertical-align: top; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); }
+.ui-responsive-list { display: grid; gap: var(--space-3); list-style: none; margin: 0; padding: 0; }
+.ui-responsive-list > li { min-width: 0; padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-medium); background: var(--color-surface); overflow-wrap: anywhere; }
+@media (forced-colors: active) {
+  .ui-button, .ui-status-badge, .ui-status-banner, .ui-dialog, .ui-tabs [role="tab"], .ui-empty-state, .ui-table-region, .ui-responsive-list > li { border-color: CanvasText; }
+  .ui-tabs [role="tab"][aria-selected="true"] { border: 3px solid Highlight; }
+  :focus-visible { outline-color: Highlight; }
+}

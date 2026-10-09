@@ -13,6 +13,7 @@ Always begin with [CURRENT_STATE.md](CURRENT_STATE.md). Then read only what the 
 | Scoped local graph tooling, installation, verification and rollback | [CODEBASE_MEMORY.md](CODEBASE_MEMORY.md) |
 | Product purpose, terminology, business or security invariants | [PROJECT_BRAIN.md](PROJECT_BRAIN.md) |
 | System boundaries, data flow, authentication, tenancy, audit design | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Approved UI/UX redesign sequence, shared foundations and qualification | [UI-01–UI-16 execution index](../docs/superpowers/plans/2026-10-09-uiux-implementation-roadmap.md) and [UI-01 evidence](../docs/qa/ui-01-foundations-verification.md) |
 | Roadmap implementation or task selection | [ROADMAP_STATUS.md](ROADMAP_STATUS.md) and the [approved roadmap](../docs/superpowers/plans/2026-08-20-ministry-sprout-implementation-roadmap.md) |
 | Architectural, security, data-model, or workflow rationale | [DECISIONS.md](DECISIONS.md) |
 | Local setup, tests, checks, or environment problems | [TESTING_ENVIRONMENT.md](TESTING_ENVIRONMENT.md) |

@@ -1,5 +1,15 @@
 # Roadmap Status
 
+## Harmonized UI/UX redesign
+
+Separate [approved UI-01–UI-16 sequence](../docs/superpowers/plans/2026-10-09-uiux-implementation-roadmap.md); MVP task numbering and evidence below are preserved.
+
+| Task | Status | Evidence |
+|---|---|---|
+| UI-01 — Shared visual foundations and accessible primitives | COMPLETE / VALIDATED (pre-finalization receipt) | [Current-run verification](../docs/qa/ui-01-foundations-verification.md); single reviewed commit subject `feat: establish harmonized accessible UI foundations` identifies finalization through Git |
+| UI-02–UI-16 | NOT STARTED | Execute only the next individually selected task; conditional capabilities remain gated |
+
+
 Manual QA policy effective 2026-10-07: implementation Tasks 1–18 remain complete with their existing commit evidence. MT-00…MT-22 are optional risk-based references; 211-case sequential completion is not a development, merge, deployment or release requirement. MT-00/01 PASS and partial MT-02 results/blockers remain preserved in [manual knowledge](MANUAL_TESTING.md). Applicable automated/security/CI/deployment requirements and unresolved release-critical defects remain release criteria. No implementation task or manual phase is started by this governance update.
 
 Source of truth: [approved implementation roadmap](../docs/superpowers/plans/2026-08-20-ministry-sprout-implementation-roadmap.md). Status is based on commits, diffs, tests, verification reports, and current source—not file existence alone.

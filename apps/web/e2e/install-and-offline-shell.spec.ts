@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test'
-import { expectNoSeriousAccessibilityIssues } from './support'
+import { expectNoSeriousAccessibilityIssues, json, mockOwner } from './support'
+
+test.beforeEach(async ({ context }) => {
+  // Students is an online, verified-workspace surface; shell tests need that fixture too.
+  await mockOwner(context)
+  await context.route('**/api/students**', route => json(route, { data: [], page: 1, has_more: false }))
+  await context.route('**/api/ministries**', route => json(route, { data: [], page: 1, has_more: false }))
+})
 
 test('the application shell installs and remains usable while offline', async ({ page, context, browserName }) => {
   await page.goto('/account/students')
@@ -10,6 +17,10 @@ test('the application shell installs and remains usable while offline', async ({
   const manifest = await page.locator('link[rel="manifest"]').getAttribute('href')
   expect(manifest).toBe('/manifest.webmanifest')
 
+  // The offline entry is encrypted device profiles, not online People management.
+  await page.goto('/profiles')
+  await expect(page.getByRole('heading', { name: 'Choose a device profile' })).toBeVisible()
+
   await expect.poll(async () => page.evaluate(async () => {
     if (!('serviceWorker' in navigator)) return false
     await navigator.serviceWorker.ready
@@ -19,7 +30,7 @@ test('the application shell installs and remains usable while offline', async ({
   await context.setOffline(true)
   if (browserName === 'chromium') await page.reload()
   else await page.evaluate(() => globalThis.dispatchEvent(new Event('offline')))
-  await expect(page.getByRole('heading', { name: 'Students' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Choose a device profile' })).toBeVisible()
   await expect(page.getByRole('status')).toContainText('Offline')
 })
 
@@ -47,9 +58,13 @@ test('wide screens use a persistent sidebar and visible keyboard focus', async (
 test('keyboard-only navigation and reduced motion keep the shell operable', async ({ page, browserName }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/account/students')
+  await expect(page.getByRole('heading', { name: 'Students' })).toBeVisible()
+  // The heading precedes the scoped account read; mobile WebKit tabs to form controls.
+  await expect(page.getByRole('checkbox', { name: 'Show archived students' })).toBeVisible()
   await page.keyboard.press('Tab')
   if (browserName === 'webkit') {
-    expect(await page.evaluate(() => document.activeElement !== document.body)).toBe(true)
+    // WebKit may apply keyboard focus asynchronously; retain the same focus guarantee.
+    await expect.poll(() => page.evaluate(() => document.activeElement !== document.body)).toBe(true)
   } else {
     await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused()
     await page.keyboard.press('Enter')

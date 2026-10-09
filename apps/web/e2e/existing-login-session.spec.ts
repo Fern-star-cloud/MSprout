@@ -1,5 +1,28 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test as base, type Page } from '@playwright/test'
+import { createServer } from 'node:http'
+import type { AddressInfo } from 'node:net'
 import { addProfile, bootstrap, json, mockCsrf, outboxCount } from './support'
+
+const test = base.extend<{ redirectServer: { url: string; posts: () => number } }>({
+  redirectServer: async ({ baseURL }, provide) => {
+    // WebKit cannot route.fulfill a 302. A disposable loopback server exercises a real redirect.
+    let posts = 0
+    const server = createServer((request, response) => {
+      response.setHeader('Access-Control-Allow-Origin', baseURL!)
+      response.setHeader('Access-Control-Allow-Credentials', 'true')
+      response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+      response.setHeader('Access-Control-Allow-Headers', 'content-type, x-xsrf-token, x-requested-with, x-correlation-id, accept')
+      if (request.method === 'OPTIONS') { response.writeHead(204); response.end(); return }
+      if (request.method !== 'POST' || request.url !== '/login') { response.writeHead(404); response.end(); return }
+      posts++
+      response.writeHead(302, { Location: `${baseURL}/` })
+      response.end()
+    })
+    await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
+    try { await provide({ url: `http://127.0.0.1:${(server.address() as AddressInfo).port}/login`, posts: () => posts }) }
+    finally { await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve())) }
+  },
+})
 
 test.use({ serviceWorkers: 'block' })
 
@@ -23,8 +46,8 @@ async function encryptedStoreFingerprint(page: Page): Promise<string> {
 }
 
 for (const redirected of [false, true]) {
-  test(`existing-session ${redirected ? 'unexpected redirect is rejected safely' : 'conflict directs explicit session verification'}`, async ({ page, context }) => {
-    // All endpoints intercepted; disposable encrypted fixture only, never the human profile/API.
+  test(`existing-session ${redirected ? 'unexpected redirect is rejected safely' : 'conflict directs explicit session verification'}`, async ({ page, context, redirectServer }) => {
+    // Endpoints intercepted or answered by disposable loopback fixtures; never the human profile/API.
     await mockCsrf(context)
     let syncRequests = 0
     let sessionReads = 0
@@ -47,7 +70,7 @@ for (const redirected of [false, true]) {
       expect(route.request().headers()['accept']).toBe('application/json')
       expect(route.request().headers()['x-requested-with']).toBe('XMLHttpRequest')
       expect(Boolean(route.request().headers()['x-xsrf-token'])).toBe(true)
-      if (redirected) return route.fulfill({ status: 302, headers: { Location: 'http://127.0.0.1:4173/' } })
+      if (redirected) return route.continue({ url: redirectServer.url })
       return json(route, { code: 'already_authenticated', message: 'untrusted private detail' }, 409)
     })
     await context.route('**/auth/session', route => {
@@ -62,6 +85,7 @@ for (const redirected of [false, true]) {
     await expect(page.getByRole('alert')).toContainText(redirected ? 'The request could not be completed' : 'A session is already signed in')
     await expect(page.getByRole('alert')).not.toContainText('untrusted private detail')
     await expect(page.getByLabel('Password', { exact: true })).toHaveValue('')
+    expect(redirectServer.posts()).toBe(redirected ? 1 : 0)
     expect(sessionReads).toBe(0)
     expect(rootNavigations).toBe(0)
     expect(page.url()).toContain('/account/login')

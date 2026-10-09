@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
+import { Button, ErrorSummary, Field } from '../../components/ui/Foundations'
 import { ApiError } from '../../api/client'
 import { safeAuthMessage } from './transport'
 import type { AuthField } from './fields'
@@ -11,8 +12,14 @@ export function AuthForm({ fields, submitLabel, onSubmit }: {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [invalidFields, setInvalidFields] = useState<string[]>([])
+  const submitting = useRef(false)
+  const summary = useRef<HTMLDivElement>(null)
+  const id = useId()
+  useEffect(() => { if (error && !busy) summary.current?.focus() }, [error, busy])
   return <form aria-label={submitLabel} onSubmit={async (event) => {
     event.preventDefault()
+    if (submitting.current) return
+    submitting.current = true
     const form = event.currentTarget
     const values = Object.fromEntries(new FormData(form).entries()) as Record<string, string>
     setBusy(true); setError(''); setInvalidFields([])
@@ -22,16 +29,13 @@ export function AuthForm({ fields, submitLabel, onSubmit }: {
     } finally {
       form.querySelectorAll<HTMLInputElement>('input[type="password"], input[autocomplete="one-time-code"]').forEach((input) => { input.value = '' })
       setBusy(false)
+      submitting.current = false
     }
   }}>
-    {error && <p role="alert" tabIndex={-1}>{error}</p>}
-    {fields.map((field) => <div className="form-field" key={field.name}>
-      <label htmlFor={field.name}>{field.label}</label>
-      <input id={field.name} name={field.name} type={field.type ?? 'text'} autoComplete={field.autoComplete}
+    {error && <ErrorSummary ref={summary} message={error} errors={fields.filter(field => invalidFields.includes(field.name)).map(field => ({ target: `${id}-${field.name}`, message: `${field.label}: Check this field.` }))} />}
+    {fields.map((field) => <Field key={field.name} label={field.label} id={`${id}-${field.name}`} name={field.name} type={field.type ?? 'text'} autoComplete={field.autoComplete}
         inputMode={field.inputMode} minLength={field.minLength} required disabled={busy}
-        aria-invalid={invalidFields.includes(field.name)} aria-describedby={invalidFields.includes(field.name) ? `${field.name}-error` : undefined} />
-      {invalidFields.includes(field.name) && <span id={`${field.name}-error`}>Check this field.</span>}
-    </div>)}
-    <button disabled={busy} type="submit">{busy ? 'Please wait…' : submitLabel}</button>
+        error={invalidFields.includes(field.name) ? 'Check this field.' : undefined} />)}
+    <Button busy={busy} type="submit">{busy ? 'Please wait…' : submitLabel}</Button>
   </form>
 }

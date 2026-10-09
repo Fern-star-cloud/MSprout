@@ -1,0 +1,13 @@
+# Shared UI foundations
+
+Use these presentation components with existing domain controllers and server authorization. They do not authorize actions or read/write stored data.
+
+- `Button` defaults to `type="button"`; choose `type="submit"` explicitly. `busy` disables the action and exposes `aria-busy`. Use `danger` only for destructive actions.
+- `Field` creates a unique input/label relationship, combines caller descriptions with hint/error IDs, and exposes invalid state. Keep safe inputs on failure and clear secrets under the existing controller's rules. Native selects/textareas use the same global control styling and require explicit labels and linked error descriptions.
+- `ErrorSummary` announces safe text and focuses linked fields. The form controller focuses its summary after a failed deliberate submission. Never pass raw server responses or protected data into public errors.
+- `StatusBadge` and `StatusBanner` default to neutral. `live` is opt-in for a banner; use it only for meaningful changes. `LoadingState` announces its label without fabricated progress. Success requires confirmed evidence. Absent and offline are neutral; needs-review is warning; failure is danger.
+- `Dialog` is controlled with `open` and `onClose`. Keep its trigger mounted and supply `returnFocus` pointing to that trigger, including for pointer/touch activation on Safari. Supply `initialFocus` for the safe action; otherwise the title receives focus. Native modal isolation and explicit Tab/Shift+Tab wrapping contain focus. Escape requests close; confirmation belongs to the domain controller. The dialog never submits an action by itself.
+- `Tabs` uses automatic keyboard activation with Left/Right, Home/End and one tab stop. Supply stable, unique item IDs. Inactive panels stay mounted and hidden; clear protected plaintext at the domain boundary when authorization expires or a profile locks.
+- `ResponsiveTable` provides a named keyboard-accessible overflow region and table caption. Supply semantic headers and cells; never replace row semantics with clickable containers. `ResponsiveList` supplies responsive list spacing; callers supply list items and accessible actions. Choose the supported screen's table/card presentation without duplicating interactive controls.
+
+Shared CSS retains visible focus, enlarged text, reduced motion and forced colors. Screens still require their own keyboard, narrow-viewport, state, privacy and domain checks. The isolated examples in `e2e/fixtures/ui-foundations.tsx` are bundled in memory for tests and are excluded from the application build; no demo route is shipped.

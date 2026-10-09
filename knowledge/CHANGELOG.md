@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-09 — UI-01 harmonized accessible foundations
+
+Apply the approved navy/blue/emerald tokens and shared presentation primitives. Give AuthForm unique field/error relationships, safe focused summaries and pending-submit protection while preserving secrets/transport. Keep Absent and generic status neutral. Frontend246/backend268+1903, all132 browser case outcomes after isolated fixture corrections, and required/security gates pass; no remaining review finding. Preserve all existing human work/data, retain production assets, and stop before UI-02. [Evidence and qualification limits](../docs/qa/ui-01-foundations-verification.md).
+
 ## 2026-10-08 — Human synchronization recovery evidence
 
 Record the human's single successful original-profile recovery after `7b86aaa`: bootstrap and pull HTTP 200, three prior versions downloaded, terminal cursor `3` with `has_more: false` and complete UI with no observed push/new draft/logout. Documentation-only update attributes the report, preserves historical evidence and limits PASS to this recovery. No repeat synchronization, profile/PIN/storage/attendance/fixture mutation or broader manual-phase/UX task. [Human receipt and limits](../docs/qa/profile-sync-recovery-verification.md#human_manual-live-recovery-pass--2026-10-08).

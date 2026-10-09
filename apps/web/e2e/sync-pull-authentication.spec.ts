@@ -1,10 +1,38 @@
-import { expect, test } from '@playwright/test'
+import { expect, test as base } from '@playwright/test'
+import { createServer } from 'node:http'
+import type { IncomingMessage, ServerResponse } from 'node:http'
+import type { AddressInfo } from 'node:net'
 import { addProfile, bootstrap, churchId, expectNoSeriousAccessibilityIssues, json, mockCsrf, outboxCount } from './support'
+
+const test = base.extend<{ pullTransport: { url: string; respond: (handler: (request: IncomingMessage, response: ServerResponse) => void) => void; errors: string[] } }>({
+  pullTransport: async ({ baseURL }, provide) => {
+    let handler = (_request: IncomingMessage, response: ServerResponse) => { response.writeHead(404); response.end() }
+    const errors: string[] = []
+    const server = createServer((request, response) => {
+      response.setHeader('Access-Control-Allow-Origin', baseURL!)
+      response.setHeader('Access-Control-Allow-Credentials', 'true')
+      response.setHeader('Access-Control-Allow-Headers', 'content-type, x-church-id, x-device-id, x-correlation-id, accept')
+      if (request.method === 'OPTIONS') { response.writeHead(204); response.end(); return }
+      try { handler(request, response) } catch (error) {
+        errors.push(error instanceof Error ? error.message : 'Wire assertion failed')
+        response.writeHead(500); response.end()
+      }
+    })
+    await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
+    try { await provide({ url: `http://127.0.0.1:${(server.address() as AddressInfo).port}`, respond: next => { handler = next }, errors }) }
+    finally { await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve())) }
+  },
+})
+
+function wireJson(response: ServerResponse, body: unknown, status = 200) {
+  response.writeHead(status, { 'Content-Type': 'application/json' })
+  response.end(JSON.stringify(body))
+}
 
 test.use({ serviceWorkers: 'block' })
 
 for (const failPull of [false, true]) {
-  test(`sync uses origin-only referrers and reports ${failPull ? 'incomplete download' : 'completed download'} after accepted uploads`, async ({ page, context }) => {
+  test(`sync uses origin-only referrers and reports ${failPull ? 'incomplete download' : 'completed download'} after accepted uploads`, async ({ page, context, pullTransport }) => {
     await mockCsrf(context)
     let accepted = 0
     let pushRequests = 0
@@ -29,25 +57,34 @@ for (const failPull of [false, true]) {
         client_event_id: event.client_event_id, record_id: event.entity_id, status: 'accepted', version: event.base_version + 1,
       })) })
     })
-    await context.route('**/api/sync/pull**', async route => {
-      const headers = await route.request().allHeaders()
+    // Inspect actual wire headers: WebKit interception metadata can omit cookies.
+    pullTransport.respond((request, response) => {
+      const headers = request.headers
       const referrer = headers['referer']
       pullReferrers.push(referrer)
-      expect(headers['origin']).toBeUndefined()
-      if (!referrer) return json(route, { code: 'unauthenticated', message: 'Authentication is required.' }, 401)
+      // A rewritten loopback port can add a CORS Origin in WebKit; only this test origin is allowed.
+      expect(headers['origin'] === undefined || headers['origin'] === 'http://127.0.0.1:4173').toBe(true)
+      if (!referrer) return wireJson(response, { code: 'unauthenticated', message: 'Authentication is required.' }, 401)
       expect(headers['x-church-id']).toBe(churchId)
-      expect(headers['cookie']).toContain('XSRF-TOKEN=pilot-token')
-      if (pullDenied) return json(route, { code: 'unauthenticated', message: 'Authentication is required.' }, 401)
+      expect(headers['cookie']?.includes('XSRF-TOKEN=pilot-token')).toBe(true)
+      if (pullDenied) return wireJson(response, { code: 'unauthenticated', message: 'Authentication is required.' }, 401)
       expect(referrer).toBe('http://127.0.0.1:4173/')
-      const lease = bootstrap('11', undefined, route.request().headers()['x-device-id']).lease
+      const lease = bootstrap('11', undefined, headers['x-device-id'] as string).lease
       lease.issued_at = new Date().toISOString()
       lease.expires_at = new Date(Date.now() + 14 * 86400000).toISOString()
-      const cursor = new URL(route.request().url()).searchParams.get('cursor')
-      return json(route, { changes: [], page: { next_cursor: cursor === '0' ? '2' : '3', has_more: cursor === '0' }, lease })
+      const cursor = new URL(request.url!, pullTransport.url).searchParams.get('cursor')
+      wireJson(response, { changes: [], page: { next_cursor: cursor === '0' ? '2' : '3', has_more: cursor === '0' }, lease })
+    })
+    await context.route('**/api/sync/pull**', async route => {
+      // Preserve the original same-origin request assurance before the test-only rewrite.
+      expect((await route.request().allHeaders())['origin']).toBeUndefined()
+      const original = new URL(route.request().url())
+      return route.continue({ url: `${pullTransport.url}${original.pathname}${original.search}` })
     })
     await addProfile(page)
     // Characterize the actual browser defaults under the shipped no-referrer document policy.
     const headerless = await page.evaluate(async () => (await fetch('/api/sync/pull?cursor=0&limit=100', { credentials: 'include' })).status)
+    expect(pullTransport.errors).toEqual([])
     expect(headerless).toBe(401)
     expect(pullReferrers).toEqual([undefined])
     await page.getByRole('button', { name: 'Mark Pilot Student A present' }).click()
@@ -102,5 +139,6 @@ for (const failPull of [false, true]) {
     })
     expect(draftCount).toBe(1)
     expect(logouts).toBe(0)
+    expect(pullTransport.errors).toEqual([])
   })
 }

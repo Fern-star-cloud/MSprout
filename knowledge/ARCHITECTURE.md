@@ -1,5 +1,9 @@
 # Architecture
 
+## Shared presentation foundations
+
+UI-01 adds `apps/web/src/components/ui/Foundations.tsx` and semantic CSS/tokens for reusable controls, field errors, feedback, native modal focus management, keyboard tabs and responsive containers. AuthForm composes these presentation primitives; API transport, server assurance, role/tenant boundaries and offline stores remain unchanged. In-memory browser examples are test-only and do not add application routes. [Usage](../apps/web/src/components/ui/README.md), [verified scope](../docs/qa/ui-01-foundations-verification.md).
+
 ## Profile-only synchronization recovery — 2026-10-08
 
 Profiles recovery directly awaits the existing singleton SyncClient after PIN unlock and trusted same-actor/device/church bootstrap, without Attendance navigation or a synthetic online event. An opt-in bootstrap cursor-preservation mode retains the last applied local page during recovery; normal initial bootstrap stays unchanged. Per-client/profile in-flight calls coalesce, original-unlock/encrypted-lease guards cover transport/retries/page transactions/completion, and has_more pages must numerically advance. Empty outboxes skip push; the durable incomplete-pull flag clears only after all pages. Existing encryption, quarantine, server authorization/RLS/MFA/CSRF/idempotency and online profile-switch logout remain intact. [Evidence and limits](../docs/qa/profile-sync-recovery-verification.md).
