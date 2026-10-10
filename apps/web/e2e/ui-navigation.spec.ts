@@ -6,7 +6,7 @@ test.use({ serviceWorkers: 'block' })
 async function workspace(context: BrowserContext, role: 'owner' | 'teacher') {
   await context.route('**/auth/session', route => json(route, {id:11,email_verified:true,workspaces:[{church_id:churchId,name:'Synthetic church with a long verified display name',role}]}))
   await context.route('**/api/me', route => json(route, {id:11,memberships:[{church_id:churchId,status:'active',role}],assignments:{ministry_ids:[ministryId]},active_session:{mfa_confirmed:true}}))
-  await context.route('**/api/ministries', route => json(route, {data:[{id:ministryId,name:'Assigned ministry',status:'active'}]}))
+  await context.route('**/api/ministries**', route => json(route, {data:[{id:ministryId,name:'Assigned ministry',status:'active'}]}))
 }
 
 for (const role of ['owner','teacher'] as const) {

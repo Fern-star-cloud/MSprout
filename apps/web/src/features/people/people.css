@@ -1,0 +1,16 @@
+.people-page{max-width:72rem;width:100%;min-width:0}.people-page .people-sections,.people-actions,.people-filters{display:flex;flex-wrap:wrap;gap:var(--space-3);margin-block:var(--space-4)}
+.people-sections a{padding:var(--space-3);border-radius:var(--radius-small)}.people-sections [aria-current=page]{background:var(--color-brand-soft);font-weight:700}
+.people-filters label{display:grid;gap:var(--space-2);flex:1 1 12rem;min-width:0}.people-filters input,.people-filters select{width:100%;min-width:0}
+.people-table{width:100%;border-collapse:collapse}.people-table caption{text-align:left;padding-block:var(--space-3)}.people-table th,.people-table td{padding:var(--space-3);border-bottom:1px solid var(--color-border);text-align:left;overflow-wrap:anywhere}
+.people-table button{max-width:100%;white-space:normal;overflow-wrap:anywhere}.people-table td:first-child{width:45%}.people-detail{border:1px solid var(--color-border);border-radius:var(--radius-medium);padding:var(--space-4);margin-block:var(--space-4);min-width:0;overflow-wrap:anywhere}
+.people-detail dl{display:grid;gap:var(--space-2)}.people-detail dt{font-weight:700}.people-detail dd{margin:0 0 var(--space-3)}.people-form{display:grid;gap:var(--space-4);max-width:44rem}.people-form label{display:grid;gap:var(--space-2);min-width:0}.people-form input,.people-form select{min-width:0;width:100%}
+.people-form .people-choice{display:flex;align-items:center;gap:var(--space-3)}.people-choice input{width:auto;flex:none}.people-form fieldset{min-width:0;padding:var(--space-3)}.people-form fieldset label{margin-block:var(--space-2)}.people-transfer{border-top:2px solid var(--color-border);padding-top:var(--space-4);margin-top:var(--space-6)}
+@media(min-width:80rem){.people-master-detail:has(>.people-detail){display:grid;grid-template-columns:minmax(0,1.5fr) minmax(18rem,1fr);gap:var(--space-6)}.people-master-detail .people-detail{margin-top:0}}
+@media(max-width:47.99rem){.people-page{padding:var(--space-4)}.people-table thead{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}.people-table tr{display:block;border:1px solid var(--color-border);border-radius:var(--radius-medium);margin-bottom:var(--space-3);padding:var(--space-2)}.people-table td{display:block;border:0;width:100%!important;padding:var(--space-2)}.people-table td[data-label]::before{content:attr(data-label) ': ';font-weight:700}.people-detail{padding:var(--space-3)}.people-actions>*{flex:1 1 10rem}.people-form{width:100%}.people-page .has-detail .people-list{display:none}}
+
+.people-table .ui-status-badge{overflow-wrap:normal;word-break:normal}
+.people-page :is(button,a,input,select,h3){scroll-margin-block:var(--space-3)}.people-form .people-choice{min-height:var(--touch-target)}
+.people-filters>*,.people-form>*,.people-form label{min-width:0;max-width:100%}.people-filters label,.people-form label{grid-template-columns:minmax(0,1fr)}.people-filters input,.people-filters select,.people-form input,.people-form select{max-width:100%}
+/* WebKit can paint native option text beyond the select at enlarged text sizes. */
+.people-filters select,.people-form select{overflow:hidden;text-overflow:ellipsis;contain:paint}
+.people-page select:focus-visible{outline-offset:-3px}

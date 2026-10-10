@@ -4,6 +4,10 @@ Manual QA governance decision — 2026-10-07, explicit user direction: retain MT
 
 Only decisions established by the approved design, roadmap, committed implementation, or a validated current worktree belong here.
 
+## UI-09 management separates intent and authority — 2026-10-11
+
+Approved list-first People workflows use existing contracts only. Ordinary student detail edits omit ministry_ids to preserve links; enrollment replacement requires its own named confirmation. Server authorization remains authoritative for role, tenant, assignment, invitation and ownership assurance. Unknown mutation outcomes clear protected controls and require checking refreshed state before another attempt; local profiles never grant online management authority. This implements Pack 07 workflow under Packs 01–05 visual authority without adding unsupported management. [Evidence](../docs/qa/ui-09-people-management-verification.md).
+
 ## UI-08 creation requires intent — 2026-10-11
 
 Choosing a ministry/date must not create attendance. The UI therefore discovers existing saved work first and exposes explicit Start or Resume; unknown discovery blocks starting over. Existing deterministic atomic storage remains authoritative for repeated/concurrent creation and mutation. Local commit, pending upload, incomplete download and review remain separate, and count-read failures cannot invite a repeated guest event. This implements the approved attendance lifecycle without changing persisted date semantics or synchronization contracts. [Evidence](../docs/qa/ui-08-attendance-lifecycle-verification.md).

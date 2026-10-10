@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, expect, it, vi } from 'vitest'
 import { TeacherManagementScreen } from './TeacherManagementScreen'
 import { TeacherInvitationScreen } from './TeacherInvitationScreen'
 import { authRequest } from '../auth/transport'
@@ -10,6 +10,8 @@ vi.mock('../auth/transport', () => ({ authRequest: vi.fn(), safeAuthMessage: () 
 const request = vi.mocked(authRequest)
 const church = '12345678-1234-4234-8234-123456789012'
 const teacher = { id: 'teacher-id', display_name: 'Test teacher', status: 'active', ministry_ids: ['ministry-id'], can_manage: true }
+
+beforeAll(()=>Object.defineProperties(HTMLDialogElement.prototype,{showModal:{configurable:true,value:function(this:HTMLDialogElement){this.open=true}},close:{configurable:true,value:function(this:HTMLDialogElement){this.open=false}}}))
 
 beforeEach(() => {
   history.replaceState(null, '', '/account/teachers?church=' + church)
@@ -25,8 +27,9 @@ afterEach(() => { cleanup(); vi.resetAllMocks(); vi.restoreAllMocks(); history.r
 it('lists Teachers and invitations and submits ministry assignments', async () => {
   const user = userEvent.setup()
   render(<TeacherManagementScreen />)
-  await screen.findByText('Test teacher')
-  expect(screen.getByText(/invited@example.test/)).toBeTruthy()
+  await screen.findByRole('button', { name: 'View Test teacher' })
+  expect(screen.getByRole('button', { name: 'Revoke invitation for invited@example.test' })).toBeTruthy()
+  await user.click(screen.getByRole('button', { name: 'View Test teacher' }))
   await user.click(screen.getByRole('button', { name: 'Edit assignments' }))
   await user.click(screen.getByLabelText('Sunday ministry'))
   await user.click(screen.getByRole('button', { name: 'Save assignments' }))
@@ -36,7 +39,8 @@ it('lists Teachers and invitations and submits ministry assignments', async () =
 it('requires an explicit revocation confirmation and supports cancel', async () => {
   const user = userEvent.setup()
   render(<TeacherManagementScreen />)
-  await screen.findByText('Test teacher')
+  await screen.findByRole('button', { name: 'View Test teacher' })
+  await user.click(screen.getByRole('button', { name: 'View Test teacher' }))
   await user.click(screen.getByRole('button', { name: 'Revoke Teacher' }))
   expect(request.mock.calls.some((call) => call[1] === 'DELETE')).toBe(false)
   await user.click(screen.getByRole('button', { name: 'Cancel' }))
@@ -48,7 +52,8 @@ it('requires an explicit revocation confirmation and supports cancel', async () 
 it('confirms ownership with password and a fresh MFA code and clears controls after success', async () => {
   const user = userEvent.setup()
   render(<TeacherManagementScreen />)
-  await screen.findByText('Test teacher')
+  await screen.findByRole('button', { name: 'View Test teacher' })
+  await user.click(screen.getByRole('button', { name: 'View Test teacher' }))
   await user.click(screen.getByRole('button', { name: 'Transfer ownership' }))
   await user.type(screen.getByLabelText('Current password'), 'test-password')
   await user.type(screen.getByLabelText('Fresh authenticator code'), '123456')
@@ -70,9 +75,11 @@ it('hides all management actions from Teachers and denied sessions', async () =>
 it('submits a fixed Teacher invitation with selected ministries', async () => {
   const user = userEvent.setup()
   render(<TeacherManagementScreen />)
-  await screen.findByText('Test teacher')
+  await screen.findByRole('button', { name: 'View Test teacher' })
+  await user.click(screen.getByRole('button', { name: 'Invite a Teacher' }))
   await user.type(screen.getByLabelText('Invitation email'), 'person@example.test')
   await user.click(screen.getByLabelText('Sunday ministry'))
+  await user.click(screen.getByRole('button', { name: 'Review invitation' }))
   await user.click(screen.getByRole('button', { name: 'Invite Teacher' }))
   await waitFor(() => expect(request).toHaveBeenCalledWith('/api/teacher-invitations', 'POST', { email: 'person@example.test', ministry_ids: ['ministry-id'] }, church))
 })
@@ -92,18 +99,19 @@ it('keeps signed proof in memory and submits acceptance in the body only', async
 it('hides actions after an authorization failure and never displays server details', async () => {
   const user = userEvent.setup()
   render(<TeacherManagementScreen />)
-  await screen.findByText('Test teacher')
+  await screen.findByRole('button', { name: 'View Test teacher' })
+  await user.click(screen.getByRole('button', { name: 'Revoke invitation for invited@example.test' }))
   request.mockRejectedValue(new Error('sensitive failure'))
-  await user.click(screen.getByRole('button', { name: 'Revoke invitation' }))
+  await user.click(screen.getByRole('button', { name: 'Confirm invitation revocation' }))
   expect(await screen.findByRole('alert')).toBeTruthy()
   expect(screen.queryByText('sensitive failure')).toBeNull()
   expect(screen.queryByRole('button', { name: 'Invite Teacher' })).toBeNull()
 })
 
-it('offers no management actions while offline', () => {
+it('offers no management actions while offline', async () => {
   vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
   render(<TeacherManagementScreen />)
-  expect(screen.getByText(/Connect to the internet/)).toBeTruthy()
+  await screen.findByText(/Connect to the internet/)
   expect(request).not.toHaveBeenCalled()
 })
 
@@ -115,7 +123,8 @@ it('respects per Teacher action policy and invitation status', async () => {
     return { data: [] }
   })
   render(<TeacherManagementScreen />)
-  await screen.findByText('Test teacher')
+  await screen.findByRole('button', { name: 'View Test teacher' })
+  await userEvent.setup().click(screen.getByRole('button', { name: 'View Test teacher' }))
   for (const name of ['Revoke Teacher', 'Transfer ownership', 'Edit assignments', 'Invite Teacher', 'Revoke invitation']) expect(screen.queryByRole('button', { name })).toBeNull()
 })
 

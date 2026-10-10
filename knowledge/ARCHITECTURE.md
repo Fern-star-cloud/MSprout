@@ -1,5 +1,9 @@
 # Architecture
 
+## Scoped online People projections — 2026-10-11
+
+Students, Ministries and Teacher management now use generation-bound ephemeral projections through existing authenticated transport and verified workspace context. Root activation coalescing remains authoritative; invalidation clears views/forms and rejects late completions. Named mutations use existing APIs and synchronous duplicate guards, with explicit enrollment replacement and separate protected ownership transfer. Teacher rosters are assignment-limited/read-only. No server, contract, schema, offline profile, encrypted attendance or sync engine changed. [Evidence](../docs/qa/ui-09-people-management-verification.md).
+
 ## Explicit local attendance lifecycle — 2026-10-11
 
 AttendanceScreen separates read-only selection/discovery from explicit Start/Resume and uses the unchanged profile-scoped deterministic AttendanceRepository. Marking and minimal temporary guests retain atomic encrypted draft/outbox writes and optimistic concurrency. Presentation generations and action guards isolate late reads/saves from changed selection, lock and authorization state; Sync refreshes coalesce around mutations. Finalization confirmation uses the existing unmarked guard and read-only local status. Filters and focus visibility change no domain state. Browser-local dates, API, schema, encryption, lease, cursor/receipt and event contracts remain unchanged. [Evidence](../docs/qa/ui-08-attendance-lifecycle-verification.md).

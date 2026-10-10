@@ -1,0 +1,32 @@
+import { useCallback, useRef, useState } from 'react'
+import type { components } from '../../api/generated'
+import { useWorkspaceChurchId } from '../../app/workspace-context'
+import { Button, Dialog, Field } from '../../components/ui/Foundations'
+import { authRequest } from '../auth/transport'
+import { backToList, usePeopleAccess } from './usePeopleAccess'
+import { PeopleFrame, PeopleHeading, PeopleState, RecordStatus, DetailHeading } from './PeopleUi'
+type Ministry=components['schemas']['Ministry']
+type Access=ReturnType<typeof usePeopleAccess<Ministry[]>>
+export function MinistriesScreen(){const church=useWorkspaceChurchId(new URLSearchParams(location.search).get('church')??'');return <ScopedMinistries key={church} church={church}/>}
+function ScopedMinistries({church}:{church:string}){
+ const load=useCallback(async(role:'owner'|'teacher')=>(await authRequest<{data:Ministry[]}>('/api/ministries'+(role==='owner'?'?include_archived=true':''),'GET',undefined,church)).data,[church])
+ const access=usePeopleAccess(church,load),[search,setSearch]=useState(''),[status,setStatus]=useState('active')
+ return <PeopleFrame><PeopleHeading title="Ministries" owner={access.role==='owner'} church={church}/>{access.role==='teacher'&&<h3>My ministries</h3>}<PeopleState {...access}/>
+ {access.phase==='ready'&&access.data&&<MinistryViews key={access.epoch} access={access} rows={access.data} search={search} setSearch={setSearch} status={status} setStatus={setStatus}/>}</PeopleFrame>
+}
+function MinistryViews({access,rows,search,setSearch,status,setStatus}:{access:Access;rows:Ministry[];search:string;setSearch:(value:string)=>void;status:string;setStatus:(value:string)=>void}){
+ const [row,setRow]=useState<Ministry|null>(null),[mode,setMode]=useState<'list'|'detail'|'add'|'edit'>('list'),[confirm,setConfirm]=useState(false)
+ const owner=access.role==='owner',trigger=useRef<HTMLElement|null>(null),cancel=useRef<HTMLButtonElement>(null),dialogTrigger=useRef<HTMLElement|null>(null)
+ const filtered=rows.filter(item=>(!owner||status==='all'||item.status===status)&&item.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()))
+ const back=()=>backToList(()=>{setRow(null);setMode('list')},trigger)
+ return <div className={mode!=='list'?'has-detail':''}>
+ {owner&&mode==='list'&&<Button onClick={event=>{trigger.current=event.currentTarget;setMode('add')}}>Add ministry</Button>}
+ <div className="people-master-detail"><div className="people-list" hidden={mode==='add'||mode==='edit'}><div className="people-filters"><Field label="Search loaded ministries" value={search} onChange={event=>setSearch(event.target.value)}/>{owner&&<label>Status filter<select value={status} onChange={event=>setStatus(event.target.value)}><option value="active">Active</option><option value="archived">Archived</option><option value="all">Active and archived</option></select></label>}</div>
+ <p>Search applies only to loaded authorized ministries. Showing {filtered.length} of {rows.length} loaded records.</p>
+ {!rows.length?<p>{owner?'No ministries in this church.':'No ministry assigned. Check with your church Owner.'}</p>:!filtered.length?<p>No matching ministries in the loaded records.</p>:<table className="people-table"><caption>{owner?'Authorized ministries':'Assigned ministries · Read-only'}</caption><thead><tr><th scope="col">Ministry</th><th scope="col">Status</th></tr></thead><tbody>{filtered.map(item=><tr key={item.id}><td><Button variant="secondary" onClick={event=>{trigger.current=event.currentTarget;setRow(item);setMode('detail')}}>View {item.name}</Button></td><td data-label="Status"><RecordStatus status={item.status}/></td></tr>)}</tbody></table>}
+ </div>
+ {mode==='detail'&&row&&<section className="people-detail" aria-label="Ministry detail"><DetailHeading>{row.name}</DetailHeading><RecordStatus status={row.status}/><p>{owner?'Ministry in your verified church workspace.':'Read-only ministry assigned to you.'}</p><div className="people-actions"><Button variant="secondary" onClick={back}>Back to ministries</Button><a href={`/account/students?church=${encodeURIComponent(access.church)}&ministry=${encodeURIComponent(row.id)}`}>{owner?'View roster':'View assigned roster'}</a>{owner&&<><Button onClick={()=>setMode('edit')}>Edit ministry</Button><Button variant={row.status==='active'?'danger':'secondary'} onClick={event=>{dialogTrigger.current=event.currentTarget;setConfirm(true)}}>{row.status==='active'?'Archive ministry':'Restore ministry'}</Button></>}</div></section>}
+ {owner&&(mode==='add'||mode==='edit')&&<section className="people-detail"><DetailHeading>{mode==='add'?'Add ministry':'Edit '+row?.name}</DetailHeading><form className="people-form" aria-label={mode==='add'?'Add ministry':'Edit ministry'} onSubmit={event=>{event.preventDefault();void access.mutate('/api/ministries'+(mode==='edit'&&row?'/'+row.id:''),mode==='edit'?'PUT':'POST',{name:String(new FormData(event.currentTarget).get('name'))})}}><Field label="Ministry name" error={access.fieldErrors.includes("name")?"Check this field.":undefined} name="name" maxLength={120} required disabled={access.busy} defaultValue={mode==='edit'?row?.name:''}/><div className="people-actions"><Button type="submit" busy={access.busy}>Save ministry</Button><Button variant="secondary" disabled={access.busy} onClick={mode==='add'?back:()=>setMode('detail')}>Cancel</Button></div></form></section>}
+ </div>
+ <Dialog open={confirm} title={`${row?.status==='active'?'Archive':'Restore'} ${row?.name}?`} initialFocus={cancel} returnFocus={dialogTrigger} onClose={()=>{if(!access.busy)setConfirm(false)}}>{access.error&&<p role="alert">{access.error}</p>}<p>{row?.status==='active'?'This archives the ministry. Existing attendance and audit history are retained. New enrollment and assignment must satisfy the active-ministry rules.':'This restores the existing ministry under current server validation. It does not automatically change assignments or student enrollment.'}</p><div className="people-actions"><Button ref={cancel} variant="secondary" disabled={access.busy} onClick={()=>setConfirm(false)}>Cancel</Button><Button variant={row?.status==='active'?'danger':'primary'} busy={access.busy} onClick={()=>{if(row)void access.mutate(`/api/ministries/${row.id}/${row.status==='active'?'archive':'restore'}`,'POST')}}>{row?.status==='active'?'Confirm archive':'Confirm restore'}</Button></div></Dialog></div>
+}

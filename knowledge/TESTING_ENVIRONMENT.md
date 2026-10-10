@@ -1,5 +1,13 @@
 # Testing Environment
 
+## UI-09 validation — 2026-10-11
+
+Focused People/Teacher/invitation/navigation/workspace96 tests/5 files PASS,43.47 s. Complete frontend494/55 PASS,30.46 s, following access/route/coalescing corrections. Serial guarded PostgreSQL270 tests/1,917 assertions PASS,137.79 s. Current Chrome desktop/mobile and WebKit phone/tablet48/48 browser outcomes PASS:12 People and36 navigation/import regressions. Five widths, enlarged text, supported forced colors/reduced motion, native dialog keyboard/focus, supported operations, role/scope/revocation and Axe serious/critical checks qualify presentation. Real backend assurance/audit/concurrency proof remains distinct from mocked browser responses.
+
+Types/lint/production PWA build, actual contract drift, strict structure, Pint, strict Composer validation and both dependency audits PASS; zero known advisories. Root verify constituents ran separately with documented process-scoped tools. Initial relevant OWASP98 rules/77 targets/zero findings has only a reviewed unchanged AuthScreen generic-mock partial span; final changed/directly relevant98/50 parses fully with zero findings/errors. Final full tracked/new-source Gitleaks plus60-commit history have zero findings. Original eight QA bodies are hash-preserved and excluded from the task commit except filtered additive UI-09 sections. [Detailed verification and evidence reuse](../docs/qa/ui-09-people-management-verification.md).
+
+Late scoped CSS and strengthened test assertions preserve the completed frontend/backend/contract/audit gates; affected focused/types/lint/build/browser/security checks pass. Prior UI-01–UI-08 evidence remains applicable to unchanged profiles, encrypted attendance, transfer/receipt/cursor and server boundaries. Earlier failures remain in ignored receipts and are superseded only by actual green proof. Physical devices, human screen readers, actual400% zoom, hosted CI and live identities are not claimed. UI-10 remains untouched.
+
 ## UI-08 validation — 2026-10-11
 
 Focused attendance/storage/navigation49 tests/4 files PASS. Complete frontend476 tests/54 files PASS, single worker167.57 s, after the asynchronous refresh correction. Serial guarded PostgreSQL270 tests/1,917 assertions PASS,163.90 s. Final types/lint/production PWA build, actual contract drift, strict structure script, Pint, strict Composer validation, Composer audit and pnpm high audit PASS; zero known advisories. Root verify constituents ran independently with documented process-scoped tools.

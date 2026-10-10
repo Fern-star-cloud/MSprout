@@ -1,5 +1,13 @@
 # Current State
 
+## UI-09 qualified — 2026-10-11
+
+UI-09 People Lists, Details & Protected Management is implemented, validated and reviewed before its single task commit/push. Entry HEAD/tracking/live feature matched UI-08 `3d330ca247726416950941f597b571535bb5321f`, 0/0; main remains `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f`. UI-01–UI-08 GREEN is preserved and the stale UI-08 roadmap row now cites its finalized commit.
+
+Owner People provides list/detail and distinct Add/Edit Students/Ministries/Teachers, explicit enrollment/archive/restore, paginated invitation/Teacher management and separate protected transfer. Teacher My ministries/rosters remain authorized and read-only. Verified context, generation-bound responses and access invalidation prevent stale/wrong-church presentation; loaded-only search/counts and safe unknown-outcome guidance remain truthful. Existing server tenant/RLS/MFA/audit/identity/concurrency, API, schema, profiles and synchronization semantics are unchanged.
+
+Actual proof: focused96/5, aggregate frontend494/55, serial backend270/1917, current browser48/48, types/lint/build/contracts/structure/Pint/audits/security PASS. No open BLOCKING/SHOULD FIX finding. [Verification and qualification limits](../docs/qa/ui-09-people-management-verification.md). Original eight QA/environment bodies remain exact beneath separate additive sections. Finalization resolves through Git subject `feat: add scoped people management and protected actions` and the ignored receipt; this record does not invent its own commit SHA. Stop after UI-09. UI-10–UI-16 remain NOT STARTED and require further authorization.
+
 ## UI-08 qualified — 2026-10-11
 
 UI-08 Explicit Attendance Lifecycle & Temporary Guests is implemented, validated and reviewed before its single task commit/push. Entry HEAD/tracking/live feature matched UI-07 `0724e92d8766a4dcdad048ba80ed2908be182c39`, 0/0; main remains `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f`. UI-01–UI-07 GREEN is preserved; the stale UI-07 roadmap row now cites its finalized commit.

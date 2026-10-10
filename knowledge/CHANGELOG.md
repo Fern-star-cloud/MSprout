@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-11 — UI-09 scoped People and protected management
+
+Owner Students/Ministries/Teachers now provide accessible list/detail and distinct Add/Edit, named enrollment/archive/restore and invitation/revocation confirmations, and separate protected ownership transfer. Teacher My ministries/rosters stay read-only and assignment-limited. Scope invalidation, safe errors and loaded-only filters preserve existing contracts and data boundaries. Focused96/5, frontend494/55, backend270/1917, browser48/48 and all applicable gates pass. Eight original QA bodies remain preserved; UI-10 remains unstarted. Finalization resolves through reviewed Git subject and [verification](../docs/qa/ui-09-people-management-verification.md).
+
 ## 2026-10-11 — UI-08 explicit attendance lifecycle and temporary guests
 
 Read-only ministry/date selection, explicit Start/Resume, accessible state filters/marking, minimal recoverable guest dialogs and deliberate guarded finalization are implemented and qualified. Existing atomic encrypted/profile/synchronization boundaries are preserved. Focused49/4, frontend476/54, backend270/1917 and156 unique browser outcomes plus all applicable build/contract/audit/security gates pass. Original eight QA bodies are preserved; UI-09 remains unstarted. Finalization resolves through the reviewed Git subject and [verification](../docs/qa/ui-08-attendance-lifecycle-verification.md).
