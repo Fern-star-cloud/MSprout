@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-10 — UI-07 discoverable synchronization and recovery
+
+Add dedicated Sync & device navigation with independent connection/account/unlock/upload/download/review states, truthful unknown/incomplete/interrupted guidance and explicit same-profile recovery. Preserve accepted work, original keys/events/receipts/cursors and review; navigation/status/unlock create no attendance or transfer. Focused61/frontend451/backend270+1917 and all96 unique browser outcomes PASS with applicable/security gates; no open review finding. Eight original QA/environment bodies remain preserved. Stop before UI-08. [Verification](../docs/qa/ui-07-sync-recovery-verification.md).
+
 ## 2026-10-10 — UI-06 guided encrypted device preparation
 
 Replace raw Church ID setup with verified workspace and authorized ministry scope, matching local PINs, and durable encrypted readiness before explicit Attendance entry. Preserve interrupted/uncertain profiles and all existing/concurrent work. Focused102/frontend420/backend270+1917 and all120 unique browser outcomes pass with applicable/security gates; no open review finding. Eight original QA/environment bodies remain preserved. Stop before UI-07. [Verification](../docs/qa/ui-06-device-preparation-verification.md).

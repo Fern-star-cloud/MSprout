@@ -4,6 +4,10 @@ Manual QA governance decision — 2026-10-07, explicit user direction: retain MT
 
 Only decisions established by the approved design, roadmap, committed implementation, or a validated current worktree belong here.
 
+## UI-07 completion follows durable evidence — 2026-10-10
+
+An empty upload queue cannot prove every download page was applied or unresolved review was resolved. Therefore synchronization presentation requires known local counts and existing syncNeedsPull/cursor evidence, reports server review separately, and retains quarantine/downloaded needs-review visibility after transfer. Lost responses remain uncertain until existing IDs reconcile. Recovery verifies the matching church account, directly unlocks the original encrypted profile and explicitly continues; it does not substitute logout, profile recreation or Attendance. This implements the approved UI-07 flow without changing synchronization/encryption contracts. [Evidence](../docs/qa/ui-07-sync-recovery-verification.md).
+
 ## UI-05 Platform Account and lifecycle boundary — 2026-10-10
 
 Reuse the supported platform-login destination for verified Platform Account rather than inventing an account API or route. Prefer Applications only after authoritative platform assurance. Keep guest/setup presentation generic and protected navigation inside the verified online shell. Clear presentation before logout; uncertain sign-out permits only deliberate existing-session verification. Repeated connectivity notifications are idempotent, while real reconnects reverify before mounting resources. Preserve church cookies/CSRF/context and every encrypted local store independently of platform lifecycle. This implements Packs01–05 shared styling and Pack11 workflows without impersonation, bulk approval or UI-14 workflow expansion. [Evidence](../docs/qa/ui-05-platform-shell-verification.md).

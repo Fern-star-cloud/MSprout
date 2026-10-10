@@ -1,5 +1,15 @@
 # Current State
 
+## UI-07 qualified — 2026-10-10
+
+UI-07 Discoverable Synchronization & Recovery is implemented, validated and reviewed before the single task commit/push. UI-06 HEAD/tracking/live remote at entry was `0d9ef2b46a8884a84ad4284f3b780f260f4a2104`, feature0/0; main remains `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f`. UI-01–UI-06 GREEN is preserved; the stale UI-06 roadmap row now cites that finalized commit.
+
+Dedicated Sync & device separates connection, matching church account, unlock, uploads, downloads and unresolved review. Unknown counts remain unknown; zero uploads never establish completion. Explicit verified account → original PIN unlock → Continue preserves key/device/event/receipt/cursor/pull-needed and quarantine semantics without Attendance or logout. Downloaded needs-review sessions remain visible. Viewing/status reads have zero transfer/attendance mutations; late lock/expiry/background/denial completions cannot restore protected presentation. No backend/API/schema/encryption/lease/idempotency change.
+
+Actual proof: focused61/6, aggregate frontend451/53, serial backend270/1917, all96 unique browser outcomes, types/lint/build/contracts/structure/Pint/audits and security gates PASS. Late isolated presentation and synthetic interception corrections use focused/invalidation-based evidence; no repeated broad aggregate is claimed. Final review has no open BLOCKING/SHOULD FIX finding. [Verification, evidence reuse and qualification limits](../docs/qa/ui-07-sync-recovery-verification.md).
+
+All eight original QA/environment bodies remain exact beneath separate additive knowledge sections; filtered-index staging excludes unrelated bodies. Resolve finalization through Git subject `feat: add discoverable synchronization and safe recovery` and the ignored UI-07 finalization receipt; this pre-finalization record does not invent its own SHA. Stop after UI-07. UI-08–UI-16 remain NOT STARTED and require separate authorization.
+
 ## UI-06 qualified — 2026-10-10
 
 UI-06 guided encrypted device preparation is implemented and validated, pending the single reviewed commit/push receipt. Starting UI-05 `24988e254867940d5acacfe0a5d2bd296256079f` matches the existing feature tracking branch at 0/0; main remains `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f`. UI-01–UI-05 GREEN is preserved.

@@ -64,6 +64,34 @@ describe('profile synchronization client', () => {
 
   afterEach(async () => { await db.delete() })
 
+  it('reconciles a lost accepted response using the same events and never recreates acknowledged work', async () => {
+    const accepted = new Set<string>()
+    const submissions: string[][] = []
+    let lost = true
+    const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input) === '/api/sync/push') {
+        const body = JSON.parse(String(init?.body)) as { events: Array<{ client_event_id: string }> }
+        const ids = body.events.map(event => event.client_event_id)
+        submissions.push(ids)
+        if (lost) { ids.forEach(id => accepted.add(id)); throw new TypeError('Accepted response lost') }
+        return Response.json({ results: ids.map(id => ({ client_event_id: id, status: 'duplicate', original_status: 'accepted', version: 2 })) })
+      }
+      return Response.json({ changes: [], page: { next_cursor: '4', has_more: false }, lease: lease() })
+    })
+    const client = new SyncClient(db, codec, { fetcher, maxAttempts: 1 })
+    await expect(client.syncProfile(profileId)).rejects.toThrow('lost')
+    expect(await db.outboxEvents.count()).toBe(2)
+    expect((await db.profiles.get(profileId))?.syncNeedsPull).toBe(true)
+    lost = false
+    await client.syncProfile(profileId)
+    await client.syncProfile(profileId)
+    expect(submissions).toEqual([eventIds, eventIds])
+    expect([...accepted]).toEqual(eventIds)
+    expect(await db.outboxEvents.count()).toBe(0)
+    expect(await db.attendanceDrafts.count()).toBe(0)
+    expect((await db.profiles.get(profileId))?.syncNeedsPull).toBe(false)
+  })
+
   it('coalesces recovery and reconnect, resumes interrupted pagination and never reuploads acknowledged events', async () => {
     let fail = true
     const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {

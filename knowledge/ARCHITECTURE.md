@@ -1,5 +1,9 @@
 # Architecture
 
+## Discoverable synchronization and preserved recovery — 2026-10-10
+
+Existing approved Sync routes now render independent account, unlock, upload/download and review presentation. A read-only profile-scoped snapshot plus existing lease-bound draft decryption projects durable outbox/quarantine/pull-needed/cursor/review evidence; null means unknown. Completion also requires a verified server review read. SyncRecovery wraps existing matching-account verification, bootstrap with preserveCursor and shared SyncClient; direct unlock retains the existing encrypted profile and event identities. Lifecycle generations and synchronous/coordinator guards cancel stale presentation and coalesce actions without changing transport/lease/idempotency contracts. Navigation/status reads never start transfer or Attendance. [Evidence](../docs/qa/ui-07-sync-recovery-verification.md).
+
 ## Guided encrypted preparation — 2026-10-10
 
 The existing preparation route verifies session, selected membership/actor, current-session assurance and Owner/Teacher ministry scope through existing contracts. Matching string PINs protect a new profile; Ready requires durable encrypted bootstrap plus a valid lease and reverified access. Attendance entry is explicit. Interrupted/uncertain creation retains the same actor/church/device/key; stale/locked/offline completions cannot restore readiness. Preparation-only bootstrap checks all profile stores in the shared write transaction and refuses any existing/concurrent work. No API/schema/key algorithm or ordinary sync/recovery contract changes. [Evidence](../docs/qa/ui-06-device-preparation-verification.md).
