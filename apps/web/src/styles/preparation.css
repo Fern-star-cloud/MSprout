@@ -1,0 +1,8 @@
+.device-preparation { max-width: 48rem; }
+.preparation-steps { display: flex; flex-wrap: wrap; gap: .75rem; padding: 0; margin-block: 1.5rem; list-style: none; }
+.preparation-steps li { display: flex; align-items: center; gap: .5rem; flex: 1 1 11rem; padding: .75rem; border: 1px solid var(--color-border); border-radius: var(--radius-small); color: var(--color-muted); }
+.preparation-steps li span { display: inline-grid; place-items: center; width: 1.75rem; height: 1.75rem; flex: 0 0 auto; border-radius: 50%; background: var(--color-neutral-soft); color: var(--color-navy); }
+.preparation-steps li[aria-current="step"] { border-color: var(--color-brand); color: var(--color-navy); font-weight: 700; }
+.preparation-steps li[aria-current="step"] span { background: var(--color-brand); color: white; }
+.device-preparation fieldset { margin-block: 1rem; }
+.device-preparation .ui-button { margin-block: .5rem; margin-inline-end: .5rem; }

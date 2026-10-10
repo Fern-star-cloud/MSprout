@@ -48,6 +48,69 @@ describe('isolated local profiles', () => {
     vi.useRealTimers()
   })
 
+  it('saves preparation durably with no attendance and leaves another profile byte-for-byte unchanged', async () => {
+    const other = await store.createProfile({ actorId: '22', pin: '000123' })
+    const before = await db.profiles.get(other.id)
+    const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '000123' })
+    await store.unlockProfile(profile.id, '000123')
+    await store.saveBootstrap(profile.id, { actor: { id: '11' }, ministries: [], roster: [], server_cursor: '0',
+      lease: lease(profile.id, '11', profile.deviceId, '2026-10-12T00:00:00Z') }, { preparationOnly: true })
+    expect(await store.isLeaseValid(profile.id)).toBe(true)
+    expect(await db.encryptedBlobs.where('profileId').equals(profile.id).count()).toBe(3)
+    expect(await db.attendanceDrafts.count()).toBe(0)
+    expect(await db.outboxEvents.count()).toBe(0)
+    expect(await db.profiles.get(other.id)).toEqual(before)
+  })
+
+  it.each(['attendanceDrafts', 'outboxEvents', 'conflicts', 'encryptedBlobs', 'metadata', 'serverCursors'] as const)('refuses preparation when %s contains existing or concurrent work without changing any record', async table => {
+    const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '000123' })
+    await store.unlockProfile(profile.id, '000123')
+    // Insert during encryption, after saveBootstrap's initial reads and before its mutation.
+    const originalWrite = db.writeForProfile.bind(db)
+    vi.spyOn(db, 'writeForProfile').mockImplementationOnce(async (id, tables, write) => {
+      const record = { profileId: id, id: 'existing', key: 'existing', value: 'preserved', cursor: '7', encrypted: profile.wrappedDataKey, updatedAt: '2026-09-28T00:00:00Z' }
+      await db.table(table).put(record)
+      return originalWrite(id, tables, write)
+    })
+    const before = await db.profiles.get(profile.id)
+    await expect(store.saveBootstrap(profile.id, { actor: { id: '11' }, ministries: [], roster: [], server_cursor: '0',
+      lease: lease(profile.id, '11', profile.deviceId, '2026-10-12T00:00:00Z') }, { preparationOnly: true })).rejects.toThrow('existing')
+    expect(await db.table(table).count()).toBe(1)
+    expect(await db.profiles.get(profile.id)).toEqual(before)
+    expect(await db.encryptedBlobs.count()).toBe(table === 'encryptedBlobs' ? 1 : 0)
+  })
+
+  it('preserves the partial profile and key when preparation persistence aborts and permits safe continuation', async () => {
+    const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '000123' })
+    await store.unlockProfile(profile.id, '000123')
+    const bootstrap = { actor: { id: '11' }, ministries: [], roster: [], server_cursor: '0', lease: lease(profile.id, '11', profile.deviceId, '2026-10-12T00:00:00Z') }
+    const before = await db.profiles.get(profile.id)
+    vi.spyOn(db.serverCursors, 'put').mockRejectedValueOnce(new Error('disk failure'))
+    await expect(store.saveBootstrap(profile.id, bootstrap, { preparationOnly: true })).rejects.toThrow()
+    expect(await db.profiles.get(profile.id)).toEqual(before)
+    expect(await db.encryptedBlobs.count()).toBe(0)
+    expect(await db.serverCursors.count()).toBe(0)
+    await store.saveBootstrap(profile.id, bootstrap, { preparationOnly: true })
+    expect((await db.profiles.get(profile.id))?.wrappedDataKey).toEqual(before?.wrappedDataKey)
+    expect(await db.profiles.count()).toBe(1)
+    await expect(store.saveBootstrap(profile.id, bootstrap, { preparationOnly: true })).rejects.toThrow()
+  })
+
+  it('leaves a partial profile and every store untouched when encryption fails', async () => {
+    const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '000123' })
+    await store.unlockProfile(profile.id, '000123')
+    const before = await db.profiles.get(profile.id)
+    vi.spyOn(crypto.subtle, 'encrypt').mockRejectedValueOnce(new Error('encryption unavailable'))
+    await expect(store.saveBootstrap(profile.id, { actor: { id: '11' }, ministries: [], roster: [], server_cursor: '0',
+      lease: lease(profile.id, '11', profile.deviceId, '2026-10-12T00:00:00Z') }, { preparationOnly: true })).rejects.toThrow()
+    expect(await db.profiles.get(profile.id)).toEqual(before)
+    expect(await db.encryptedBlobs.count()).toBe(0)
+    expect(await db.serverCursors.count()).toBe(0)
+    expect(await db.attendanceDrafts.count()).toBe(0)
+    expect(await db.outboxEvents.count()).toBe(0)
+    vi.restoreAllMocks()
+  })
+
   it('refreshes recovery authorization without skipping unapplied downloads or changing accepted local work', async () => {
     const profile = await store.createProfile({ actorId: '11', churchId: lease('', '', '', '').church_id, pin: '184629' })
     await store.unlockProfile(profile.id, '184629')

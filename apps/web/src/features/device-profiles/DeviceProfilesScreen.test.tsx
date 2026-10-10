@@ -231,7 +231,7 @@ it('offers an accessible PIN unlock and online profile creation flow', async () 
   expect(screen.getByRole('button', { name: 'Use profile 1' })).toBeTruthy()
   expect(screen.getByLabelText('Local PIN').getAttribute('inputmode')).toBe('numeric')
   expect(screen.getByLabelText('Local PIN').getAttribute('type')).toBe('password')
-  expect(screen.getByRole('button', { name: 'Add profile' })).toBeTruthy()
+  expect(screen.getByRole('link', { name: 'Add profile' }).getAttribute('href')).toBe('/account/prepare')
   expect(screen.getByText(/not your church password/i)).toBeTruthy()
 })
 

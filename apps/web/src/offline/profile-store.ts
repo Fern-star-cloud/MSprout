@@ -231,7 +231,7 @@ export class LocalProfileStore {
     }
   }
 
-  async saveBootstrap(profileId: string, bootstrap: OfflineBootstrap, options: { preserveCursor?: boolean } = {}): Promise<void> {
+  async saveBootstrap(profileId: string, bootstrap: OfflineBootstrap, options: { preserveCursor?: boolean; preparationOnly?: boolean } = {}): Promise<void> {
     const active = this.active
     const profile = await this.db.profiles.get(profileId)
     this.assertActive(active)
@@ -286,9 +286,21 @@ export class LocalProfileStore {
 
     await this.db.writeForProfile(
       profileId,
-      [this.db.profiles, this.db.encryptedBlobs, this.db.serverCursors, this.db.attendanceDrafts, this.db.outboxEvents, this.db.conflicts],
+      [this.db.profiles, this.db.encryptedBlobs, this.db.serverCursors, this.db.attendanceDrafts, this.db.outboxEvents, this.db.conflicts, this.db.metadata],
       async () => {
         this.assertActive(active)
+        if (options.preparationOnly) {
+          const current = await this.db.profiles.get(profileId)
+          if (!current || current.leaseExpiresAt !== null || current.leaseSignature !== null || current.requiresReauthentication !== true
+            || await this.db.serverCursors.get(profileId)
+            || await this.db.encryptedBlobs.where('profileId').equals(profileId).count()
+            || await this.db.attendanceDrafts.where('profileId').equals(profileId).count()
+            || await this.db.outboxEvents.where('profileId').equals(profileId).count()
+            || await this.db.conflicts.where('profileId').equals(profileId).count()
+            || await this.db.metadata.where('profileId').equals(profileId).count()) {
+            throw new Error('Preparation cannot overwrite existing or uncertain local work. Keep this profile and use safe recovery.')
+          }
+        }
         await this.db.encryptedBlobs.bulkPut([
           { profileId, key: 'roster', encrypted: roster, updatedAt: now },
           { profileId, key: 'ministries', encrypted: ministries, updatedAt: now },

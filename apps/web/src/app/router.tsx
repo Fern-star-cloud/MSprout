@@ -8,6 +8,7 @@ import { AuthScreen, type AuthPage } from '../features/auth/AuthScreen'
 import { ImportScreen } from '../features/imports/ImportScreen'
 import { ReportScreen } from '../features/reports/ReportScreen'
 import { DeviceProfilesScreen } from '../features/device-profiles/DeviceProfilesScreen'
+import { DevicePreparationScreen } from '../features/device-profiles/DevicePreparationScreen'
 import { MinistriesScreen } from '../features/ministries/MinistriesScreen'
 import { PlatformAuthScreen } from '../features/platform-auth/PlatformAuthScreen'
 import { ApplicationReviewScreen } from '../features/platform/applications/ApplicationReviewScreen'
@@ -44,7 +45,7 @@ function ChurchPage({ route, navigate }: { route: PresentationRoute; navigate: (
     case 'more': return <DestinationList />
     case 'attendance': return <AttendanceScreen />
     case 'sync': return <><h1>Sync &amp; device</h1><p>Use the existing synchronization recovery below. Viewing this destination does not start synchronization.</p><DeviceProfilesScreen onUnlocked={() => navigate('/account/attendance')} /></>
-    case 'prepare': return <><h1>Prepare this device</h1><p>Use Add profile below to prepare an encrypted device profile with the existing authorized bootstrap.</p><DeviceProfilesScreen onUnlocked={() => navigate('/account/attendance')} /></>
+    case 'prepare': return <DevicePreparationScreen onAttendance={() => navigate('/account/attendance')} />
     case 'conflicts': return <ConflictReviewScreen />
     case 'reports': return <ReportScreen />
     case 'birthdays': return <BirthdayScreen />

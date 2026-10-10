@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { bootstrap, churchId, expectNoSeriousAccessibilityIssues, json, mockCsrf } from './support'
+import { addProfile, bootstrap, churchId, expectNoSeriousAccessibilityIssues, json, mockCsrf } from './support'
 
 test.use({ serviceWorkers: 'block' })
 
@@ -14,17 +14,11 @@ test('two encrypted PIN profiles keep assigned rosters and actors separate', asy
   }], new URL(route.request().url()).searchParams.get('device_id')!)))
   await context.route('**/logout', route => json(route, {}))
 
-  await page.goto(`/profiles?church=${churchId}`)
-  await page.getByRole('button', { name: 'Add profile' }).click()
-  await page.getByLabel('Choose a 6–12 digit local PIN').fill('184629')
-  await page.getByRole('button', { name: 'Download assigned roster and create profile' }).click()
+  await addProfile(page)
   await expect(page.getByText('Teacher One Roster')).toBeVisible()
 
   actor = '22'
-  await page.goto(`/profiles?church=${churchId}`)
-  await page.getByRole('button', { name: 'Add profile' }).click()
-  await page.getByLabel('Choose a 6–12 digit local PIN').fill('295730')
-  await page.getByRole('button', { name: 'Download assigned roster and create profile' }).click()
+  await addProfile(page, '295730', actor)
   await expect(page.getByText('Teacher Two Roster')).toBeVisible()
   await expect(page.getByText('Teacher One Roster')).toHaveCount(0)
 
@@ -40,10 +34,7 @@ test('two encrypted PIN profiles keep assigned rosters and actors separate', asy
 test('a simulated storage quota failure stops attendance before claiming success', async ({ page, context }) => {
   await mockCsrf(context)
   await context.route('**/api/offline/bootstrap**', route => json(route, bootstrap('11', undefined, new URL(route.request().url()).searchParams.get('device_id')!)))
-  await page.goto(`/profiles?church=${churchId}`)
-  await page.getByRole('button', { name: 'Add profile' }).click()
-  await page.getByLabel('Choose a 6–12 digit local PIN').fill('184629')
-  await page.getByRole('button', { name: 'Download assigned roster and create profile' }).click()
+  await addProfile(page)
   await expect(page.getByText('Pilot Student A')).toBeVisible()
 
   await page.evaluate(() => {

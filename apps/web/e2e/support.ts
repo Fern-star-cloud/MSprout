@@ -70,11 +70,68 @@ export function bootstrap(actorId = '11', roster = studentIds.map((id, index) =>
   }
 }
 
-export async function addProfile(page: Page, pin = '184629') {
-  await page.goto(`/profiles?church=${churchId}`)
-  await page.getByRole('button', { name: 'Add profile' }).click()
-  await page.getByLabel('Choose a 6–12 digit local PIN').fill(pin)
-  await page.getByRole('button', { name: 'Download assigned roster and create profile' }).click()
+export async function prepareProfile(page: Page, pin = '184629', actorId = '11') {
+  // Preparation now requires verified church access. These temporary, isolated
+  // handlers apply only to setup; each regression's authentication fixture resumes afterward.
+  const session = (route: Route) => json(route, { id: Number(actorId), email_verified: true, mfa_confirmed: false, workspaces: [{ church_id: churchId, name: 'Pilot Church', role: 'teacher' }] })
+  const account = (route: Route) => json(route, { id: Number(actorId), email_verified: true, memberships: [{ church_id: churchId, role: 'teacher', status: 'active' }], assignments: { ministry_ids: [ministryId] }, active_session: { mfa_confirmed: false } })
+  const ministries = (route: Route) => json(route, { data: [{ id: ministryId, name: 'Primary', status: 'active', version: 1 }] })
+  await page.route('**/auth/session', session)
+  await page.route('**/api/me', account)
+  await page.route('**/api/ministries', ministries)
+  try {
+    await page.goto(`/profiles?church=${churchId}`)
+    await page.getByRole('link', { name: 'Add profile' }).click()
+    await page.getByRole('button', { name: 'Continue to local PIN' }).click()
+    const before = await deviceRecords(page)
+    await page.getByLabel('Choose a 6–12 digit local PIN').fill(pin)
+    await page.getByLabel('Confirm local PIN').fill(pin)
+    await page.getByRole('button', { name: 'Prepare encrypted profile' }).click()
+    await expect(page.getByRole('heading', { name: 'Ready for offline attendance' })).toBeVisible()
+    const after = await deviceRecords(page)
+    const priorIds = before.profiles.map(row => row.id)
+    const created = after.profiles.filter(row => !priorIds.includes(row.id))
+    expect(created).toHaveLength(1)
+    const profileId = created[0].id
+    // Preparing another profile must preserve every existing row, including pending
+    // attendance owned by other profiles, and must not create attendance itself.
+    for (const [table, rows] of Object.entries(before)) {
+      expect(after[table].filter(row => table === 'profiles' ? row.id !== profileId : row.profileId !== profileId), table).toEqual(rows)
+    }
+    expect(after.attendanceDrafts).toEqual(before.attendanceDrafts)
+    expect(after.outboxEvents).toEqual(before.outboxEvents)
+    expect(after.conflicts).toEqual(before.conflicts)
+    expect(after.encryptedBlobs.filter(row => row.profileId === profileId)).toHaveLength(3)
+  } finally {
+    await page.unroute('**/auth/session', session)
+    await page.unroute('**/api/me', account)
+    await page.unroute('**/api/ministries', ministries)
+  }
+}
+
+async function deviceRecords(page: Page): Promise<Record<string, Record<string, unknown>[]>> {
+  return page.evaluate(async () => {
+    const request = indexedDB.open('ministry-sprout-offline')
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
+    try {
+      const tables = [...database.objectStoreNames]
+      const transaction = database.transaction(tables)
+      const records = await Promise.all(tables.map(table => new Promise<[string, Record<string, unknown>[]]>((resolve, reject) => {
+        const read = transaction.objectStore(table).getAll()
+        read.onsuccess = () => resolve([table, read.result])
+        read.onerror = () => reject(read.error)
+      })))
+      return Object.fromEntries(records)
+    } finally { database.close() }
+  })
+}
+
+export async function addProfile(page: Page, pin = '184629', actorId = '11') {
+  await prepareProfile(page, pin, actorId)
+  await page.getByRole('button', { name: 'Open Attendance' }).click()
   await expect(page.getByRole('heading', { name: 'Take attendance' })).toBeVisible()
 }
 

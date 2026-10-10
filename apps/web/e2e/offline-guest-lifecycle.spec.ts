@@ -16,13 +16,13 @@ test.beforeEach(async ({ context }) => {
   })
 })
 
-test('Church ID pattern is valid in Chrome and rejects invalid input', async ({ page }) => {
+test('preparation requires verified membership rather than a raw Church ID', async ({ page }) => {
   await page.goto(`/profiles?church=${churchId}`)
-  await page.getByRole('button', { name: 'Add profile' }).click()
-  const input = page.getByLabel('Church ID')
-  expect(await input.evaluate((element: HTMLInputElement) => new RegExp(element.pattern, 'v').test(element.value))).toBe(true)
-  await input.fill('z'.repeat(36))
-  expect(await input.evaluate((element: HTMLInputElement) => element.validity.patternMismatch)).toBe(true)
+  await page.getByRole('link', { name: 'Add profile' }).click()
+  await expect(page.getByText('Online church sign-in is required.', { exact: false })).toBeVisible()
+  await expect(page.getByLabel('Church ID')).toHaveCount(0)
+  await expect(page.getByLabel('Choose a 6–12 digit local PIN')).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Ready for offline attendance' })).toHaveCount(0)
 })
 
 test('network offline, focus loss and mobile emulation retain encrypted guest writes', async ({ page, context }) => {

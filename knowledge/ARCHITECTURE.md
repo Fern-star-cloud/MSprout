@@ -1,5 +1,9 @@
 # Architecture
 
+## Guided encrypted preparation — 2026-10-10
+
+The existing preparation route verifies session, selected membership/actor, current-session assurance and Owner/Teacher ministry scope through existing contracts. Matching string PINs protect a new profile; Ready requires durable encrypted bootstrap plus a valid lease and reverified access. Attendance entry is explicit. Interrupted/uncertain creation retains the same actor/church/device/key; stale/locked/offline completions cannot restore readiness. Preparation-only bootstrap checks all profile stores in the shared write transaction and refuses any existing/concurrent work. No API/schema/key algorithm or ordinary sync/recovery contract changes. [Evidence](../docs/qa/ui-06-device-preparation-verification.md).
+
 ## Verified separate Platform presentation — 2026-10-10
 
 PlatformSessionBoundary protects every supported platform review/Account route with the existing authoritative /platform/me response. Strict handle/online-only projection complements server MFA/active/verified/recovery checks; route guards remain server-enforced. Separate Platform shell uses no church navigation context or device storage. Route/session generations and a fresh resource subtree discard invalidated responses. Platform-only transport lifecycle events clear presentation before logout CSRF and distinguish completed/uncertain outcomes without revoking church authority. Online-only setup clears pending keys/codes on invalidation and truthfully guides private-invitation recovery. Existing platform-login serves Account after verification; successful login/activation prefers Applications. [Evidence](../docs/qa/ui-05-platform-shell-verification.md).

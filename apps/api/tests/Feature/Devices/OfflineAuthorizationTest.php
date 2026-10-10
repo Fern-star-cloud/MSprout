@@ -14,6 +14,41 @@ beforeEach(function () {
     $this->deviceId = (string) Str::uuid();
 });
 
+it('prepares all active Owner ministries without creating attendance or another membership device', function () {
+    $firstMinistry = MembershipScenario::ministry($this->church->id);
+    DB::connection('pgsql_migration')->table('ministries')->where('id', $firstMinistry)->update(['name' => 'First synthetic ministry']);
+    $secondMinistry = MembershipScenario::ministry($this->church->id);
+    DB::connection('pgsql_migration')->table('ministries')->where('id', $secondMinistry)->update(['name' => 'Second synthetic ministry']);
+    $archived = MembershipScenario::ministry($this->church->id);
+    DB::connection('pgsql_migration')->table('ministries')->where('id', $archived)->update(['archived_at' => now()]);
+    [, $otherChurch] = ChurchScenario::owner();
+    $foreign = MembershipScenario::ministry($otherChurch->id);
+
+    $response = $this->getJson('/api/offline/bootstrap?device_id='.$this->deviceId)->assertOk();
+    expect(collect($response->json('ministries'))->pluck('id')->sort()->values()->all())
+        ->toBe(collect([$firstMinistry, $secondMinistry])->sort()->values()->all())
+        ->not->toContain($archived, $foreign);
+    $this->getJson('/api/offline/bootstrap?device_id='.$this->deviceId)->assertOk();
+    foreach (['attendance_sessions', 'attendance_records'] as $table) {
+        expect(DB::connection('pgsql_migration')->table($table)->count())->toBe(0);
+    }
+    expect(DB::connection('pgsql_migration')->table('offline_authorizations')->count())->toBe(1)
+        ->and(DB::connection('pgsql_migration')->table('device_cursors')->count())->toBe(1);
+});
+
+it('returns an empty authorized scope for an unassigned Teacher without leaking Owner or foreign ministries', function () {
+    MembershipScenario::ministry($this->church->id);
+    [$teacher] = ChurchScenario::teacher($this->church);
+    $teacher = User::findOrFail($teacher->id);
+    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+
+    $this->getJson('/api/offline/bootstrap?device_id='.$this->deviceId)->assertOk()
+        ->assertJsonPath('actor.id', (string) $teacher->id)
+        ->assertJsonPath('ministries', [])->assertJsonPath('roster', []);
+    expect(DB::connection('pgsql_migration')->table('attendance_sessions')->count())->toBe(0)
+        ->and(DB::connection('pgsql_migration')->table('attendance_records')->count())->toBe(0);
+});
+
 it('issues a signed 14-day lease with only an assigned Teacher roster projection', function () {
     $assigned = MembershipScenario::ministry($this->church->id);
     $hidden = MembershipScenario::ministry($this->church->id);

@@ -1,5 +1,13 @@
 # Testing Environment
 
+## UI-06 validation — 2026-10-10
+
+Focused preparation/profile/storage/crypto/removal proof:102 tests/6 files PASS. Final full frontend:420 tests/50 files PASS with `pnpm --dir apps/web test --run --maxWorkers=1` (231.96 s), following two unchanged50ms lease tests passing separately without browser/scanner load. Serial backend:270 tests/1,917 assertions PASS (321.78 s); focused device authorization6/48 PASS. Types/lint/PWA build, actual contract drift, Pint/strict Composer/structure, Composer and pnpm high audits pass. Browser-only preservation correction receives focused ESLint; earlier build/backend/audits stay valid.
+
+All120 unique browser outcomes are qualified across Chrome desktop/mobile and WebKit phone/tablet, including24 new preparation outcomes; completed initial evidence is reused and an ignored per-case ledger proves matrix closure. Initial OWASP99 rules/78 targets has zero findings (~99.9% parsed; unchanged generic test-mock span reviewed). Five-source final delta76 rules/6 targets has zero findings/errors and full parsing. Complete tracked/new source and57-commit history secret scans have zero findings; source refreshed after knowledge. [Detailed evidence, invalidation reasoning and limits](../docs/qa/ui-06-device-preparation-verification.md).
+
+Existing Node24/pnpm10/PHP8.3/WebKit2336 and trusted CA setup remains process-scoped. TLS is enabled. Synthetic disposable browser contexts and guarded isolated PostgreSQL are used; no human fixtures/storage changed. Logs/build snapshot/traces/preservation snapshots and finalization receipt remain ignored under `.git/msprout-ui06-20261010/`.
+
 ## UI-05 validation receipt — 2026-10-10
 
 Focused Platform/auth/transport/audit/direct-route proof **69 tests/8 files PASS**. Initial gate exposed two older direct-route fixtures without /platform/me; fixtures now explicitly supply anonymous or verified platform sessions and retain their route assertions. Final complete frontend **380/48 PASS** with `pnpm --dir apps/web test --run --maxWorkers 2`. A default parallel run under concurrent browser/scanner work hit unchanged50ms authenticated-lease timing and5000ms attendance-test limits; no assertion/timeout/product behavior was weakened. The reduced-worker aggregate passes every test. Serial guarded PostgreSQL **268 tests/1903 assertions PASS**, including real artisan HTTP platform sessions. Verify-wrapper constituents completed separately after its frontend failure; no redundant backend invocation.

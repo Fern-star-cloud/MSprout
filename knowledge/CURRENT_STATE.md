@@ -1,5 +1,13 @@
 # Current State
 
+## UI-06 qualified — 2026-10-10
+
+UI-06 guided encrypted device preparation is implemented and validated, pending the single reviewed commit/push receipt. Starting UI-05 `24988e254867940d5acacfe0a5d2bd296256079f` matches the existing feature tracking branch at 0/0; main remains `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f`. UI-01–UI-05 GREEN is preserved.
+
+Verified workspace/actor/assurance and Owner/Teacher scope precede matching string PINs and durable encrypted readiness. Interrupted or uncertain setup preserves the same profile/key/device; mutation-time guards reject any existing or concurrent local work. Preparation creates no attendance. Focused102/6, isolated frontend420/50, backend270/1917, all120 unique browser outcomes, types/lint/build/contracts/structure/Pint/audits and security gates pass; final review has no open findings. [Evidence and limitations](../docs/qa/ui-06-device-preparation-verification.md).
+
+All eight original QA/environment bodies are hash-preserved; unrelated changes remain outside the task commit. Additive knowledge staging and exact-body restoration follow the established workflow. Resolve final Git evidence by subject `feat: guide verified encrypted device preparation` and ignored UI-06 finalization receipt; this section does not invent its own commit SHA. Stop after UI-06; UI-07–UI-16 remain unstarted and require separate authorization.
+
 ## UI-05 separate Platform shell and session lifecycle — 2026-10-10
 
 UI-01–UI-04 are GREEN and finalized; UI-04 HEAD/live tracking at entry was `abd1ee9c27f8e8b5b3c446d86b1b4485c0379d88`, feature0/0, main unchanged at5dcbfeb. UI-05 is implemented, validated and reviewed before its single task finalization on `feat/mvp-foundation`. [Verification](../docs/qa/ui-05-platform-shell-verification.md). Resolve finalization through commit subject `feat: add verified platform shell and session lifecycle` and Git; this receipt precedes commit creation.

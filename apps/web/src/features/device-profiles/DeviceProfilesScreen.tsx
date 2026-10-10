@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ApiError } from '../../api/client'
 import { Button, Dialog, ErrorSummary, Field, StatusBadge, StatusBanner } from '../../components/ui/Foundations'
 import { authRequest } from '../auth/transport'
@@ -23,9 +23,6 @@ export function DeviceProfilesScreen({ store = profileStore, synchronizer = sync
   const [pinError, setPinError] = useState('')
   const [retryUntil, setRetryUntil] = useState(0)
   const [clock, setClock] = useState(Date.now)
-  const [adding, setAdding] = useState(false)
-  const [churchId, setChurchId] = useState(() => new URLSearchParams(globalThis.location?.search ?? '').get('church') ?? '')
-  const [newPin, setNewPin] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [loaded, setLoaded] = useState(false)
@@ -89,7 +86,6 @@ export function DeviceProfilesScreen({ store = profileStore, synchronizer = sync
   useEffect(() => store.onLock(() => {
     epoch.current += 1
     setPin('')
-    setNewPin('')
     setPending(null)
     setProtectedProfile(null)
     setCompleted(null)
@@ -145,27 +141,6 @@ export function DeviceProfilesScreen({ store = profileStore, synchronizer = sync
     } catch (cause) {
       if (!failedPin(cause)) setError('This profile could not be unlocked. Keep its encrypted work and try again.')
     } finally { finish() }
-  }
-
-  const add = async (event: FormEvent) => {
-    event.preventDefault()
-    if (!begin()) return
-    try {
-      const deviceId = crypto.randomUUID()
-      const bootstrap = await authRequest<OfflineBootstrap>(`/api/offline/bootstrap?device_id=${deviceId}`, 'GET', undefined, churchId)
-      const created = await store.createProfile({ actorId: bootstrap.actor.id, churchId, pin: newPin, deviceId })
-      await store.unlockProfile(created.id, newPin)
-      await store.saveBootstrap(created.id, bootstrap)
-      setAdding(false)
-      setNewPin('')
-      await refresh()
-      setSelected(created.id)
-      setMessage('Encrypted device profile created and ready offline.')
-      onUnlocked?.()
-    } catch {
-      setError('Preparation could not be completed. Keep any existing profile and encrypted work. Connect, sign in to this church, and check access before retrying.')
-      await refresh().catch(() => undefined)
-    } finally { setNewPin(''); finish() }
   }
 
   const reviewRemoval = async () => {
@@ -309,13 +284,7 @@ export function DeviceProfilesScreen({ store = profileStore, synchronizer = sync
         <p>An expired offline authorization needs an online sign-in as the same teacher and an authorization refresh using the existing PIN. Entering the PIN alone cannot renew access.</p>
         <p>Locking, switching profiles, backgrounding the app, or inactivity hides protected data. Locking keeps encrypted work on this device.</p>
       </details>
-      <Button variant="secondary" disabled={busy} onClick={() => setAdding(value => !value)}>Add profile</Button>
-      {adding && <form onSubmit={add}>
-        <h3>Add an encrypted profile</h3>
-        <Field id="profile-church" label="Church ID" disabled={busy} value={churchId} onChange={event => setChurchId(event.target.value)} required pattern="[a-fA-F0-9\-]{36}" />
-        <Field id="new-profile-pin" label="Choose a 6–12 digit local PIN" disabled={busy} inputMode="numeric" autoComplete="new-password" type="password" pattern="[0-9]{6,12}" minLength={6} maxLength={12} value={newPin} onChange={event => setNewPin(event.target.value)} required />
-        <Button type="submit" disabled={!online || busy}>Download assigned roster and create profile</Button>
-      </form>}
+      <p><a href="/account/prepare" onClick={event => { if (busy) event.preventDefault() }}>Add profile</a></p>
       {error && <ErrorSummary message={error} />}
       {message && <StatusBanner live>{message}</StatusBanner>}
       <p><a href="/account/login" onClick={event => { if (busy) event.preventDefault() }}>Sign in online</a></p>

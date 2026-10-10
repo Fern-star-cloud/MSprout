@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { bootstrap, churchId, json, mockCsrf, outboxCount } from './support'
+import { addProfile, bootstrap, churchId, json, mockCsrf, outboxCount } from './support'
 
 test.use({ serviceWorkers: 'block' })
 
@@ -36,10 +36,7 @@ test('offline attendance survives browser closure and converges exactly once aft
     })
   })
 
-  await page.goto(`/profiles?church=${churchId}`)
-  await page.getByRole('button', { name: 'Add profile' }).click()
-  await page.getByLabel('Choose a 6–12 digit local PIN').fill('184629')
-  await page.getByRole('button', { name: 'Download assigned roster and create profile' }).click()
+  await addProfile(page)
   await context.setOffline(true)
   const initialDate = await page.getByLabel('Attendance date').inputValue()
   const pilotDates = Array.from({ length: 4 }, (_, daysAgo) => {

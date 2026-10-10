@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { addProfile } from './support'
 
 test.use({ serviceWorkers: 'block' })
 
@@ -51,11 +52,7 @@ test('offline attendance converges once after a lost response, reconnect, and re
     } })
   })
 
-  await page.goto(`/profiles?church=${churchId}`)
-  await page.getByRole('button', { name: 'Add profile' }).click()
-  await page.getByLabel('Choose a 6–12 digit local PIN').fill('184629')
-  await page.getByRole('button', { name: 'Download assigned roster and create profile' }).click()
-  await expect(page.getByRole('heading', { name: 'Take attendance' })).toBeVisible()
+  await addProfile(page)
 
   await context.setOffline(true)
   await page.getByRole('button', { name: 'Mark all unmarked present' }).click()
