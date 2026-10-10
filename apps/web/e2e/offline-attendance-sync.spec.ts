@@ -57,6 +57,7 @@ test('offline attendance converges once after a lost response, reconnect, and re
   await context.setOffline(true)
   await page.getByRole('button', { name: 'Mark all unmarked present' }).click()
   await page.getByRole('button', { name: 'Finalize attendance' }).click()
+    await page.getByRole('button', { name: 'Finalize on this device' }).click()
   await expect(page.getByText(/Saved on this device — Pending Sync/)).toBeVisible()
 
   await context.setOffline(false)

@@ -88,6 +88,8 @@ for (const failPull of [false, true]) {
     expect(headerless).toBe(401)
     expect(pullReferrers).toEqual([undefined])
     await page.getByRole('button', { name: 'Mark Pilot Student A present' }).click()
+    await page.getByRole('button', { name: 'Add temporary guest' }).click()
+
     await page.getByLabel('Display name').fill('Isolated Offline Guest')
     await page.getByRole('button', { name: 'Add guest as present' }).click()
     await expect(page.getByText(/3 pending/)).toBeVisible()

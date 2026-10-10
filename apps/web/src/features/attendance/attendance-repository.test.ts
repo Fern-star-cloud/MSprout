@@ -137,4 +137,77 @@ describe('offline attendance repository', () => {
     await expect(createDraft()).rejects.toThrow()
     expect(await db.attendanceDrafts.where('profileId').equals('profile-a').count()).toBe(0)
   })
+
+  it('repeated Start preserves marks and guests and never recreates an accepted creation event', async () => {
+    const first = await createDraft()
+    await repository.markStudent('profile-a', first.id, first.entries[0].studentId, 'absent')
+    const saved = await repository.addGuest('profile-a', first.id, 'Synthetic persisted guest')
+    const creation = (await repository.listEvents('profile-a')).find(event => event.action === 'attendance.draft_created')!
+    // Model the existing synchronizer removing an acknowledged outbox event.
+    await db.outboxEvents.delete(['profile-a', creation.id])
+    const before = await db.outboxEvents.toArray()
+    expect(await createDraft()).toEqual(saved)
+    expect(await db.outboxEvents.toArray()).toEqual(before)
+    db.close()
+    await db.open()
+    expect(await repository.findDraft('profile-a', saved.ministryId, saved.attendanceDate)).toEqual(saved)
+  })
+
+  it('same session identity remains profile-scoped on a shared device', async () => {
+    const original = (await db.profiles.get('profile-a'))!
+    await db.profiles.add({ ...original, id: 'profile-b', actorId: '22', deviceId: 'synthetic-b' })
+    const first = await createDraft()
+    const other = await repository.createDraft({ profileId: 'profile-b', churchId: first.churchId, ministryId: first.ministryId,
+      ministryName: 'Primary', attendanceDate: first.attendanceDate, students: [] })
+    expect(other.id).toBe(first.id)
+    expect(other.entries).toEqual([])
+    await repository.addGuest('profile-b', other.id, 'Synthetic profile B guest')
+    expect(await repository.findDraft('profile-a', first.ministryId, first.attendanceDate)).toEqual(first)
+    expect(await repository.countPending('profile-a')).toBe(1)
+    expect(await repository.countPending('profile-b')).toBe(2)
+    await expect(repository.markStudent('profile-b', first.id, first.entries[0].studentId, 'present')).rejects.toThrow('not part')
+  })
+
+  it('a guest transaction rolls back completely when its outbox write fails', async () => {
+    const draft = await createDraft()
+    const before = await db.attendanceDrafts.toArray()
+    await db.outboxEvents.add({ profileId: 'profile-a', id: '00000000-0000-4000-8000-000000000002',
+      encrypted: await codec.encrypt('profile-a', 'synthetic-collision', {}), updatedAt: draft.updatedAt })
+    const events = await db.outboxEvents.toArray()
+    await expect(repository.addGuest('profile-a', draft.id, 'Synthetic rejected guest')).rejects.toThrow()
+    expect(await db.attendanceDrafts.toArray()).toEqual(before)
+    expect(await db.outboxEvents.toArray()).toEqual(events)
+  })
+
+  it('concurrent mutations reject the stale writer without losing the winner or adding its event', async () => {
+    const draft = await createDraft()
+    let reads = 0, release!: () => void
+    const barrier = new Promise<void>(resolve => { release = resolve })
+    const concurrent = new AttendanceRepository(db, { ...codec, async decrypt<T>(profile: string, purpose: string, envelope: EncryptedEnvelope) {
+      const value = await codec.decrypt<T>(profile, purpose, envelope)
+      if (purpose.startsWith('attendance-draft:')) { if (++reads === 2) release(); await barrier }
+      return value
+    } }, { id: () => crypto.randomUUID() })
+    const results = await Promise.allSettled([
+      concurrent.markStudent('profile-a', draft.id, draft.entries[0].studentId, 'present'),
+      concurrent.addGuest('profile-a', draft.id, 'Synthetic concurrent guest'),
+    ])
+    expect(results.filter(result => result.status === 'fulfilled')).toHaveLength(1)
+    const failure = results.find(result => result.status === 'rejected') as PromiseRejectedResult
+    expect(String(failure.reason)).toContain('Reload')
+    const winner = results.find(result => result.status === 'fulfilled') as PromiseFulfilledResult<typeof draft>
+    expect(await repository.findDraft('profile-a', draft.ministryId, draft.attendanceDate)).toEqual(winner.value)
+    expect(await repository.listEvents('profile-a')).toHaveLength(2)
+  })
+
+  it('finalized sessions reject every mutation and preserve encrypted rows and events', async () => {
+    const draft = await createDraft()
+    await repository.bulkMark('profile-a', draft.id, 'absent')
+    await repository.finalizeDraft('profile-a', draft.id)
+    const before = [await db.attendanceDrafts.toArray(), await db.outboxEvents.toArray()]
+    for (const operation of [() => repository.markStudent('profile-a', draft.id, draft.entries[0].studentId, 'present'),
+      () => repository.bulkMark('profile-a', draft.id, 'present'), () => repository.addGuest('profile-a', draft.id, 'Synthetic late guest'),
+      () => repository.finalizeDraft('profile-a', draft.id)]) await expect(operation()).rejects.toThrow('no longer editable')
+    expect([await db.attendanceDrafts.toArray(), await db.outboxEvents.toArray()]).toEqual(before)
+  })
 })

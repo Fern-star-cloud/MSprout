@@ -1,5 +1,9 @@
 # Architecture
 
+## Explicit local attendance lifecycle — 2026-10-11
+
+AttendanceScreen separates read-only selection/discovery from explicit Start/Resume and uses the unchanged profile-scoped deterministic AttendanceRepository. Marking and minimal temporary guests retain atomic encrypted draft/outbox writes and optimistic concurrency. Presentation generations and action guards isolate late reads/saves from changed selection, lock and authorization state; Sync refreshes coalesce around mutations. Finalization confirmation uses the existing unmarked guard and read-only local status. Filters and focus visibility change no domain state. Browser-local dates, API, schema, encryption, lease, cursor/receipt and event contracts remain unchanged. [Evidence](../docs/qa/ui-08-attendance-lifecycle-verification.md).
+
 ## Discoverable synchronization and preserved recovery — 2026-10-10
 
 Existing approved Sync routes now render independent account, unlock, upload/download and review presentation. A read-only profile-scoped snapshot plus existing lease-bound draft decryption projects durable outbox/quarantine/pull-needed/cursor/review evidence; null means unknown. Completion also requires a verified server review read. SyncRecovery wraps existing matching-account verification, bootstrap with preserveCursor and shared SyncClient; direct unlock retains the existing encrypted profile and event identities. Lifecycle generations and synchronous/coordinator guards cancel stale presentation and coalesce actions without changing transport/lease/idempotency contracts. Navigation/status reads never start transfer or Attendance. [Evidence](../docs/qa/ui-07-sync-recovery-verification.md).

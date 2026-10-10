@@ -12,8 +12,9 @@ Separate [approved UI-01–UI-16 sequence](../docs/superpowers/plans/2026-10-09-
 | UI-04 — Church Account, assurance and application | GREEN / COMMITTED / PUSHED | `abd1ee9c27f8e8b5b3c446d86b1b4485c0379d88`; [verification](../docs/qa/ui-04-account-application-verification.md); synchronized at UI-05 entry |
 | UI-05 — Separate Platform shell and session lifecycle | GREEN / COMMITTED / PUSHED | `24988e254867940d5acacfe0a5d2bd296256079f`; [verification](../docs/qa/ui-05-platform-shell-verification.md); synchronized at UI-06 entry |
 | UI-06 — Guided encrypted device preparation | GREEN / COMMITTED / PUSHED | `0d9ef2b46a8884a84ad4284f3b780f260f4a2104`; [verification](../docs/qa/ui-06-device-preparation-verification.md); synchronized at UI-07 entry |
-| UI-07 — Discoverable Synchronization & Recovery | COMPLETE / VALIDATED (pre-finalization receipt) | [Verification](../docs/qa/ui-07-sync-recovery-verification.md); reviewed subject `feat: add discoverable synchronization and safe recovery` identifies finalization through Git |
-| UI-08–UI-16 | NOT STARTED | Stop after UI-07; individual authorization required |
+| UI-07 — Discoverable Synchronization & Recovery | GREEN / COMMITTED / PUSHED | `0724e92d8766a4dcdad048ba80ed2908be182c39`; [verification](../docs/qa/ui-07-sync-recovery-verification.md); synchronized at UI-08 entry |
+| UI-08 — Explicit Attendance Lifecycle & Temporary Guests | COMPLETE / VALIDATED (pre-finalization receipt) | [Verification](../docs/qa/ui-08-attendance-lifecycle-verification.md); reviewed subject `feat: add explicit attendance lifecycle and temporary guests` resolves finalization through Git |
+| UI-09–UI-16 | NOT STARTED | Stop after UI-08; further authorization required |
 
 
 Manual QA policy effective 2026-10-07: implementation Tasks 1–18 remain complete with their existing commit evidence. MT-00…MT-22 are optional risk-based references; 211-case sequential completion is not a development, merge, deployment or release requirement. MT-00/01 PASS and partial MT-02 results/blockers remain preserved in [manual knowledge](MANUAL_TESTING.md). Applicable automated/security/CI/deployment requirements and unresolved release-critical defects remain release criteria. No implementation task or manual phase is started by this governance update.

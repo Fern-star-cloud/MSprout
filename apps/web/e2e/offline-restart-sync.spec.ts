@@ -46,9 +46,11 @@ test('offline attendance survives browser closure and converges exactly once aft
   })
   for (const attendanceDate of pilotDates) {
     await page.getByLabel('Attendance date').fill(attendanceDate)
+    if (attendanceDate !== initialDate) await page.getByRole('button', { name: 'Start attendance' }).click()
     await expect(page.getByRole('button', { name: 'Mark all unmarked present' })).toBeEnabled()
     await page.getByRole('button', { name: 'Mark all unmarked present' }).click()
     await page.getByRole('button', { name: 'Finalize attendance' }).click()
+    await page.getByRole('button', { name: 'Finalize on this device' }).click()
     await expect(page.getByText(/Pending Sync/)).toBeVisible()
   }
   expect(await outboxCount(page)).toBe(12)
@@ -60,6 +62,7 @@ test('offline attendance survives browser closure and converges exactly once aft
   await context.setOffline(true)
   await reopened.getByLabel('Local PIN').fill('184629')
   await reopened.getByRole('button', { name: 'Use profile 1' }).click()
+  await reopened.getByRole('button', { name: 'Resume attendance' }).click()
   await expect(reopened.getByText(/Pending Sync/)).toBeVisible()
   expect(await outboxCount(reopened)).toBe(12)
 

@@ -1,0 +1,157 @@
+import { expect, test } from '@playwright/test'
+import { bootstrap, deviceRecords, expectNoSeriousAccessibilityIssues, json, mockCsrf, outboxCount, prepareProfile, addProfile } from './support'
+
+// Fresh isolated contexts, synthetic identities and intercepted API only.
+test.use({ serviceWorkers: 'block' })
+test.beforeEach(async ({ context }) => {
+  await mockCsrf(context)
+  await context.route('**/api/**', route => json(route, {}, 503))
+  await context.route('**/logout', route => route.fulfill({ status: 204 }))
+  await context.route('**/api/offline/bootstrap**', route => json(route, bootstrap('11', undefined, new URL(route.request().url()).searchParams.get('device_id')!)))
+})
+
+test('view, date changes and Resume never write attendance; deliberate repeated Start creates one encrypted session', async ({ page }) => {
+  await prepareProfile(page)
+  const before = await deviceRecords(page)
+  await page.getByRole('button', { name: 'Open Attendance' }).click()
+  await expect(page.getByRole('button', { name: 'Start attendance' })).toBeVisible()
+  const localDate = await page.evaluate(() => {
+    const value = new Date()
+    return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`
+  })
+  await expect(page.getByLabel('Attendance date')).toHaveValue(localDate)
+  await page.getByLabel('Attendance date').fill('2026-10-01')
+  await expect(page.getByText('No draft for this date')).toBeVisible()
+  expect(await deviceRecords(page)).toEqual(before)
+  await page.getByRole('button', { name: 'Start attendance' }).evaluate(button => { (button as HTMLButtonElement).click(); (button as HTMLButtonElement).click() })
+  await expect(page.getByText('Pilot Student A')).toBeVisible()
+  expect(await outboxCount(page)).toBe(1)
+  await page.getByRole('button', { name: 'Mark Pilot Student A absent' }).click()
+  await expect(page.getByRole('button', { name: 'Mark Pilot Student A absent' })).toHaveAttribute('aria-pressed', 'true')
+  await expect.poll(() => outboxCount(page)).toBe(2)
+  const saved = await deviceRecords(page)
+  expect(saved.attendanceDrafts).toHaveLength(1)
+  expect(JSON.stringify(saved)).not.toMatch(/Pilot Student|student_marked|attendance_date/)
+  await page.getByLabel('Attendance date').fill('2026-10-02')
+  await expect(page.getByText('No draft for this date')).toBeVisible()
+  await page.getByLabel('Attendance date').fill('2026-10-01')
+  await expect(page.getByText('Saved draft found')).toBeVisible()
+  await page.getByRole('button', { name: 'Resume attendance' }).click()
+  await expect(page.getByRole('button', { name: 'Mark Pilot Student A absent' })).toHaveAttribute('aria-pressed', 'true')
+  expect(await deviceRecords(page)).toEqual(saved)
+})
+
+test('filters, marking and finalization dialogs remain accessible at five widths and enlarged forced colors', async ({ page }) => {
+  await addProfile(page)
+  for (const width of [320, 390, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 })
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `width ${width}`).toBe(true)
+  }
+  await expectNoSeriousAccessibilityIssues(page)
+  await page.screenshot({ path: test.info().outputPath('attendance-desktop.png'), fullPage: true })
+  await page.setViewportSize({ width: 390, height: 900 })
+  await page.screenshot({ path: test.info().outputPath('attendance-phone.png'), fullPage: true })
+  for (const name of ['Mark all unmarked absent', 'Mark Pilot Student A present', 'Mark Pilot Student B absent']) {
+    const control = page.getByRole('button', { name, exact: true })
+    await control.focus()
+    expect(await control.evaluate(element => {
+      const rect = element.getBoundingClientRect()
+      return ![...document.querySelectorAll('.attendance-finalize-bar, .phone-navigation')].some(overlay => {
+        const cover = overlay.getBoundingClientRect()
+        return cover.height > 0 && cover.top <= rect.top && cover.bottom >= rect.bottom
+      }) && rect.top >= 0 && rect.bottom <= innerHeight
+    }), `${name}: focused control is visible`).toBe(true)
+  }
+  await page.getByRole('button', { name: 'Mark Pilot Student A present' }).click()
+  await page.getByRole('button', { name: 'Present', exact: true }).click()
+  await expect(page.getByText('Pilot Student B')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Present', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByText('Mark 1 remaining student first')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Finalize attendance' })).toBeDisabled()
+  await page.getByRole('button', { name: 'Unmarked', exact: true }).click()
+  await expect(page.getByText('Pilot Student B')).toBeVisible()
+  await page.getByRole('button', { name: 'Mark Pilot Student B absent' }).click()
+  await page.getByRole('button', { name: 'Absent', exact: true }).click()
+  await expect(page.getByText('Pilot Student B')).toBeVisible()
+  await page.getByRole('button', { name: 'All', exact: true }).click()
+  await page.setViewportSize({ width: 320, height: 900 })
+  await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'reduce' })
+  await page.addStyleTag({ content: ':root {font-size:200%}' })
+  await expect(page.locator('.attendance-finalize-bar')).toHaveCSS('position', 'static')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await expectNoSeriousAccessibilityIssues(page)
+  const enlargedControl = page.getByRole('button', { name: 'Mark Pilot Student B absent' })
+  await enlargedControl.focus()
+  expect(await enlargedControl.evaluate(element => {
+    const rect = element.getBoundingClientRect()
+    const bar = document.querySelector('.attendance-finalize-bar')!.getBoundingClientRect()
+    return rect.top >= 0 && rect.bottom <= innerHeight && (rect.bottom <= bar.top || rect.top >= bar.bottom)
+  })).toBe(true)
+  await page.getByRole('button', { name: 'Finalize attendance' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Finalize this session?' })
+  await expect(dialog.getByText('2 regular students + 0 guests')).toBeVisible()
+  await expectNoSeriousAccessibilityIssues(page)
+  await page.keyboard.press('Tab')
+  await expect(dialog.getByRole('button', { name: 'Keep editing' })).toBeFocused()
+  await page.keyboard.press('Shift+Tab')
+  await expect(dialog.getByRole('button', { name: 'Finalize on this device' })).toBeFocused()
+  const before = await deviceRecords(page)
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('button', { name: 'Finalize attendance' })).toBeFocused()
+  expect(await deviceRecords(page)).toEqual(before)
+  await page.getByRole('button', { name: 'Finalize attendance' }).click()
+  await dialog.getByRole('button', { name: 'Finalize on this device' }).click()
+  await expect(page.getByText('Finalized on this device')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Mark Pilot Student A present' })).toBeDisabled()
+  await page.screenshot({ path: test.info().outputPath('attendance-finalized.png'), fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('attendance-enlarged-viewport.png') })
+})
+
+test('guest cancellation writes nothing; quota recovery preserves input and encrypted restart preserves saved guest', async ({ page, context }) => {
+  await addProfile(page)
+  await context.setOffline(true)
+  const before = await deviceRecords(page)
+  await page.getByRole('button', { name: 'Add temporary guest' }).click()
+  await expect(page.getByLabel('Display name')).toBeFocused()
+  await page.getByLabel('Display name').fill('Synthetic UI08 guest')
+  await page.getByLabel('Gender (optional)').selectOption('female')
+  await expectNoSeriousAccessibilityIssues(page)
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Add temporary guest' })).toBeFocused()
+  expect(await deviceRecords(page)).toEqual(before)
+  await page.getByRole('button', { name: 'Add temporary guest' }).click()
+  await page.evaluate(() => {
+    const original = IDBObjectStore.prototype.put
+    IDBObjectStore.prototype.put = function (...args) {
+      if (this.name === 'attendanceDrafts') { IDBObjectStore.prototype.put = original; throw new DOMException('Synthetic quota', 'QuotaExceededError') }
+      return original.apply(this, args as Parameters<IDBObjectStore['put']>)
+    }
+  })
+  await page.getByRole('button', { name: 'Add guest as present' }).click()
+  await expect(page.getByRole('alert')).toContainText('This change was not saved')
+  await expect(page.getByLabel('Display name')).toHaveValue('Synthetic UI08 guest')
+  await expect(page.getByLabel('Gender (optional)')).toHaveValue('female')
+  expect(await deviceRecords(page)).toEqual(before)
+  await page.getByRole('button', { name: 'Add guest as present' }).click()
+  await expect(page.getByText('Synthetic UI08 guest', { exact: true })).toBeVisible()
+  await expect.poll(() => outboxCount(page)).toBe(2)
+  const saved = await deviceRecords(page)
+  expect(JSON.stringify(saved)).not.toContain('Synthetic UI08 guest')
+  // Fresh page restart clears the in-memory key. Unlock the same profile; Resume is read-only.
+  await page.close()
+  await context.setOffline(false)
+  const reopened = await context.newPage()
+  await reopened.goto('/profiles')
+  await context.setOffline(true)
+  await reopened.getByLabel('Local PIN', { exact: true }).fill('184629')
+  await reopened.getByRole('button', { name: 'Use profile 1' }).click()
+  await expect(reopened.getByRole('button', { name: 'Resume attendance' })).toBeEnabled()
+  const unlocked = await deviceRecords(reopened)
+  // Unlock may update authorization metadata; it must preserve the original key,
+  // bindings and all encrypted payloads. Resume itself must change no store.
+  for (const table of ['attendanceDrafts', 'outboxEvents', 'encryptedBlobs', 'conflicts']) expect(unlocked[table]).toEqual(saved[table])
+  for (const key of ['id', 'actorId', 'churchId', 'deviceId', 'salt', 'wrappedDataKey']) expect(unlocked.profiles[0][key]).toEqual(saved.profiles[0][key])
+  await reopened.getByRole('button', { name: 'Resume attendance' }).click()
+  await expect(reopened.getByText('Synthetic UI08 guest', { exact: true })).toBeVisible()
+  expect(await deviceRecords(reopened)).toEqual(unlocked)
+})

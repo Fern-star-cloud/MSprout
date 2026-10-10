@@ -26,6 +26,7 @@ test('two encrypted PIN profiles keep assigned rosters and actors separate', asy
   await page.getByLabel(/Profile 1/).check()
   await page.getByLabel('Local PIN').fill('184629')
   await page.getByRole('button', { name: 'Use profile 1' }).click()
+  await page.getByRole('button', { name: 'Resume attendance' }).click()
   await expect(page.getByText('Teacher One Roster')).toBeVisible()
   await expect(page.getByText('Teacher Two Roster')).toHaveCount(0)
   await expectNoSeriousAccessibilityIssues(page)
@@ -50,6 +51,7 @@ test('a simulated storage quota failure stops attendance before claiming success
     }
   })
   await page.getByLabel('Attendance date').fill('2026-09-29')
-  await expect(page.getByRole('alert')).toContainText('Free storage')
-  await expect(page.getByRole('button', { name: 'Finalize attendance' })).toBeDisabled()
+  await page.getByRole('button', { name: 'Start attendance' }).click()
+  await expect(page.getByRole('alert')).toContainText('This change was not saved')
+  await expect(page.getByRole('button', { name: 'Finalize attendance' })).toHaveCount(0)
 })

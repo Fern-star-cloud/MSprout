@@ -1,5 +1,13 @@
 # Current State
 
+## UI-08 qualified — 2026-10-11
+
+UI-08 Explicit Attendance Lifecycle & Temporary Guests is implemented, validated and reviewed before its single task commit/push. Entry HEAD/tracking/live feature matched UI-07 `0724e92d8766a4dcdad048ba80ed2908be182c39`, 0/0; main remains `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f`. UI-01–UI-07 GREEN is preserved; the stale UI-07 roadmap row now cites its finalized commit.
+
+Ministry/date selection only reads existing attendance. Explicit Start coalesces actions through unchanged deterministic atomic storage; Resume preserves entries/events. All/Present/Absent/Unmarked filters expose textual and pressed states. Minimal guest dialogs preserve valid failed input, clear plaintext on lock, and distinguish committed writes from unavailable counts. Full-roster unmarked blocking and deliberate confirmation precede local read-only finalization. Unknown counts, incomplete downloads and unresolved review stay distinct. Access/selection/mutation guards suppress stale views without modifying sync, receipts/cursors, encrypted profiles or backend contracts. Browser-local date defaults and stored calendar dates remain unchanged.
+
+Actual proof: focused49/4, aggregate frontend476/54, serial backend270/1917, all156 unique browser outcomes, types/lint/build/contracts/structure/Pint/audits and security gates PASS. Complete review has no open BLOCKING/SHOULD FIX finding. [Verification, evidence reuse and qualification limits](../docs/qa/ui-08-attendance-lifecycle-verification.md). Eight original QA/environment bodies remain exact beneath separate additive sections. Finalization is resolved through Git subject `feat: add explicit attendance lifecycle and temporary guests` and the ignored task receipt; this record does not invent its own commit SHA. Stop after UI-08. UI-09–UI-16 remain NOT STARTED and require further authorization.
+
 ## UI-07 qualified — 2026-10-10
 
 UI-07 Discoverable Synchronization & Recovery is implemented, validated and reviewed before the single task commit/push. UI-06 HEAD/tracking/live remote at entry was `0d9ef2b46a8884a84ad4284f3b780f260f4a2104`, feature0/0; main remains `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f`. UI-01–UI-06 GREEN is preserved; the stale UI-06 roadmap row now cites that finalized commit.

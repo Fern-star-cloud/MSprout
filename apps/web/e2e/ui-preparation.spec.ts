@@ -72,6 +72,7 @@ test('three accessible stages save encrypted data with no attendance; leading-ze
   await page.getByRole('link', { name: 'Device profiles and safe recovery' }).click()
   await page.getByLabel('Local PIN', { exact: true }).fill('000123')
   await page.getByRole('button', { name: 'Use profile 1' }).click()
+  await page.getByRole('button', { name: 'Start attendance' }).click()
   await expect(page.getByText('Pilot Student A')).toBeVisible()
 })
 

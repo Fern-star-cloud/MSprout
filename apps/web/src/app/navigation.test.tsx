@@ -79,7 +79,7 @@ it('does not publish an Owner identity or management navigation before scoped va
 
 it('updates online role navigation without remounting independently authorized Attendance', async () => {
   history.replaceState(null,'','/account/attendance');render(<App />)
-  await screen.findByRole('link',{name:'Choose a device profile'})
+  await screen.findByRole('link',{name:'Unlock an existing device profile'})
   const heading=screen.getByRole('heading',{name:'Take attendance'})
   await screen.findByText('Owner',{exact:true})
   role='teacher';fireEvent.focus(window)

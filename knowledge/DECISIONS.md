@@ -4,6 +4,10 @@ Manual QA governance decision — 2026-10-07, explicit user direction: retain MT
 
 Only decisions established by the approved design, roadmap, committed implementation, or a validated current worktree belong here.
 
+## UI-08 creation requires intent — 2026-10-11
+
+Choosing a ministry/date must not create attendance. The UI therefore discovers existing saved work first and exposes explicit Start or Resume; unknown discovery blocks starting over. Existing deterministic atomic storage remains authoritative for repeated/concurrent creation and mutation. Local commit, pending upload, incomplete download and review remain separate, and count-read failures cannot invite a repeated guest event. This implements the approved attendance lifecycle without changing persisted date semantics or synchronization contracts. [Evidence](../docs/qa/ui-08-attendance-lifecycle-verification.md).
+
 ## UI-07 completion follows durable evidence — 2026-10-10
 
 An empty upload queue cannot prove every download page was applied or unresolved review was resolved. Therefore synchronization presentation requires known local counts and existing syncNeedsPull/cursor evidence, reports server review separately, and retains quarantine/downloaded needs-review visibility after transfer. Lost responses remain uncertain until existing IDs reconcile. Recovery verifies the matching church account, directly unlocks the original encrypted profile and explicitly continues; it does not substitute logout, profile recreation or Attendance. This implements the approved UI-07 flow without changing synchronization/encryption contracts. [Evidence](../docs/qa/ui-07-sync-recovery-verification.md).

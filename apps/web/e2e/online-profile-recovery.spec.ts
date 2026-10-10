@@ -67,6 +67,8 @@ test('online profile use logs out a recent session; signing in afterward opens R
   })
   await addProfile(page)
   await page.getByRole('button', { name: 'Mark Pilot Student A present' }).click()
+  await page.getByRole('button', { name: 'Add temporary guest' }).click()
+
   await page.getByLabel('Display name').fill('Pilot Offline Guest')
   await page.getByRole('button', { name: 'Add guest as present' }).click()
   await expect(page.getByText(/3 pending/)).toBeVisible()
@@ -84,6 +86,7 @@ test('online profile use logs out a recent session; signing in afterward opens R
   await page.goto('/profiles')
   await page.getByLabel('Local PIN', { exact: true }).fill('184629')
   await page.getByRole('button', { name: 'Use profile 1' }).click()
+  await page.getByRole('button', { name: 'Resume attendance' }).click()
   await expect(page.getByText(/3 pending/)).toBeVisible()
   await expect(page.getByText('Pilot Offline Guest', { exact: true })).toBeVisible()
   expect(authentication.filter(event => event === 'logout:204')).toHaveLength(1)

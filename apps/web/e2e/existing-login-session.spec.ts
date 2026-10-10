@@ -61,6 +61,8 @@ for (const redirected of [false, true]) {
     })
     await addProfile(page)
     await page.getByRole('button', { name: 'Mark Pilot Student A present' }).click()
+    await page.getByRole('button', { name: 'Add temporary guest' }).click()
+
     await page.getByLabel('Display name').fill('Pilot Guest')
     await page.getByRole('button', { name: 'Add guest as present' }).click()
     await expect(page.getByText(/3 pending/)).toBeVisible()

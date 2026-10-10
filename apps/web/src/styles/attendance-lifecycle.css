@@ -1,0 +1,30 @@
+.attendance-lifecycle-choice { display: grid; justify-items: start; gap: 1rem; padding-block: 1rem; }
+.attendance-lifecycle-choice h2, .attendance-lifecycle-choice p { margin: 0; }
+.attendance-filters, .attendance-dialog-actions { display: flex; flex-wrap: wrap; gap: .65rem; margin-block: 1rem; }
+.attendance-filters button[aria-pressed="true"] { color: var(--color-surface); background: var(--color-brand); border-color: var(--color-brand); }
+.attendance-entry-name { display: grid; justify-items: start; gap: .4rem; min-width: 0; overflow-wrap: anywhere; }
+.attendance-screen .attendance-finalize-bar { position: sticky; inset: auto; bottom: calc(4rem + env(safe-area-inset-bottom)); margin-block: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-medium); flex-wrap: wrap; }
+.attendance-screen .attendance-session-panel { min-width: 0; }
+.attendance-screen .attendance-roster-panel { min-width: 0; }
+.attendance-screen .attendance-layout { grid-template-columns: minmax(0, 1fr); }
+.attendance-screen .attendance-roster li { grid-template-columns: 3rem minmax(0, 1fr); }
+.attendance-screen .attendance-state-controls { grid-column: 1 / -1; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); }
+.attendance-screen .attendance-heading { flex-wrap: wrap; }
+.attendance-screen input, .attendance-screen select { min-width: 0; max-width: 100%; }
+.attendance-screen .attendance-layout :is(button, input, select) { scroll-margin-block-start: 1rem; }
+.attendance-screen .attendance-session-panel { position: static; }
+.attendance-screen .attendance-roster-panel > h2 { overflow-wrap: anywhere; }
+.attendance-screen .attendance-connection { flex-wrap: wrap; }
+.attendance-screen .attendance-finalize-bar .ui-button { min-height: 2.75rem; }
+.attendance-dialog-actions .ui-button { flex: 1 1 10rem; }
+@media (min-width: 1024px) { .attendance-screen .attendance-finalize-bar { bottom: .5rem; } }
+@media (min-width: 80rem) {
+  .attendance-screen .attendance-layout { grid-template-columns: minmax(14rem, 19rem) minmax(0, 1fr); }
+  .attendance-screen .attendance-session-panel { position: sticky; }
+  .attendance-screen .attendance-roster li { grid-template-columns: 3rem minmax(0, 1fr) minmax(12rem, auto); }
+  .attendance-screen .attendance-state-controls { grid-column: auto; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 389px) { .attendance-screen .attendance-finalize-bar .ui-button { flex: 1 1 100%; } }
+/* Enlarged text and short viewports need the action area in document flow. */
+.attendance-screen .attendance-finalize-bar.is-compact { position: static; }
+@media (max-height: 42rem) { .attendance-screen .attendance-finalize-bar { position: static; } }

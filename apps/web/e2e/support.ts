@@ -109,7 +109,7 @@ export async function prepareProfile(page: Page, pin = '184629', actorId = '11')
   }
 }
 
-async function deviceRecords(page: Page): Promise<Record<string, Record<string, unknown>[]>> {
+export async function deviceRecords(page: Page): Promise<Record<string, Record<string, unknown>[]>> {
   return page.evaluate(async () => {
     const request = indexedDB.open('ministry-sprout-offline')
     const database = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -133,6 +133,8 @@ export async function addProfile(page: Page, pin = '184629', actorId = '11') {
   await prepareProfile(page, pin, actorId)
   await page.getByRole('button', { name: 'Open Attendance' }).click()
   await expect(page.getByRole('heading', { name: 'Take attendance' })).toBeVisible()
+  await page.getByRole('button', { name: 'Start attendance' }).click()
+  await expect.poll(() => outboxCount(page)).toBeGreaterThan(0)
 }
 
 export async function outboxCount(page: Page) {

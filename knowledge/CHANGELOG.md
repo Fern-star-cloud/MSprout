@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-11 — UI-08 explicit attendance lifecycle and temporary guests
+
+Read-only ministry/date selection, explicit Start/Resume, accessible state filters/marking, minimal recoverable guest dialogs and deliberate guarded finalization are implemented and qualified. Existing atomic encrypted/profile/synchronization boundaries are preserved. Focused49/4, frontend476/54, backend270/1917 and156 unique browser outcomes plus all applicable build/contract/audit/security gates pass. Original eight QA bodies are preserved; UI-09 remains unstarted. Finalization resolves through the reviewed Git subject and [verification](../docs/qa/ui-08-attendance-lifecycle-verification.md).
+
 ## 2026-10-10 — UI-07 discoverable synchronization and recovery
 
 Add dedicated Sync & device navigation with independent connection/account/unlock/upload/download/review states, truthful unknown/incomplete/interrupted guidance and explicit same-profile recovery. Preserve accepted work, original keys/events/receipts/cursors and review; navigation/status/unlock create no attendance or transfer. Focused61/frontend451/backend270+1917 and all96 unique browser outcomes PASS with applicable/security gates; no open review finding. Eight original QA/environment bodies remain preserved. Stop before UI-08. [Verification](../docs/qa/ui-07-sync-recovery-verification.md).

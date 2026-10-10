@@ -1,11 +1,22 @@
 // @vitest-environment jsdom
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, expect, it, vi } from 'vitest'
 import type { AttendanceDraft, AttendanceState, CreateAttendanceDraftInput } from './domain'
 import { AttendanceScreen } from './AttendanceScreen'
 
 afterEach(() => cleanup())
+beforeAll(() => Object.defineProperties(HTMLDialogElement.prototype, {
+  showModal: { configurable: true, value: function (this: HTMLDialogElement) { this.open = true } },
+  close: { configurable: true, value: function (this: HTMLDialogElement) { this.open = false } },
+}))
+
+async function openSession(existing = true) {
+  await userEvent.setup().click(await screen.findByRole('button', { name: existing ? 'Resume attendance' : 'Start attendance' }))
+}
+async function openGuest() {
+  await userEvent.setup().click(screen.getByRole('button', { name: 'Add temporary guest' }))
+}
 
 it('distinguishes acknowledged uploads from an incomplete pull, including after reopening attendance', async () => {
   let syncNeedsPull = true
@@ -81,6 +92,7 @@ it('supports search, individual and bulk marking, counts, and safe finalization'
   render(<AttendanceScreen repository={repository} store={store} initialDate="2026-09-28" />)
 
   expect(await screen.findByRole('heading', { name: 'Take attendance' })).toBeTruthy()
+  await openSession(false)
   expect(await screen.findByText('0 marked · 2 unmarked')).toBeTruthy()
   expect(screen.getByText(/Offline.*saving on this device/i)).toBeTruthy()
   Object.defineProperty(navigator, 'onLine', { configurable: true, value: true })
@@ -88,6 +100,7 @@ it('supports search, individual and bulk marking, counts, and safe finalization'
   expect(await screen.findByText(/Online.*1 pending/i)).toBeTruthy()
   expect((screen.getByRole('button', { name: 'Finalize attendance' }) as HTMLButtonElement).disabled).toBe(true)
 
+  await openGuest()
   await user.type(screen.getByLabelText('Display name'), 'Guest Child')
   await user.selectOptions(screen.getByLabelText('Gender (optional)'), 'female')
   await user.click(screen.getByRole('button', { name: 'Add guest as present' }))
@@ -107,6 +120,7 @@ it('supports search, individual and bulk marking, counts, and safe finalization'
   await waitFor(() => expect(screen.getByText('2 marked · 0 unmarked')).toBeTruthy())
   expect((screen.getByRole('button', { name: 'Finalize attendance' }) as HTMLButtonElement).disabled).toBe(false)
   await user.click(screen.getByRole('button', { name: 'Finalize attendance' }))
+  await user.click(screen.getByRole('button', { name: 'Finalize on this device' }))
   expect(await screen.findByText(/Saved on this device — Pending Sync$/)).toBeTruthy()
 })
 
@@ -128,6 +142,7 @@ it('keeps the responsive controls usable with text labels and student avatars', 
   }
   render(<AttendanceScreen repository={repository} store={store} initialDate="2026-09-28" />)
 
+  await openSession(false)
   expect(await screen.findByRole('img', { name: 'Ana Sprout avatar' })).toBeTruthy()
   expect(screen.getByRole('button', { name: 'Mark Ana Sprout present' }).textContent).toContain('Present')
   expect(screen.getByRole('button', { name: 'Mark Ana Sprout absent' }).textContent).toContain('Absent')
@@ -159,6 +174,7 @@ it('removes stale child data from memory after synchronization revokes the assig
       : []),
   }
   render(<AttendanceScreen repository={repository} store={store} initialDate="2026-09-28" />)
+  await openSession()
   expect(await screen.findByText('Ana Sprout')).toBeTruthy()
 
   assigned = false
@@ -166,8 +182,8 @@ it('removes stale child data from memory after synchronization revokes the assig
 
   await waitFor(() => expect(screen.queryByText('Ana Sprout')).toBeNull())
   expect((screen.getByLabelText('Ministry') as HTMLSelectElement).options).toHaveLength(0)
-  expect(screen.getByText('0 marked · 0 unmarked')).toBeTruthy()
-  expect((screen.getByRole('button', { name: 'Finalize attendance' }) as HTMLButtonElement).disabled).toBe(true)
+  expect(screen.queryByRole('button', { name: 'Finalize attendance' })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Start attendance' })).toBeNull()
 })
 
 it('clears protected roster state when reconnect requires online reauthentication', async () => {
@@ -196,6 +212,7 @@ it('clears protected roster state when reconnect requires online reauthenticatio
     }),
   }
   render(<AttendanceScreen repository={repository} store={store} initialDate="2026-09-28" />)
+  await openSession()
   expect(await screen.findByText('Ana Sprout')).toBeTruthy()
 
   invalid = true
@@ -225,6 +242,8 @@ it('preserves unsaved guest input and never shows a save receipt when storage fa
   render(<AttendanceScreen repository={repository} store={store} initialDate="2026-10-08" />)
   await screen.findByText(/1 pending/)
   const user = userEvent.setup()
+  await openSession()
+  await openGuest()
   await user.type(screen.getByLabelText('Display name'), 'MTQA Offline Guest')
   await user.selectOptions(screen.getByLabelText('Gender (optional)'), 'female')
   await user.click(screen.getByRole('button', { name: 'Add guest as present' }))
@@ -255,10 +274,12 @@ it('clears plaintext on lock and does not restore it when an in-flight guest sav
   render(<AttendanceScreen repository={repository} store={store} initialDate="2026-10-08" />)
   await screen.findByText(/1 pending/)
   const user = userEvent.setup()
+  await openSession()
+  await openGuest()
   await user.type(screen.getByLabelText('Display name'), 'MTQA Offline Guest')
   await user.click(screen.getByRole('button', { name: 'Add guest as present' }))
   act(() => locked())
-  expect(await screen.findByRole('link', { name: 'Choose a device profile' })).toBeTruthy()
+  expect(await screen.findByRole('link', { name: 'Unlock an existing device profile' })).toBeTruthy()
   await act(async () => finish({ ...draft, guests: [{ id: 'guest-a', displayName: 'MTQA Offline Guest', gender: 'unspecified', state: 'present', status: 'pending' }] }))
   expect(screen.queryByText('MTQA Offline Guest')).toBeNull()
   expect(screen.queryByLabelText('Display name')).toBeNull()
@@ -273,7 +294,7 @@ it('does not label a durable guest save as unsaved when only refreshing the pend
   const savedDraft: AttendanceDraft = { ...draft, guests: [{ id: 'guest-a', displayName: 'MTQA Offline Guest', gender: 'unspecified', state: 'present', status: 'pending' }] }
   const repository = {
     findDraft: vi.fn(async () => draft), createDraft: vi.fn(async () => draft),
-    countPending: vi.fn(async () => 1).mockResolvedValueOnce(1).mockRejectedValueOnce(new Error('Count unavailable')),
+    countPending: vi.fn(async () => 1),
     markStudent: vi.fn(), bulkMark: vi.fn(), finalizeDraft: vi.fn(), addGuest: vi.fn(async () => savedDraft),
   }
   const store = {
@@ -285,6 +306,9 @@ it('does not label a durable guest save as unsaved when only refreshing the pend
   render(<AttendanceScreen repository={repository} store={store} initialDate="2026-10-08" />)
   await screen.findByText(/1 pending/)
   const user = userEvent.setup()
+  await openSession()
+  await openGuest()
+  repository.countPending.mockRejectedValueOnce(new Error('Count unavailable'))
   await user.type(screen.getByLabelText('Display name'), 'MTQA Offline Guest')
   await user.click(screen.getByRole('button', { name: 'Add guest as present' }))
   expect(await screen.findByText(/Saved on this device$/)).toBeTruthy()
