@@ -19,10 +19,10 @@ beforeEach(() => {
   workspaces = [{ church_id: church, name: 'Authorized church', role }]
   vi.mocked(authRequest).mockImplementation(async path => {
     if (path === '/auth/session') return { id: 7, email_verified: true, mfa_confirmed: true, workspaces } as never
-    if (path === '/api/me') return { id: 7, memberships: workspaces.map(item => ({ ...item, status: 'active' })), active_session: { mfa_confirmed: true } } as never
+    if (path === '/api/me') return { id: 7, email_verified: true, memberships: workspaces.map(item => ({ ...item, status: 'active' })), active_session: { mfa_confirmed: true } } as never
     if (path.startsWith('/api/attendance-reports')) return { data: { role, can_export: role === 'owner', filters: { date_from: '2026-10-01', date_to: '2026-10-08', ministry_id: null }, summary: { present_count: 0, absent_count: 0, finalized_record_count: 0, attendance_rate: 0, pending_count: 0, conflict_count: 0, correction_count: 0 }, sessions: [] } } as never
     if (path === '/api/birthdays/today') return { data: { role, local_date: '2026-10-08', timezone: 'Asia/Manila', count: 0, birthdays: [] } } as never
-    if (path === '/api/sync-conflicts') return { role, data: [] } as never
+    if (path === '/api/sync-conflicts') return (role === 'teacher' ? { needs_owner_review: false } : { data: [] }) as never
     return { data: [] } as never
   })
 })

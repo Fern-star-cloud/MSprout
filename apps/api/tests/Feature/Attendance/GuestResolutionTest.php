@@ -97,3 +97,47 @@ it('links a guest to an existing student and merges a duplicate without losing e
         ->and($db->table('attendance_guests')->count())->toBe(2)
         ->and($db->table('attendance_records')->where('source_guest_id', $canonicalId)->value('recorded_at'))->not->toBeNull();
 });
+
+it('rejects repeated promotion and foreign targets without creating another student or audit', function (): void {
+    $guestId = (string) Str::uuid();
+    task14Push($this, [task14Event($this, 'attendance.guest_added', 1, ['display_name' => 'Synthetic Guest'], $guestId)])->assertOk();
+    $db = DB::connection('pgsql_migration');
+    [$foreign, $foreignChurch] = ChurchScenario::owner();
+    $foreignStudent = (string) Str::uuid();
+    $db->table('students')->insert(['id' => $foreignStudent, 'church_id' => $foreignChurch->id, 'first_name' => 'Foreign', 'last_name' => 'Fixture', 'gender' => 'unspecified', 'version' => 1, 'created_at' => now(), 'updated_at' => now()]);
+    $this->postJson('/api/attendance-guests/'.$guestId.'/link', ['student_id' => $foreignStudent])->assertNotFound();
+    $this->postJson('/api/attendance-guests/'.$guestId.'/promote', ['first_name' => 'Synthetic', 'last_name' => 'Guest', 'guardian_phone' => 'forbidden'])->assertUnprocessable();
+    expect($db->table('audit_events')->where('action', 'like', 'attendance.guest.%')->count())->toBe(0);
+    $this->postJson('/api/attendance-guests/'.$guestId.'/promote', ['first_name' => 'Synthetic', 'last_name' => 'Guest'])->assertOk();
+    $students = $db->table('students')->count();
+    $provenance = (array) $db->table('attendance_guests')->where('id', $guestId)->first();
+    $this->postJson('/api/attendance-guests/'.$guestId.'/promote', ['first_name' => 'Repeated', 'last_name' => 'Guest'])->assertUnprocessable();
+    expect($db->table('students')->count())->toBe($students)
+        ->and((array) $db->table('attendance_guests')->where('id', $guestId)->first())->toBe($provenance)
+        ->and($db->table('audit_events')->where('action', 'attendance.guest.promoted')->count())->toBe(1);
+    $this->getJson('/api/attendance-guests')->assertOk()->assertJsonCount(0, 'data');
+});
+
+it('rejects cross-session merging and all Teacher guest actions while preserving pending provenance', function (): void {
+    $original = $this->sessionId;
+    $guest = (string) Str::uuid();
+    task14Push($this, [task14Event($this, 'attendance.guest_added', 1, ['display_name' => 'First Guest'], $guest)])->assertOk();
+    $this->sessionId = (string) Str::uuid();
+    $target = (string) Str::uuid();
+    task14Push($this, [task14Event($this, 'attendance.draft_created', 0, [
+        'ministry_id' => $this->ministryId, 'attendance_date' => '2026-09-30', 'student_ids' => [],
+    ])])->assertOk();
+    task14Push($this, [task14Event($this, 'attendance.guest_added', 1, ['display_name' => 'Other Session'], $target)])->assertOk();
+    $this->sessionId = $original;
+    $this->postJson('/api/attendance-guests/'.$guest.'/merge', ['guest_id' => $target])->assertUnprocessable();
+    [$teacher] = ChurchScenario::teacher($this->church);
+    $teacher = User::findOrFail($teacher->id);
+    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    $this->getJson('/api/attendance-guests')->assertForbidden();
+    foreach (['promote' => ['first_name' => 'First', 'last_name' => 'Guest'], 'link' => ['student_id' => $target], 'merge' => ['guest_id' => $target]] as $action => $input) {
+        $this->postJson('/api/attendance-guests/'.$guest.'/'.$action, $input)->assertForbidden();
+    }
+    $db = DB::connection('pgsql_migration');
+    expect($db->table('attendance_guests')->where('status', 'pending')->count())->toBe(2)
+        ->and($db->table('audit_events')->where('action', 'like', 'attendance.guest.%')->count())->toBe(0);
+});

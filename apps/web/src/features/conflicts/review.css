@@ -1,0 +1,17 @@
+.owner-review { display: grid; gap: var(--space-4); min-width: 0; }
+.owner-review .review-content { display: grid; gap: var(--space-4); min-width: 0; }
+.owner-review h1, .owner-review h2, .owner-review h3, .owner-review p { margin: 0; }
+.owner-review .review-queue { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--space-4); }
+.owner-review .review-queue li, .owner-review .review-result { display: grid; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-medium); }
+.owner-review fieldset { margin: 0; display: grid; gap: var(--space-3); min-width: 0; }
+.owner-review input, .owner-review select, .owner-review textarea { width: 100%; min-width: 0; }
+.owner-review textarea { min-height: 7rem; }
+.owner-review .review-choice { display: flex; align-items: center; gap: var(--space-3); min-height: 44px; }
+.owner-review .review-choice input { width: 1.25rem; height: 1.25rem; flex: 0 0 auto; }
+.owner-review summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+.owner-review dd, .owner-review p, .owner-review h3, .owner-review button { overflow-wrap: anywhere; }
+.owner-review .review-actions { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+.owner-review .ui-tabs [role=tablist] { flex-wrap: wrap; }
+.owner-review .ui-tabs [role=tab] { white-space: normal; }
+.owner-review [id], .owner-review button, .owner-review select, .owner-review textarea { scroll-margin-block: 1rem 7rem; }
+@media (max-width: 47.99rem) { .owner-review .conflict-comparison { grid-template-columns: minmax(0,1fr); } .owner-review .review-actions > button { flex: 1 1 100%; } }

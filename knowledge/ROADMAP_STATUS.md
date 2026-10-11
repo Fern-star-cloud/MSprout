@@ -15,8 +15,9 @@ Separate [approved UI-01–UI-16 sequence](../docs/superpowers/plans/2026-10-09-
 | UI-07 — Discoverable Synchronization & Recovery | GREEN / COMMITTED / PUSHED | `0724e92d8766a4dcdad048ba80ed2908be182c39`; [verification](../docs/qa/ui-07-sync-recovery-verification.md); synchronized at UI-08 entry |
 | UI-08 — Explicit Attendance Lifecycle & Temporary Guests | GREEN / COMMITTED / PUSHED | `3d330ca247726416950941f597b571535bb5321f`; [verification](../docs/qa/ui-08-attendance-lifecycle-verification.md); synchronized at UI-09 entry |
 | UI-09 — People Lists, Details & Protected Management | GREEN / COMMITTED / PUSHED | `24c21f4f5b7650d67b2f6e6e43d476476d8e57e3`; [verification](../docs/qa/ui-09-people-management-verification.md); synchronized at UI-10 entry |
-| UI-10 — Guarded Student Import Wizard | COMPLETE / VALIDATED (pre-finalization receipt) | [Verification](../docs/qa/ui-10-student-import-verification.md); reviewed subject `feat: add guarded student import wizard` resolves finalization through Git |
-| UI-11–UI-16 | NOT STARTED | Stop after UI-10; further authorization required |
+| UI-10 — Guarded Student Import Wizard | GREEN / COMMITTED / PUSHED | `58af8e41fc1edb3bfa706a827ae1f7f7159a23c4`; [verification](../docs/qa/ui-10-student-import-verification.md); synchronized at UI-11 entry |
+| UI-11 — Owner Conflict & Guest Review | COMPLETE / VALIDATED (pre-finalization receipt) | [Verification](../docs/qa/ui-11-owner-review-verification.md); reviewed subject `feat: add guarded owner conflict and guest review` resolves finalization through Git |
+| UI-12–UI-16 | NOT STARTED | Stop after UI-11; further authorization required |
 
 
 Manual QA policy effective 2026-10-07: implementation Tasks 1–18 remain complete with their existing commit evidence. MT-00…MT-22 are optional risk-based references; 211-case sequential completion is not a development, merge, deployment or release requirement. MT-00/01 PASS and partial MT-02 results/blockers remain preserved in [manual knowledge](MANUAL_TESTING.md). Applicable automated/security/CI/deployment requirements and unresolved release-critical defects remain release criteria. No implementation task or manual phase is started by this governance update.

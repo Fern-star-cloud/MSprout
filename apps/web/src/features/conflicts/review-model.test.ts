@@ -1,0 +1,9 @@
+import { expect, it } from 'vitest'
+import { normalizeReason, sameConflict, validConflict, validGuestResult } from './review-model'
+const id='00000000-0000-4000-8000-000000000080'
+const side={value:{state:'present'},actor_id:1,device_id:id,local_time:'2026-10-11T01:00:00Z',server_time:'2026-10-11T01:01:00Z',correlation_id:id}
+const conflict={id,session_id:id,record_id:id,field:'state',base_version:2,status:'open',existing:side,incoming:{...side,value:{state:'absent'}}}
+it('validates supported evidence without inventing unknown values',()=>{expect(validConflict(conflict)).toBe(true);expect(validConflict({...conflict,incoming:{...side,value:{state:'unmarked'}}})).toBe(false);expect(validConflict({...conflict,id:'../other'})).toBe(false)})
+it('normalizes and bounds required reasons using characters',()=>{expect(normalizeReason('  Verified\u00a0\n roster.  ')).toBe('Verified roster.');expect(normalizeReason(' \u00a0 ')).toBeNull();expect(normalizeReason('a'.repeat(501))).toBeNull();expect(normalizeReason('𐐀'.repeat(500))).toHaveLength(1000)})
+it('invalidates confirmation when either value or provenance changes',()=>{expect(sameConflict(conflict,structuredClone(conflict))).toBe(true);expect(sameConflict(conflict,{...conflict,base_version:3})).toBe(false);expect(sameConflict(conflict,{...conflict,incoming:side})).toBe(false);expect(sameConflict(conflict,{...conflict,existing:{...side,actor_id:2}})).toBe(false)})
+it('accepts only a matching complete authoritative guest disposition',()=>{const result={id,status:'linked',student_id:id,merged_into_guest_id:null,version:3};expect(validGuestResult(result,id,'link')).toBe(true);expect(validGuestResult({...result,status:'promoted'},id,'link')).toBe(false);expect(validGuestResult({...result,student_id:null},id,'link')).toBe(false);expect(validGuestResult({...result,id:'other'},id,'link')).toBe(false);expect(validGuestResult({status:'linked'},id,'link')).toBe(false)})

@@ -1,5 +1,13 @@
 # Current State
 
+## UI-11 — Owner conflict and temporary-guest review (validated, pre-finalization)
+
+UI-10 local/tracking/live feature checkpoint `58af8e41fc1edb3bfa706a827ae1f7f7159a23c4` was verified at 0/0. UI-11 is fully implemented and qualified; the one reviewed subject `feat: add guarded owner conflict and guest review` and [verification](../docs/qa/ui-11-owner-review-verification.md) resolve finalization through Git. Mandatory staging/live remote/preservation checks remain before commit/push. UI-12–UI-16 remain unstarted.
+
+Separate Owner/MFA queues now require an unselected actual existing/incoming value, bounded reason and explicit confirmation. Fresh reads reconcile changed/resolved/unknown outcomes without automatic replay. Guest promote/link/merge shows only one supported form; accepted dispositions cannot repeat, while pending-list absence after uncertainty remains unresolved and blocked. Teacher receives only the restricted notice. Invalidation clears protected forms and late completions; queues retain keyboard return focus. Backend/API/schema/audit/encryption/offline/sync contracts stay unchanged.
+
+Focused frontend92/4, frontend563/59, backend12/189 focused and279/2013 aggregate, all76 qualified browser outcomes and applicable build/contract/audit/security gates PASS. No BLOCKING or SHOULD FIX findings remain. Eight entry QA/environment bodies remain exact beneath additive knowledge sections, excluded from task staging; no human data was operated. Ignored evidence: `.git/msprout-ui11-20261011/`. Known guest-history contract and physical/assistive-device qualification limits are stated in verification. Stop after UI-11.
+
 ## UI-10 — Guarded student import wizard (validated, pre-finalization)
 
 UI-09/live feature checkpoint `24c21f4f5b7650d67b2f6e6e43d476476d8e57e3` was verified at 0/0 on 2026-10-11. UI-10 is complete and validated; task finalization resolves through reviewed subject `feat: add guarded student import wizard` and [verification](../docs/qa/ui-10-student-import-verification.md). Staging and live remote checks remain mandatory before the one commit/push. UI-11–UI-16 remain NOT STARTED.

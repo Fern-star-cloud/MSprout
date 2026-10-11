@@ -73,6 +73,61 @@ function task14CreateDraft(object $test): void
     ])])->assertOk()->assertJsonPath('results.0.status', 'accepted');
 }
 
+function ui11Conflict(object $test): string
+{
+    task14CreateDraft($test);
+    task14Push($test, [task14Event($test, 'attendance.student_marked', 1, [
+        'student_id' => $test->studentIds[0], 'state' => 'present',
+    ])])->assertOk();
+    task14Push($test, [task14Event($test, 'attendance.student_marked', 1, [
+        'student_id' => $test->studentIds[0], 'state' => 'absent',
+    ])])->assertOk()->assertJsonPath('results.0.status', 'conflict');
+
+    return DB::connection('pgsql_migration')->table('sync_conflicts')->value('id');
+}
+
+it('requires the exact choice and bounded reason without creating any revision on invalid input', function (): void {
+    $id = ui11Conflict($this);
+    foreach ([['reason' => 'Verified.'], ['choice' => 'present', 'reason' => 'Verified.'],
+        ['choice' => 'existing', 'reason' => '   '], ['choice' => 'incoming', 'reason' => str_repeat('x', 501)],
+        ['choice' => 'incoming', 'reason' => 'Verified.', 'state' => 'absent']] as $input) {
+        $this->postJson('/api/sync-conflicts/'.$id.'/resolve', $input)->assertUnprocessable();
+    }
+    expect(DB::connection('pgsql_migration')->table('attendance_revisions')->count())->toBe(0)
+        ->and(DB::connection('pgsql_migration')->table('audit_events')->where('action', 'attendance.conflict.resolved')->count())->toBe(0);
+    $this->getJson('/api/sync-conflicts/'.$id)->assertOk()->assertJsonPath('status', 'open');
+});
+
+it('maps either choice exactly and rejects a repeated resolution without changing originals or prior evidence', function (string $choice, string $state): void {
+    $id = ui11Conflict($this);
+    $db = DB::connection('pgsql_migration');
+    $before = (array) $db->table('attendance_records')->where('student_id', $this->studentIds[0])->first();
+    $this->postJson('/api/sync-conflicts/'.$id.'/resolve', ['choice' => $choice, 'reason' => 'Verified roster.'])
+        ->assertOk()->assertJsonPath('effective_state', $state);
+    $revision = (array) $db->table('attendance_revisions')->where('sync_conflict_id', $id)->first();
+    $audit = (array) $db->table('audit_events')->where('action', 'attendance.conflict.resolved')->first();
+    $this->postJson('/api/sync-conflicts/'.$id.'/resolve', ['choice' => 'incoming', 'reason' => 'Repeated.'])->assertUnprocessable();
+    $this->getJson('/api/sync-conflicts/'.$id)->assertOk()->assertJsonPath('status', 'resolved');
+    expect((array) $db->table('attendance_records')->where('student_id', $this->studentIds[0])->first())->toBe($before)
+        ->and((array) $db->table('attendance_revisions')->where('sync_conflict_id', $id)->first())->toBe($revision)
+        ->and((array) $db->table('audit_events')->where('action', 'attendance.conflict.resolved')->first())->toBe($audit)
+        ->and($db->table('attendance_revisions')->count())->toBe(1);
+    $model = AttendanceRevision::on('pgsql_migration')->findOrFail($revision['id']);
+    expect(fn () => $model->delete())->toThrow(LogicException::class);
+})->with([['existing', 'present'], ['incoming', 'absent']]);
+
+it('denies missing assurance and foreign Owner reads and decisions without side effects', function (): void {
+    $id = ui11Conflict($this);
+    $this->withSession(['church_mfa_user_id' => null])->getJson('/api/sync-conflicts')->assertForbidden();
+    $this->postJson('/api/sync-conflicts/'.$id.'/resolve', ['choice' => 'incoming', 'reason' => 'Verified.'])->assertForbidden();
+    [$foreign, $church] = MembershipScenario::owner($this);
+    $this->withSession(['password_hash_web' => $foreign->getAuthPassword()]);
+    $this->withHeader('X-Church-Id', $church->id)->getJson('/api/sync-conflicts/'.$id)->assertNotFound();
+    $this->postJson('/api/sync-conflicts/'.$id.'/resolve', ['choice' => 'incoming', 'reason' => 'Verified.'])->assertNotFound();
+    expect($foreign->id)->not->toBe($this->owner->id);
+    expect(DB::connection('pgsql_migration')->table('attendance_revisions')->count())->toBe(0);
+});
+
 it('deduplicates identical values, merges non-overlapping stale changes, and preserves contradictions for review', function (): void {
     task14CreateDraft($this);
 

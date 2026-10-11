@@ -1,5 +1,9 @@
 # Architecture
 
+## Verified Owner review projections — 2026-10-11
+
+Existing church transport and workspace authority protect ephemeral Owner/MFA conflict and guest queues. Actor/church/generation checks clear invalidated protected forms and suppress late callbacks. Conflict decisions use exact existing choice/reason and fresh detail reconciliation; guest actions use existing promote/link/merge contracts and fresh bounded pending/active-student projections. Accepted guest results are session-local receipts; pending-list absence never proves a disposition or permits replay. Teacher requests only the restricted needs-review notice. Immutable originals, append-only revisions, audit transactions, RLS, API/schema and encrypted offline stores remain unchanged. [verification](../docs/qa/ui-11-owner-review-verification.md).
+
 ## Verified guarded import presentation — 2026-10-11
 
 Online Owner/MFA-only import uses existing preview, batch read and commit endpoints across four explicit stages. One stable commit key persists in an identifier-only sessionStorage receipt bound to verified actor/church; row UUIDs and mapping positions recover the same payload without caching spreadsheet/child/ministry-name data. Only GET batch outcomes prove results after accepted or uncertain submission; unresolved state blocks replacement, and retry requires fresh deliberate confirmation. The encrypted device/offline store, server schema, parser, audit transaction and idempotency remain unchanged. [Evidence](../docs/qa/ui-10-student-import-verification.md).

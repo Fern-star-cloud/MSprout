@@ -1,11 +1,12 @@
 import { expect, test } from '@playwright/test'
-import { churchId, expectNoSeriousAccessibilityIssues, json, ministryId, mockCsrf, mockOwner } from './support'
+import { churchId, expectNoSeriousAccessibilityIssues, json, ministryId, mockCsrf, mockOwner, ownerAccount } from './support'
 
 test.use({ serviceWorkers: 'block' })
 
 test('an Owner sees both immutable submissions, resolves the conflict, and reports the revision-effective count', async ({ page, context }) => {
   await mockCsrf(context)
   await mockOwner(context)
+  await context.route('**/api/me', route => json(route, { ...ownerAccount, email_verified: true }))
   const conflictId = '00000000-0000-4000-8000-000000000080'
   let open = true
   await context.route('**/api/sync-conflicts**', async route => {
@@ -13,24 +14,28 @@ test('an Owner sees both immutable submissions, resolves the conflict, and repor
       const body = route.request().postDataJSON() as { choice: string; reason: string }
       expect(body).toEqual({ choice: 'incoming', reason: 'Confirmed against the signed pilot roster.' })
       open = false
-      await json(route, { status: 'resolved' })
+      await json(route, { id: conflictId, status: 'resolved', revision_id: conflictId, effective_state: 'present', version: 3 })
       return
     }
-    await json(route, { data: open ? [{
+    const conflict = {
       id: conflictId, session_id: '00000000-0000-4000-8000-000000000081', record_id: '00000000-0000-4000-8000-000000000082',
       field: 'state', base_version: 2, status: 'open',
-      existing: { value: { state: 'absent' }, actor_id: '11', device_id: 'device-a', local_time: '2026-09-28T08:00:00Z', server_time: '2026-09-28T08:01:00Z', correlation_id: '00000000-0000-4000-8000-000000000083' },
-      incoming: { value: { state: 'present' }, actor_id: '22', device_id: 'device-b', local_time: '2026-09-28T08:02:00Z', server_time: '2026-09-28T08:03:00Z', correlation_id: '00000000-0000-4000-8000-000000000084' },
-    }] : [] })
+      existing: { value: { state: 'absent' }, actor_id: 11, device_id: conflictId, local_time: '2026-09-28T08:00:00Z', server_time: '2026-09-28T08:01:00Z', correlation_id: '00000000-0000-4000-8000-000000000083' },
+      incoming: { value: { state: 'present' }, actor_id: 22, device_id: '00000000-0000-4000-8000-000000000085', local_time: '2026-09-28T08:02:00Z', server_time: '2026-09-28T08:03:00Z', correlation_id: '00000000-0000-4000-8000-000000000084' },
+    }
+    await json(route, new URL(route.request().url()).pathname === '/api/sync-conflicts' ? { data: open ? [conflict] : [] } : { ...conflict, status: open ? 'open' : 'resolved' })
   })
   await context.route('**/api/attendance-guests', route => json(route, { data: [] }))
   await context.route('**/api/students', route => json(route, { data: [] }))
 
   await page.goto(`/account/conflicts?church=${churchId}`)
+  await page.getByRole('button', { name: 'Review attendance conflict' }).click()
   await expect(page.getByRole('region', { name: 'Existing value attendance value' })).toContainText('Absent')
   await expect(page.getByRole('region', { name: 'Incoming value attendance value' })).toContainText('Present')
   await page.getByLabel('Resolution reason').fill('Confirmed against the signed pilot roster.')
-  await page.getByRole('button', { name: 'Use incoming value' }).click()
+  await page.getByRole('radio', { name: 'Incoming value · Present' }).check()
+  await page.getByRole('button', { name: 'Review decision' }).click()
+  await page.getByRole('button', { name: 'Confirm resolution' }).click()
   await expect(page.getByText('No attendance conflicts need review.')).toBeVisible()
 
   await context.route('**/api/ministries', route => json(route, { data: [{ id: ministryId, name: 'Primary' }] }))

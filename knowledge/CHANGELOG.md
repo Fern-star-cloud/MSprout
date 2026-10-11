@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-11 — UI-11 Owner conflict and temporary-guest review
+
+Separate verified Owner/MFA queues, initially unselected actual-value choices, required reasons and named confirmations replace immediate review writes. Authoritative stale/unknown reconciliation prevents replay; guest forms are mutually exclusive and confirmed dispositions cannot repeat. Teacher notice/privacy, keyboard return focus and encrypted pending-work preservation are verified. Focused92/4, frontend563/59, backend12/189 focused and279/2013 aggregate, browser76/76 and all applicable gates PASS. Original eight QA bodies remain preserved. Finalization resolves through the reviewed Git subject and [verification](../docs/qa/ui-11-owner-review-verification.md); stop before UI-12.
+
 ## 2026-10-11 — UI-10 guarded student import wizard
 
 Add explicit upload, review/mapping, selected confirmation and authoritative results; stable same-batch recovery survives uncertain responses/reload without automatic replacement or accepted-row replay. Owner/MFA/context boundaries, CSV/XLSX limits/parser/audit/idempotency stay intact. Frontend64 focused/527 aggregate, backend18 focused/273+1,935 aggregate,52 unique browser outcomes and applicable build/contract/audit/security gates pass; finalization guards remain conditional. Eight original QA bodies remain preserved. Stop before UI-11. [Verification](../docs/qa/ui-10-student-import-verification.md).
