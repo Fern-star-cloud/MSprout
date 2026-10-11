@@ -1,5 +1,9 @@
 # Architecture
 
+## Verified guarded import presentation — 2026-10-11
+
+Online Owner/MFA-only import uses existing preview, batch read and commit endpoints across four explicit stages. One stable commit key persists in an identifier-only sessionStorage receipt bound to verified actor/church; row UUIDs and mapping positions recover the same payload without caching spreadsheet/child/ministry-name data. Only GET batch outcomes prove results after accepted or uncertain submission; unresolved state blocks replacement, and retry requires fresh deliberate confirmation. The encrypted device/offline store, server schema, parser, audit transaction and idempotency remain unchanged. [Evidence](../docs/qa/ui-10-student-import-verification.md).
+
 ## Scoped online People projections — 2026-10-11
 
 Students, Ministries and Teacher management now use generation-bound ephemeral projections through existing authenticated transport and verified workspace context. Root activation coalescing remains authoritative; invalidation clears views/forms and rejects late completions. Named mutations use existing APIs and synchronous duplicate guards, with explicit enrollment replacement and separate protected ownership transfer. Teacher rosters are assignment-limited/read-only. No server, contract, schema, offline profile, encrypted attendance or sync engine changed. [Evidence](../docs/qa/ui-09-people-management-verification.md).

@@ -1,5 +1,13 @@
 # Current State
 
+## UI-10 — Guarded student import wizard (validated, pre-finalization)
+
+UI-09/live feature checkpoint `24c21f4f5b7650d67b2f6e6e43d476476d8e57e3` was verified at 0/0 on 2026-10-11. UI-10 is complete and validated; task finalization resolves through reviewed subject `feat: add guarded student import wizard` and [verification](../docs/qa/ui-10-student-import-verification.md). Staging and live remote checks remain mandatory before the one commit/push. UI-11–UI-16 remain NOT STARTED.
+
+Import uses explicit upload, row review/mapping, selected confirmation and authoritative same-batch results. Stable keys and identifier-only actor/church-bound tab receipts preserve uncertainty across reload; retry never rotates the batch or automatically recreates accepted work. Owner/MFA/actor access and ministries are rechecked; denial clears protected presentation. No backend production/contract/schema/encryption/synchronization/governance change or human-record operation.
+
+Focused frontend 64/5, aggregate 527/57, backend 18/109 focused and 273/1,935 aggregate, all 52 unique browser cases, current types/lint/build/contracts/structure/Pint/strict Composer/both audits and relevant OWASP 98/58 pass. Final source review has no open BLOCKING/SHOULD FIX item. Complete current-source and Git-history secret scans pass with zero findings. Exact staging and preservation guards remain mandatory before finalization. Eight entry bodies are preserved beneath additive CURRENT/TESTING sections; original QA deltas remain excluded. Physical devices, human screen readers, 400% zoom and host CI remain unqualified by this task.
+
 ## UI-09 qualified — 2026-10-11
 
 UI-09 People Lists, Details & Protected Management is implemented, validated and reviewed before its single task commit/push. Entry HEAD/tracking/live feature matched UI-08 `3d330ca247726416950941f597b571535bb5321f`, 0/0; main remains `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f`. UI-01–UI-08 GREEN is preserved and the stale UI-08 roadmap row now cites its finalized commit.

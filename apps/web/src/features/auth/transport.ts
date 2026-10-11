@@ -1,4 +1,5 @@
 import { ApiError } from '../../api/client'
+import { safeImportFileErrors } from '../imports/file-validation'
 
 export function safeAuthMessage(error: unknown): string {
   const status = typeof error === 'object' && error !== null && 'status' in error ? error.status : 0
@@ -22,13 +23,18 @@ export function safeAuthMessage(error: unknown): string {
   }
 }
 
-async function readResponse(response: Response): Promise<unknown> {
+async function readResponse(response: Response, importFile = false): Promise<unknown> {
   const payload: unknown = response.status === 204 ? undefined : await response.json().catch(() => undefined)
   if (!response.ok) {
     const errors = typeof payload === 'object' && payload !== null && 'field_errors' in payload ? payload.field_errors : undefined
-    // Only field names affect form feedback; never reflect arbitrary server text.
+    // Ordinary forms use field names only. Import preview may additionally show
+    // reviewed, fixed parser messages, never arbitrary server text.
     const fields = errors && typeof errors === 'object'
       ? Object.fromEntries(Object.keys(errors).map((key) => [key, ['Check this field.']])) : undefined
+    if (importFile && response.status === 422 && fields && errors && typeof errors === 'object' && 'file' in errors) {
+      const messages = safeImportFileErrors(errors.file)
+      if (messages.length) fields.file = messages
+    }
     const code = response.status === 409 && typeof payload === 'object' && payload !== null
       && 'code' in payload && payload.code === 'already_authenticated' ? 'already_authenticated' : 'auth_failed'
     const error = new ApiError(code, '', '', response.status, fields)
@@ -112,7 +118,7 @@ export async function authUpload<T>(path: string, file: File, churchId: string):
     const body = new FormData()
     body.set('file', file)
 
-    return await readResponse(await fetch(path, { ...options, method: 'POST', headers, body })) as T
+    return await readResponse(await fetch(path, { ...options, method: 'POST', headers, body }), true) as T
   } catch (error) {
     invalidateDeniedRequest(error, churchId)
     throw error

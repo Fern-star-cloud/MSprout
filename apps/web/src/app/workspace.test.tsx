@@ -127,7 +127,12 @@ it.each(['conflicts', 'reports', 'birthdays', 'ministries', 'students', 'imports
   role = 'teacher'; workspaces[0].role = role
   history.replaceState(null, '', `/account/${page}`)
   render(<App />)
-  await waitFor(() => expect(vi.mocked(authRequest).mock.calls.some(([path, , , id]) => path !== '/api/me' && path.startsWith('/api/') && id === church)).toBe(true))
+  if (page === 'imports') {
+    await screen.findByText('Student imports are available only to the church Owner with confirmed MFA.')
+    expect(vi.mocked(authRequest).mock.calls.some(([path]) => path === '/api/ministries' || path.startsWith('/api/imports/'))).toBe(false)
+  } else {
+    await waitFor(() => expect(vi.mocked(authRequest).mock.calls.some(([path, , , id]) => path !== '/api/me' && path.startsWith('/api/') && id === church)).toBe(true))
+  }
   expect(screen.queryByRole('button', { name: /Add student|Add ministry|Preview import|Download CSV/ })).toBeNull()
 })
 

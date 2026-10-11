@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-11 — UI-10 guarded student import wizard
+
+Add explicit upload, review/mapping, selected confirmation and authoritative results; stable same-batch recovery survives uncertain responses/reload without automatic replacement or accepted-row replay. Owner/MFA/context boundaries, CSV/XLSX limits/parser/audit/idempotency stay intact. Frontend64 focused/527 aggregate, backend18 focused/273+1,935 aggregate,52 unique browser outcomes and applicable build/contract/audit/security gates pass; finalization guards remain conditional. Eight original QA bodies remain preserved. Stop before UI-11. [Verification](../docs/qa/ui-10-student-import-verification.md).
+
 ## 2026-10-11 — UI-09 scoped People and protected management
 
 Owner Students/Ministries/Teachers now provide accessible list/detail and distinct Add/Edit, named enrollment/archive/restore and invitation/revocation confirmations, and separate protected ownership transfer. Teacher My ministries/rosters stay read-only and assignment-limited. Scope invalidation, safe errors and loaded-only filters preserve existing contracts and data boundaries. Focused96/5, frontend494/55, backend270/1917, browser48/48 and all applicable gates pass. Eight original QA bodies remain preserved; UI-10 remains unstarted. Finalization resolves through reviewed Git subject and [verification](../docs/qa/ui-09-people-management-verification.md).

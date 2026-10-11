@@ -1,150 +1,98 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useWorkspaceChurchId } from '../../app/workspace-context'
-import type { components } from '../../api/generated'
-import { authDownload, authRequest, authUpload, safeAuthMessage } from '../auth/transport'
-import { csvCell } from './csv'
+import { ErrorSummary } from '../../components/ui/Foundations'
+import { correctionsCsv, eligible, headers, outcomeCounts, type ImportRow } from './import-model'
+import { saveBlob, useImportWizard, type Stage } from './useImportWizard'
+import './import-wizard.css'
 
-type Preview = components['schemas']['ImportPreview']
-type Ministry = components['schemas']['Ministry']
-type CommitResult = components['schemas']['ImportCommitResult']
-
-const headers = ['first_name', 'last_name', 'middle_name', 'preferred_name', 'suffix', 'birthdate', 'gender', 'ministries', 'external_reference'] as const
-
-function saveBlob(blob: Blob, name: string) {
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url; link.download = name; link.click()
-  URL.revokeObjectURL(url)
-}
+const stages: Stage[] = ['Upload', 'Review and map', 'Confirm selected', 'Results']
+const studentName = (row: ImportRow) => [row.data.first_name ?? row.source.first_name, row.data.last_name ?? row.source.last_name].filter(Boolean).join(' ') || 'Needs correction'
 
 export function ImportScreen() {
   const church = useWorkspaceChurchId(new URLSearchParams(location.search).get('church') ?? '')
-  const [authorization, setAuthorization] = useState<{ church: string; kind: 'loading' | 'authorized' | 'forbidden' | 'error' }>({ church, kind: 'loading' })
-  const authorizationKind = authorization.church === church ? authorization.kind : 'loading'
-  const owner = authorizationKind === 'authorized'
-  const [ministries, setMinistries] = useState<Ministry[]>([])
-  const [preview, setPreview] = useState<Preview | null>(null)
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [mappings, setMappings] = useState<Record<string, string>>({})
-  const [commitKey, setCommitKey] = useState('')
-  const [completed, setCompleted] = useState<CommitResult | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
-
+  const wizard = useImportWizard(church), heading = useRef<HTMLHeadingElement>(null), error = useRef<HTMLDivElement>(null), pointer = useRef(false)
+  const [mobile, setMobile] = useState(() => innerWidth <= 600)
+  useEffect(() => { const resize = () => setMobile(innerWidth <= 600); window.addEventListener('resize', resize); return () => window.removeEventListener('resize', resize) }, [])
   useEffect(() => {
-    if (!church) return
-    let active = true
-    void Promise.all([
-      authRequest<components['schemas']['ChurchAccount']>('/api/me', 'GET', undefined, church),
-      authRequest<{ data: Ministry[] }>('/api/ministries', 'GET', undefined, church),
-    ]).then(([me, list]) => {
-      if (!active) return
-      const authorized = me.memberships.some(item => item.church_id === church && item.status === 'active' && item.role === 'owner') && me.active_session.mfa_confirmed
-      setAuthorization({ church, kind: authorized ? 'authorized' : 'forbidden' })
-      setMinistries(list.data); setError('')
-    }).catch(failure => {
-      if (active) { setAuthorization({ church, kind: 'error' }); setError(safeAuthMessage(failure)) }
-    })
-    return () => { active = false }
-  }, [church])
-
-  const unknown = useMemo(() => [...new Set(preview?.rows.flatMap(row => row.unknown_ministries) ?? [])], [preview])
-  const selectedCount = selected.size
-
-  async function upload(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const input = event.currentTarget.elements.namedItem('file') as HTMLInputElement | null
-    const file = input?.files?.[0]
-    if (!file) return
-    if (!/\.(csv|xlsx)$/i.test(file.name) || file.size > 5 * 1024 * 1024) {
-      setError('Choose a CSV or XLSX file no larger than 5 MiB.'); return
-    }
-    setBusy(true); setCompleted(null)
-    try {
-      const result = await authUpload<Preview>('/api/imports/students/preview', file, church)
-      setPreview(result)
-      setSelected(new Set(result.rows.filter(row => row.status === 'valid').map(row => row.id)))
-      setMappings({}); setCommitKey(crypto.randomUUID()); setError('')
-    } catch (failure) { setError(safeAuthMessage(failure)) }
-    finally { setBusy(false) }
+    // Keyboard entry may start outside this section after a native touch action.
+    const keyboard = () => { pointer.current = false }
+    window.addEventListener('keydown', keyboard, true)
+    return () => window.removeEventListener('keydown', keyboard, true)
+  }, [])
+  const { preview, selected, mappings, ministries, stage, busy } = wizard
+  const counts = outcomeCounts(wizard.verified ? preview : null)
+  const unknown = [...new Set(preview?.rows.flatMap(row => row.unknown_ministries) ?? [])]
+  const readyRows = preview?.rows.filter(row => eligible(row, mappings, ministries)) ?? []
+  const retryAllowed = wizard.verified && !wizard.accepted && preview?.state === 'previewed'
+  useEffect(() => { heading.current?.focus() }, [stage])
+  useEffect(() => { if (wizard.error) error.current?.focus() }, [wizard.error])
+  function downloadCorrections() {
+    if (preview && !busy && (stage !== 'Results' || counts)) saveBlob(new Blob([correctionsCsv(preview)], { type: 'text/csv;charset=utf-8' }), 'ministrysprout-import-corrections.csv')
   }
 
-  function toggle(rowId: string, checked: boolean) {
-    setSelected(current => {
-      const next = new Set(current)
-      if (checked) next.add(rowId)
-      else next.delete(rowId)
-      return next
-    })
-  }
-
-  async function commit() {
-    if (!preview || !commitKey || selectedCount === 0) return
-    const selectedRows = preview.rows.filter(row => selected.has(row.id))
-    if (selectedRows.some(row => row.unknown_ministries.some(name => !mappings[name]))) {
-      setError('Map every unknown ministry before approving its row.'); return
-    }
-    const requiredMappings = Object.fromEntries(selectedRows.flatMap(row => row.unknown_ministries).map(name => [name, mappings[name]]))
-    setBusy(true)
-    try {
-      const result = await authRequest<CommitResult>(`/api/imports/${preview.id}/commit`, 'POST', {
-        commit_key: commitKey, row_ids: selectedRows.map(row => row.id), ministry_mappings: requiredMappings,
-      }, church)
-      setCompleted(result); setError('')
-    } catch (failure) { setError(safeAuthMessage(failure)) }
-    finally { setBusy(false) }
-  }
-
-  async function downloadTemplate() {
-    try { saveBlob(await authDownload('/api/imports/template', church), 'ministrysprout-student-import.csv') }
-    catch (failure) { setError(safeAuthMessage(failure)) }
-  }
-
-  function downloadErrors() {
-    if (!preview) return
-    const rows = preview.rows.filter(row => row.status !== 'valid')
-    const text = [headers.join(','), ...rows.map(row => headers.map(header => csvCell(row.source[header])).join(','))].join('\r\n') + '\r\n'
-    saveBlob(new Blob([text], { type: 'text/csv;charset=utf-8' }), 'ministrysprout-import-corrections.csv')
-  }
-
-  return <section className="auth-card import-card" aria-labelledby="imports-heading">
-    <p className="eyebrow">Church workspace · Owner · Online only</p><h2 id="imports-heading">Import students</h2>
-    {error && <p role="alert">{error}</p>}
-    {church && owner && <>
-      <div className="import-actions"><button className="secondary" type="button" onClick={() => void downloadTemplate()}>Download CSV template</button></div>
-      <form className="import-upload" onSubmit={event => void upload(event)}>
-        <label htmlFor="student-spreadsheet">Student spreadsheet</label>
-        <input id="student-spreadsheet" name="file" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required />
-        <small>CSV or XLSX only · 5 MiB · 500 data rows. Preview never creates students.</small>
-        <button type="submit" disabled={busy}>{busy ? 'Inspecting…' : 'Preview import'}</button>
-      </form>
+  return <section className="dashboard-card import-wizard" aria-labelledby="imports-heading"
+    onPointerDownCapture={() => { pointer.current = true }} onPointerUpCapture={() => { pointer.current = false }} onPointerCancelCapture={() => { pointer.current = false }} onKeyDownCapture={() => { pointer.current = false }}
+    onFocusCapture={event => {
+      const target = event.target
+      if (pointer.current) return
+      const ensureVisible = () => {
+        if (!target.isConnected || document.activeElement !== target) return
+        const rect = target.getBoundingClientRect(), navigation = document.querySelector('.phone-navigation')?.getBoundingClientRect()
+        if (rect.top < 4 || rect.bottom > (navigation?.height ? navigation.top : innerHeight) - 4) target.scrollIntoView?.({ block: 'start', inline: 'nearest' })
+      }
+      queueMicrotask(ensureVisible)
+      // Check layout again after the browser's focus processing.
+      globalThis.requestAnimationFrame?.(ensureVisible)
+    }}>
+    <p className="eyebrow">People · Owner · Online only</p><h2 id="imports-heading">Import students</h2>
+    {wizard.workspace && <p>{wizard.workspace.name} · Verified church workspace</p>}
+    {wizard.error && <div id="import-error"><ErrorSummary ref={error} message={wizard.error} errors={wizard.authorization === 'authorized' && stage === 'Upload' ? [{ target: 'student-spreadsheet', message: 'Check the student spreadsheet.' }] : []} /></div>}
+    {wizard.authorization === 'loading' && <p role="status">Checking import authorization…</p>}
+    {wizard.authorization === 'forbidden' && <p role="status">Student imports are available only to the church Owner with confirmed MFA.</p>}
+    {wizard.authorization === 'error' && <button type="button" className="secondary" disabled={busy || !navigator.onLine} onClick={wizard.refresh}>Check account access</button>}
+    {wizard.authorization === 'authorized' && <>
+      <nav aria-label="Import stages"><ol className="import-steps">{stages.map((name, index) => <li key={name} aria-current={stage === name ? 'step' : undefined}><span aria-hidden="true">{index + 1}</span>{name}{stage === name && <span className="wizard-sr-only"> · Current stage</span>}</li>)}</ol></nav>
+      <h3 ref={heading} tabIndex={-1}>{stage}</h3>
+      {busy && <p role="status">{stage === 'Upload' ? 'Checking access and inspecting spreadsheet…' : 'Checking access and the same import batch…'}</p>}
+      {stage === 'Upload' && <>
+        <p>Create new students from a reviewed spreadsheet. Import does not merge or update existing students.</p>
+        <button className="secondary" type="button" disabled={busy} onClick={() => void wizard.template()}>Download CSV template</button>
+        <form className="wizard-upload" onSubmit={event => { event.preventDefault(); const file = (event.currentTarget.elements.namedItem('file') as HTMLInputElement)?.files?.[0]; if (file) void wizard.upload(file) }}>
+          <label htmlFor="student-spreadsheet">Student spreadsheet</label>
+          <input id="student-spreadsheet" name="file" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required disabled={busy} aria-describedby={`import-file-help${wizard.error ? ' import-error' : ''}`} aria-invalid={wizard.error ? true : undefined} />
+          <small id="import-file-help">CSV or XLSX only · 5 MiB · 500 data rows. Preview never creates students. The server validates the file.</small>
+          <button type="submit" disabled={busy}>Preview import</button>
+        </form>
+      </>}
+      {stage === 'Review and map' && preview && <>
+        <p>Review every selected row. Invalid rows and possible duplicates cannot be imported. Mapping a ministry makes a row eligible; select it deliberately.</p>
+        <div className="wizard-counts" aria-label="Import row counts"><strong>{preview.rows.length} total</strong>{(['valid', 'invalid', 'duplicate', 'needs_mapping'] as const).map(kind => <strong key={kind}>{preview.counts[kind] ?? 'Unknown'} {kind.replace('_', ' ')}</strong>)}<strong>{readyRows.length} eligible</strong><strong>{selected.size} selected</strong></div>
+        <p>Batch expires: <time dateTime={preview.expires_at}>{preview.expires_at}</time>. The server checks expiration at submission.</p>
+        <div className="wizard-mappings">{unknown.map(name => <label key={name}>Map {name}<select value={Object.hasOwn(mappings, name) ? mappings[name] : ''} disabled={busy} onChange={event => wizard.map(name, event.target.value)}><option value="">Choose an existing ministry</option>{ministries.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>)}</div>
+        <div className="wizard-table-wrap" role="region" aria-label="Import preview rows" tabIndex={mobile ? -1 : 0}><table className="wizard-table"><caption>Authorized rows in this batch. Only selected eligible rows will be submitted.</caption><thead><tr><th scope="col">Select</th><th scope="col">Student and row</th><th scope="col">Eligibility</th><th scope="col">Inspect</th></tr></thead><tbody>{preview.rows.map(row => <tr key={row.id}>
+          <td><label className="wizard-row-choice"><input type="checkbox" aria-label={`Approve row ${row.row_number}`} aria-describedby={`row-${row.id}`} checked={selected.has(row.id)} disabled={busy || !eligible(row, mappings, ministries)} onChange={event => wizard.select(row.id, event.target.checked)} /></label></td>
+          <th scope="row" id={`row-${row.id}`}>{studentName(row)}<small>Row {row.row_number}</small></th>
+          <td><span className={`wizard-status ${row.status}`}>{row.status.replace('_', ' ')}</span><small>{eligible(row, mappings, ministries) ? 'Eligible' : 'Not eligible'}</small></td>
+          <td><RowInspection row={row} /></td>
+        </tr>)}</tbody></table></div>
+        <div className="wizard-actions"><button type="button" disabled={busy || selected.size === 0} onClick={wizard.review}>Review selected</button><button className="secondary" type="button" disabled={busy} onClick={downloadCorrections}>Download corrections CSV</button>{wizard.canChooseFile && <button className="secondary" type="button" disabled={busy} onClick={wizard.startAnother}>Choose another file</button>}</div>
+      </>}
+      {stage === 'Confirm selected' && preview && wizard.plan && <>
+        <p><strong>{wizard.plan.row_ids.length} selected rows</strong> will create new student records in {wizard.workspace?.name ?? 'this verified church workspace'}. Unselected, invalid and duplicate rows will be skipped. Existing students will not be merged or updated.</p>
+        <ul className="wizard-confirm-rows">{preview.rows.filter(row => wizard.plan!.row_ids.includes(row.id)).map(row => <li key={row.id}>{studentName(row)} · Row {row.row_number}<small>{row.ministry_names.length ? row.ministry_names.map(name => `${name}${Object.hasOwn(wizard.plan!.ministry_mappings, name) ? ` → ${ministries.find(item => item.id === wizard.plan!.ministry_mappings[name])?.name ?? 'Unavailable ministry'}` : ''}`).join(', ') : 'No ministry enrollment requested'}</small></li>)}</ul>
+        <label className="wizard-ack"><input type="checkbox" checked={wizard.confirmed} disabled={busy} onChange={event => wizard.acknowledge(event.target.checked)} />I understand that this creates new student records for the selected rows and does not merge existing students.</label>
+        <div className="wizard-actions"><button type="button" disabled={busy || !wizard.confirmed} onClick={() => void wizard.commit()}>Import {wizard.plan.row_ids.length} students</button><button className="secondary" type="button" disabled={busy} onClick={wizard.back}>Back to review</button></div>
+      </>}
+      {stage === 'Results' && <>
+        {counts ? <><p role="status">{counts.imported} students imported.</p><p>{counts.skipped} rows skipped.</p><p>Failed row count is unavailable. Skipped rows are identified below.</p><ul className="wizard-result-rows">{preview!.rows.map(row => <li key={row.id}>{studentName(row)} · Row {row.row_number} · <strong>{row.outcome === 'committed' ? 'Imported' : row.outcome === 'duplicate' ? 'Skipped · Duplicate' : 'Skipped · Excluded'}</strong><RowInspection row={row} /></li>)}</ul><button className="secondary" type="button" disabled={busy} onClick={downloadCorrections}>Download corrections CSV</button></>
+          : <p role="status">{wizard.verified && preview?.state === 'expired' ? 'This batch expired. No retry is available for this batch.' : wizard.verified && preview?.state === 'failed' ? 'This batch failed. No student import completion was reported.' : retryAllowed ? 'The same batch is still awaiting submission. Review before a deliberate retry.' : wizard.accepted ? 'The server accepted this batch. Row outcomes are not yet available; check the same batch.' : 'Imported, skipped and failed counts are unknown until the same batch reports its outcomes.'}</p>}
+        <div className="wizard-actions">{!counts && <button className="secondary" type="button" disabled={busy} onClick={() => void wizard.check()}>Check same batch</button>}{retryAllowed && wizard.plan?.row_ids.length ? <button type="button" disabled={busy} onClick={wizard.retry}>Retry same selected rows</button> : null}{retryAllowed && <button className="secondary" type="button" disabled={busy} onClick={wizard.back}>Back to review</button>}{wizard.verified && (counts || ['expired', 'failed'].includes(preview?.state ?? '')) && <button className="secondary" type="button" disabled={busy} onClick={wizard.startAnother}>Upload another file</button>}</div>
+      </>}
     </>}
-    {church && authorizationKind === 'loading' && <p role="status">Checking import authorization…</p>}
-    {church && authorizationKind === 'forbidden' && <p role="status">Student imports are available only to the church Owner with confirmed MFA.</p>}
-    {owner && preview && <section aria-labelledby="preview-heading">
-      <h3 id="preview-heading">Preview</h3>
-      <div className="import-counts" aria-label="Import row counts">
-        <strong>{preview.counts.valid} valid</strong><strong>{preview.counts.invalid} invalid</strong>
-        <strong>{preview.counts.duplicate} duplicate</strong><strong>{preview.counts.needs_mapping} needs mapping</strong>
-      </div>
-      {unknown.map(name => <label key={name}>Map {name}<select value={mappings[name] ?? ''} onChange={event => setMappings(current => ({ ...current, [name]: event.target.value }))}>
-        <option value="">Choose an existing ministry</option>{ministries.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
-      </select></label>)}
-      <div className="import-table-wrap" role="region" aria-label="Import preview rows" tabIndex={0}><table className="import-table"><thead><tr><th>Approve</th><th>Row</th><th>Student</th><th>Status</th><th>Details</th></tr></thead><tbody>
-        {preview.rows.map(row => {
-          const selectable = row.status === 'valid' || (row.status === 'needs_mapping' && row.unknown_ministries.every(name => Boolean(mappings[name])))
-          return <tr key={row.id}><td><input type="checkbox" aria-label={`Approve row ${row.row_number}`} checked={selected.has(row.id)} disabled={!selectable || completed !== null} onChange={event => toggle(row.id, event.target.checked)} /></td>
-            <td>{row.row_number}</td><td>{[row.data.first_name ?? row.source.first_name, row.data.last_name ?? row.source.last_name].filter(Boolean).join(' ') || 'Needs correction'}</td>
-            <td><span className={`import-status ${row.status}`}>{row.status.replace('_', ' ')}</span></td>
-            <td>{row.errors.join(' ') || row.unknown_ministries.join(', ') || 'Ready'}</td></tr>
-        })}
-      </tbody></table></div>
-      <div className="import-actions">
-        {preview.rows.some(row => row.status !== 'valid') && <button className="secondary" type="button" onClick={downloadErrors}>Download corrections CSV</button>}
-        <button type="button" disabled={busy || selectedCount === 0 || completed !== null} onClick={() => void commit()}>Commit {selectedCount} students</button>
-      </div>
-    </section>}
-    {completed?.state === 'completed' && <p role="status">{completed.counts.committed} students imported.</p>}
-    <a href={`/students${church ? `?church=${encodeURIComponent(church)}` : ''}`}>Back to students</a>
+    <a className="wizard-back" href={`/account/students${church ? `?church=${encodeURIComponent(church)}` : ''}`}>Back to students</a>
   </section>
+}
+
+function RowInspection({ row }: { row: ImportRow }) {
+  return <details><summary>Inspect row {row.row_number}</summary><div><p>{row.errors.join(' ') || (row.outcome ? 'These are the original reviewed row details.' : row.unknown_ministries.length ? 'Map the unknown ministries before selecting this row.' : 'Validated student details.')}</p><dl>{headers.filter(name => Object.hasOwn(row.source, name)).map(name => <div key={name}><dt>{name.replaceAll('_', ' ')}</dt><dd>{row.source[name] || 'Not provided'}</dd></div>)}</dl>{row.ministry_names.length > 0 && <p>Requested ministries: {row.ministry_names.join(', ')}</p>}</div></details>
 }

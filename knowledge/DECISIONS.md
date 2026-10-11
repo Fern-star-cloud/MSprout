@@ -4,6 +4,10 @@ Manual QA governance decision — 2026-10-07, explicit user direction: retain MT
 
 Only decisions established by the approved design, roadmap, committed implementation, or a validated current worktree belong here.
 
+## UI-10 uncertainty retains the same batch — 2026-10-11
+
+A failed response can follow a committed transaction. Import therefore retains the stable batch/key and opaque actor/church-bound tab pointer before POST, verifies that same batch and its row outcomes, and requires deliberate same-payload retry only when supported status is known. Storage failure blocks submission; unknown outcomes cannot invite a replacement or correction export of accepted rows. No child data enters the recovery receipt, and no unsupported failed-row count is invented. This implements approved Pack08 guarded/create-first behavior using existing contracts only. [Evidence](../docs/qa/ui-10-student-import-verification.md).
+
 ## UI-09 management separates intent and authority — 2026-10-11
 
 Approved list-first People workflows use existing contracts only. Ordinary student detail edits omit ministry_ids to preserve links; enrollment replacement requires its own named confirmation. Server authorization remains authoritative for role, tenant, assignment, invitation and ownership assurance. Unknown mutation outcomes clear protected controls and require checking refreshed state before another attempt; local profiles never grant online management authority. This implements Pack 07 workflow under Packs 01–05 visual authority without adding unsupported management. [Evidence](../docs/qa/ui-09-people-management-verification.md).

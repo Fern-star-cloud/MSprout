@@ -88,6 +88,8 @@ it('previews without writing students then commits approved rows exactly once', 
     $this->postJson("/api/imports/{$batch}/commit", [
         'commit_key' => (string) Str::uuid(), 'row_ids' => $rows, 'ministry_mappings' => [],
     ])->assertConflict();
+    $this->getJson("/api/imports/{$batch}")->assertOk()->assertJsonPath('state', 'completed')
+        ->assertJsonPath('rows.0.outcome', 'committed')->assertJsonPath('rows.1.outcome', 'committed');
 
     expect(DB::connection('pgsql_migration')->table('students')->where('church_id', $this->church->id)->count())->toBe(2)
         ->and(DB::connection('pgsql_migration')->table('enrollments')->where('ministry_id', $ministry)->count())->toBe(1)
@@ -130,6 +132,38 @@ it('rejects executable CSV content and files over the row limit', function () {
 it('downloads only the approved import template headers', function () {
     $response = $this->get('/api/imports/template')->assertOk()->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
     expect($response->getContent())->toBe("first_name,last_name,middle_name,preferred_name,suffix,birthdate,gender,ministries,external_reference\r\n");
+});
+
+it('accepts an exactly 5 MiB CSV and rejects one byte above without creating students', function () {
+    $content = "first_name,last_name\nSynthetic,Boundary\n";
+    $content .= str_repeat(' ', 5 * 1024 * 1024 - strlen($content));
+    $this->post('/api/imports/students/preview', [
+        'file' => UploadedFile::fake()->createWithContent('boundary.csv', $content),
+    ], ['Accept' => 'application/json'])->assertOk()->assertJsonPath('counts.valid', 1);
+    $this->post('/api/imports/students/preview', [
+        'file' => UploadedFile::fake()->createWithContent('boundary.csv', $content.' '),
+    ], ['Accept' => 'application/json'])->assertUnprocessable();
+    expect(DB::connection('pgsql_migration')->table('students')->where('church_id', $this->church->id)->count())->toBe(0);
+});
+
+it('accepts exactly 500 CSV data rows as a preview without creating students', function () {
+    $rows = implode("\n", array_map(fn ($index) => "Synthetic{$index},Boundary,,,,csv-{$index}", range(1, 500)));
+    $this->post('/api/imports/students/preview', ['file' => studentCsv($rows)], ['Accept' => 'application/json'])
+        ->assertOk()->assertJsonCount(500, 'rows')->assertJsonPath('counts.valid', 500);
+    expect(DB::connection('pgsql_migration')->table('students')->where('church_id', $this->church->id)->count())->toBe(0);
+});
+
+it('accepts exactly 500 XLSX data rows and rejects a 501st row', function () {
+    $configure = function (Spreadsheet $book, int $lastRow) {
+        for ($row = 3; $row <= $lastRow; $row++) {
+            $book->getActiveSheet()->fromArray(["Synthetic{$row}", 'Boundary', null, 'unspecified', null, "xlsx-{$row}"], null, "A{$row}");
+        }
+    };
+    $this->post('/api/imports/students/preview', ['file' => studentXlsx(fn ($book) => $configure($book, 501))], ['Accept' => 'application/json'])
+        ->assertOk()->assertJsonCount(500, 'rows')->assertJsonPath('counts.valid', 500);
+    $this->post('/api/imports/students/preview', ['file' => studentXlsx(fn ($book) => $configure($book, 502))], ['Accept' => 'application/json'])
+        ->assertUnprocessable();
+    expect(DB::connection('pgsql_migration')->table('students')->where('church_id', $this->church->id)->count())->toBe(0);
 });
 
 it('accepts a safe XLSX with a genuine Excel date cell', function () {
@@ -204,6 +238,9 @@ it('denies Teachers all import capabilities', function () {
     $this->getJson('/api/imports/template')->assertForbidden();
     $this->post('/api/imports/students/preview', ['file' => studentCsv('No,Access,,,,')], ['Accept' => 'application/json'])
         ->assertForbidden();
+    $this->postJson("/api/imports/{$batch}/commit", [
+        'commit_key' => (string) Str::uuid(), 'row_ids' => [], 'ministry_mappings' => [],
+    ])->assertForbidden();
 });
 
 it('requires same-church ministry mappings before committing unknown ministries', function () {

@@ -12,21 +12,23 @@ test('Owner preview excludes duplicates and commits only explicitly approved val
   let commitKey = ''
   await mockOwner(context)
   await context.route('**/api/ministries', route => json(route, { data: [{ id: ministryId, name: 'Primary', status: 'active', version: 1 }] }))
-  await context.route('**/api/imports/students/preview', route => json(route, {
+  const preview = {
     id: batchId, state: 'previewed', expires_at: '2099-10-01T00:00:00Z',
     counts: { valid: 1, invalid: 0, duplicate: 1, needs_mapping: 0 },
     rows: [
       { id: validRow, row_number: 2, status: 'valid', source: { first_name: 'Pilot', last_name: 'New' }, data: { first_name: 'Pilot', last_name: 'New', gender: 'unspecified' }, ministry_names: ['Primary'], ministry_ids: [ministryId], unknown_ministries: [], errors: [], outcome: null },
       { id: duplicateRow, row_number: 3, status: 'duplicate', source: { first_name: 'Existing', last_name: 'Student' }, data: { first_name: 'Existing', last_name: 'Student', gender: 'unspecified' }, ministry_names: ['Primary'], ministry_ids: [ministryId], unknown_ministries: [], errors: ['Possible existing student.'], outcome: null },
     ],
-  }))
+  }
+  await context.route('**/api/imports/students/preview', route => json(route, preview))
+  await context.route(`**/api/imports/${batchId}`, route => json(route, { ...preview, state: 'completed', rows: preview.rows.map(row => ({ ...row, outcome: row.status === 'valid' ? 'committed' : 'duplicate' })) }))
   await context.route(`**/api/imports/${batchId}/commit`, async route => {
     const body = route.request().postDataJSON() as { commit_key: string; row_ids: string[] }
     commitKey ||= body.commit_key
     expect(body.commit_key).toBe(commitKey)
     expect(body.row_ids).toEqual([validRow])
     commits += 1
-    await json(route, { id: batchId, state: 'completed', counts: { committed: 1, excluded: 1, duplicate: 1 } })
+    await json(route, { id: batchId, state: 'completed', counts: { committed: 1, excluded: 0, duplicate: 1 } })
   })
 
   await page.goto(`/account/imports?church=${churchId}`)
@@ -37,9 +39,12 @@ test('Owner preview excludes duplicates and commits only explicitly approved val
   await expect(page.getByText('1 valid')).toBeVisible()
   await expect(page.getByText('1 duplicate')).toBeVisible()
   await expect(page.getByLabel('Approve row 3')).toBeDisabled()
-  await page.getByRole('button', { name: 'Commit 1 students' }).click()
+  await page.getByRole('button', { name: 'Review selected' }).click()
+  expect(commits).toBe(0)
+  await page.getByLabel(/I understand that this creates new student records/).check()
+  await page.getByRole('button', { name: 'Import 1 students' }).click()
   await expect(page.getByRole('status').filter({ hasText: 'students imported' })).toHaveText('1 students imported.')
-  await expect(page.getByRole('button', { name: 'Commit 1 students' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Import 1 students' })).toHaveCount(0)
   expect(commits).toBe(1)
   await expectNoSeriousAccessibilityIssues(page)
 })

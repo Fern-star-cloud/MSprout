@@ -16,14 +16,17 @@ const batch = '22222222-2222-4222-8222-222222222222'
 const ministry = '33333333-3333-4333-8333-333333333333'
 
 beforeEach(() => {
+  sessionStorage.clear()
   history.pushState({}, '', `/imports?church=${church}`)
   vi.mocked(authRequest).mockImplementation(async (path) => {
-    if (path === '/api/me') return { memberships: [{ church_id: church, role: 'owner', status: 'active' }], active_session: { mfa_confirmed: true } } as never
+    if (path === '/api/me') return { id: 11, memberships: [{ church_id: church, role: 'owner', status: 'active' }], active_session: { mfa_confirmed: true } } as never
     if (path === '/api/ministries') return { data: [{ id: ministry, name: 'Primary Kids', status: 'active', version: 1 }] } as never
-    return { id: batch, state: 'completed', counts: { committed: 2, excluded: 1, duplicate: 0 } } as never
+    if (path.endsWith('/commit')) return { id: batch, state: 'completed', counts: { committed: 2, excluded: 1, duplicate: 0 } } as never
+    const preview = await vi.mocked(authUpload).getMockImplementation()!('/api/imports/students/preview', new File([], 'fixture.csv'), church)
+    return { ...(preview as Record<string, unknown>), state: 'completed', rows: (preview as { rows: { status: string }[] }).rows.map(row => ({ ...row, outcome: row.status === 'invalid' ? 'excluded' : 'committed' })) } as never
   })
   vi.mocked(authUpload).mockResolvedValue({
-    id: batch, state: 'previewed', expires_at: '2026-09-29T00:00:00Z',
+    id: batch, state: 'previewed', expires_at: '2099-09-29T00:00:00Z',
     counts: { valid: 1, invalid: 1, duplicate: 0, needs_mapping: 1 },
     rows: [
       { id: '44444444-4444-4444-8444-444444444444', row_number: 2, status: 'valid', source: { first_name: 'Ari', last_name: 'Sprout' }, data: { first_name: 'Ari', last_name: 'Sprout', gender: 'unspecified' }, ministry_names: [], ministry_ids: [], unknown_ministries: [], errors: [], outcome: null },
@@ -33,12 +36,12 @@ beforeEach(() => {
   } as never)
 })
 
-afterEach(() => { cleanup(); vi.clearAllMocks() })
+afterEach(() => { cleanup(); vi.clearAllMocks(); sessionStorage.clear() })
 
 it('uploads previews maps excludes and idempotently commits selected rows', async () => {
   const user = userEvent.setup()
   render(<ImportScreen />)
-  await screen.findByRole('heading', { name: 'Import students' })
+  await screen.findByLabelText('Student spreadsheet')
   const file = new File(['first_name,last_name\nAri,Sprout'], 'students.csv', { type: 'text/csv' })
   await user.upload(screen.getByLabelText('Student spreadsheet'), file)
   fireEvent.submit(screen.getByRole('button', { name: 'Preview import' }).closest('form')!)
@@ -49,7 +52,9 @@ it('uploads previews maps excludes and idempotently commits selected rows', asyn
   expect(screen.getByRole('region', { name: 'Import preview rows' }).getAttribute('tabindex')).toBe('0')
   await user.selectOptions(screen.getByLabelText('Map New Group'), ministry)
   await user.click(screen.getByLabelText('Approve row 3'))
-  await user.click(screen.getByRole('button', { name: 'Commit 2 students' }))
+  await user.click(screen.getByRole('button', { name: 'Review selected' }))
+  await user.click(screen.getByLabelText(/I understand that this creates new student records/))
+  await user.click(screen.getByRole('button', { name: 'Import 2 students' }))
 
   await waitFor(() => expect(authRequest).toHaveBeenCalledWith(
     `/api/imports/${batch}/commit`, 'POST', expect.objectContaining({
@@ -78,7 +83,7 @@ it('shows loading rather than forbidden while authorization is unresolved', asyn
   expect(screen.getByText('Checking import authorization…')).toBeTruthy()
   expect(screen.queryByText('Student imports are available only to the church Owner with confirmed MFA.')).toBeNull()
   expect(screen.queryByLabelText('Student spreadsheet')).toBeNull()
-  resolve({ memberships: [{ church_id: church, role: 'owner', status: 'active' }], active_session: { mfa_confirmed: true } } as never)
+  resolve({ id: 11, memberships: [{ church_id: church, role: 'owner', status: 'active' }], active_session: { mfa_confirmed: true } } as never)
   await screen.findByLabelText('Student spreadsheet')
 })
 

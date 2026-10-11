@@ -159,6 +159,17 @@ it('uploads an import as browser-bounded multipart data without forcing a conten
   expect(fetcher.mock.calls[1][1].headers['Content-Type']).toBeUndefined()
 })
 
+it('preserves reviewed import parser errors without reflecting arbitrary file or account details', async () => {
+  document.cookie = 'XSRF-TOKEN=csrf-value'
+  const message = 'The spreadsheet exceeds 500 data rows.'
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(new Response(null, { status: 204 }))
+    .mockResolvedValueOnce(Response.json({ field_errors: { file: [message, 'private child or account detail'] } }, { status: 422 })))
+  await expect(authUpload('/api/imports/students/preview', new File(['x'], 'synthetic.csv'), crypto.randomUUID()))
+    .rejects.toMatchObject({ fieldErrors: { file: [message] } })
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ field_errors: { file: [message] } }, { status: 422 })))
+  await expect(authRequest('/api/me')).rejects.toMatchObject({ fieldErrors: { file: ['Check this field.'] } })
+})
+
 it('downloads only allowlisted same-origin attendance report filters', async () => {
   const church = crypto.randomUUID()
   const ministry = crypto.randomUUID()
