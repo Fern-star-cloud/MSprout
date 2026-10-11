@@ -3,28 +3,29 @@ import { addProfile, bootstrap, churchId, expectNoSeriousAccessibilityIssues, js
 
 test.use({serviceWorkers:'block'})
 const session={handle:'sage.dev',online_only:true}
-const application={id:'00000000-0000-4000-8000-000000000060',church_name:'Synthetic application',city:'Synthetic city',status:'pending'}
-const health={status:'healthy',checked_at:'2026-10-10T00:00:00Z',api:{status:'ok'},database:{status:'ok',size_bytes:2048,growth_bytes_24h:0},queue:{status:'ok',pending_count:42,failed_24h:0,oldest_age_seconds:0},scheduler:{status:'ok',last_run_at:null},birthdays:{status:'ok',failed_24h:0,last_dispatch_at:null},synchronization:{events_24h:0,rejected_24h:0,open_conflicts:0,error_rate:0}}
+const application={id:'00000000-0000-4000-8000-000000000060',church_name:'Synthetic application',city:'Synthetic city',status:'pending',address:null,timezone:'Asia/Manila',church_id:null,category:null,reason:null,submitted_at:'2026-10-10T00:00:00Z',decided_at:null}
+const health={status:'healthy',checked_at:'2026-10-10T00:00:00Z',api:{status:'ok'},database:{status:'ok',size_bytes:2048,growth_bytes_24h:0},queue:{status:'ok',pending_count:42,failed_24h:0,oldest_age_seconds:0},scheduler:{status:'ok',last_run_at:null},birthdays:{status:'ok',failed_24h:0,last_dispatch_at:null},synchronization:{status:'ok',events_24h:0,rejected_24h:0,open_conflicts:0,error_rate:0}}
 test.beforeEach(async({context})=>{
  await mockCsrf(context)
  await context.route('**/api/**',route=>json(route,{},503))
  await context.route('**/platform/**',route=>json(route,{},503))
  await context.route('**/platform/csrf-token',route=>json(route,{csrf_token:'synthetic-platform-only'}))
  await context.route('**/platform/me',route=>json(route,session))
- await context.route('**/platform/applications?**',route=>json(route,{data:[application],page:1,has_more:false}))
+ await context.route('**/health/live',route=>json(route,{status:'ok'}))
+ await context.route('**/platform/applications?**',route=>json(route,{data:[application],page:1,per_page:25,has_more:false}))
  await context.route('**/platform/system-health',route=>json(route,health))
- await context.route('**/platform/audit-events?**',route=>json(route,{scope:'platform',data:[{id:'00000000-0000-4000-8000-000000000070',action:'platform.auth.login',result:'success',occurred_at:'2026-10-10T00:00:00Z',correlation_id:'00000000-0000-4000-8000-000000000080'}],page:1,has_more:false}))
+ await context.route('**/platform/audit-events?**',route=>json(route,{scope:'platform',data:[{id:'00000000-0000-4000-8000-000000000070',category:'platform',action:'platform.auth.login',result:'success',occurred_at:'2026-10-10T00:00:00Z',correlation_id:'00000000-0000-4000-8000-000000000080'}],page:1,per_page:25,has_more:false}))
 })
 
 test('verifies platform assurance before exposing navigation or requesting a protected direct link',async({page,context})=>{
- let held!:Route;let resources=0
- await context.route('**/platform/me',route=>{held=route})
+ let held!:Route;let resources=0;let verified=false
+ await context.route('**/platform/me',route=>{if(verified)return json(route,session);held=route})
  page.on('request',request=>{if(request.url().includes('/platform/system-health'))resources++})
  await page.goto('/account/platform-system-health')
  await expect(page.getByText('Checking platform session and MFA…')).toBeVisible()
  await expect(page.getByRole('link',{name:'Account',exact:true})).toHaveCount(0)
  expect(resources).toBe(0);expect(await page.locator('main').ariaSnapshot()).not.toContain('sage.dev')
- await expect.poll(()=>Boolean(held)).toBe(true);await json(held,session)
+ await expect.poll(()=>Boolean(held)).toBe(true);verified=true;await json(held,session)
  await expect(page.getByText('42 pending · 0 failed')).toBeVisible()
  await expect(page.getByRole('button',{name:'Sign out of platform'})).toBeVisible()
  await expectNoSeriousAccessibilityIssues(page)

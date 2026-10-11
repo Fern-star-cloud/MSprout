@@ -1,5 +1,13 @@
 # Current State
 
+## UI-14 qualified checkpoint — 2026-10-11
+
+UI-14 is implemented, validated and reviewed before its single task commit/push. Entry UI-13 `9767457c1ffc6b54ac582cf940cdf6c43a4dbbfa` matched local/tracking/live feature0/0 on `feat/mvp-foundation`, staging empty; main `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f` remains unchanged. UI-01–UI-13 GREEN and all eight original QA/environment bodies are preserved beneath additive knowledge sections, excluded from task staging. Finalization resolves through reviewed subject `feat: complete guarded platform administration` and ignored Git/preservation receipts.
+
+Applications now confirms selected decisions after fresh Platform/MFA/detail reads, preserves required rejection input and reconciles stale/unknown outcomes without optimistic decisions or repeated submission. Aggregate health/public liveness remain separate; token-protected readiness is unavailable here. Existing sanitized audit pages retain order and role boundaries. Invalidated/late responses cannot restore protected content or navigation. Exact public-liveness proxy integration adds no backend endpoint or readiness access. No production PHP/API/schema/permission/dependency/offline writer or human data operation.
+
+Actual proof: frontend60/8 focused and665/70 aggregate; backend64/394 focused and294/2125 aggregate;76 qualified unique native outcomes across four targets, including a32-case isolated shell rerun on the identical frozen build; types/lint/build/contracts/structure/Pint/strict Composer/audits/secret/OWASP gates PASS. Current OWASP union96 inputs has zero findings and repaired parse warnings. No BLOCKING or SHOULD FIX findings remain. [UI-14 verification](../docs/qa/ui-14-platform-administration-verification.md) records evidence reuse, failed intermediate runs and physical/external/readiness/delivery limits. Stop after UI-14; UI-15/UI-16 remain NOT STARTED.
+
 ## UI-13 qualified checkpoint — 2026-10-11
 
 UI-13 is implemented and qualified; reviewed subject `feat: add scoped birthdays notifications and activity` and ignored finalization receipts resolve its commit/push. Entry UI-12 `5a2a959961416cf17d8236da0dc4042a02958f47` was local/tracking/live feature0/0 on `feat/mvp-foundation`, staging empty; main `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f` remains unchanged. UI-01–UI-12 GREEN and all eight original QA/environment bodies are preserved, with human deltas excluded from staging.

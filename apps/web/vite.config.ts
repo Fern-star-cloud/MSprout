@@ -27,7 +27,7 @@ export default defineConfig({
   server: {
     proxy: Object.fromEntries([
       '/api', '/auth', '/sanctum', '/login', '/logout', '/forgot-password',
-      '/reset-password', '/email', '/user', '/two-factor-challenge', '/platform',
+      '/reset-password', '/email', '/user', '/two-factor-challenge', '/platform', '/health/live',
     ].map((prefix) => [prefix, { target: 'http://127.0.0.1:8000', changeOrigin: false }])),
   },
   test: {

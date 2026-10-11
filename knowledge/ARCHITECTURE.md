@@ -1,5 +1,9 @@
 # Architecture
 
+## Verified Platform administration projections — 2026-10-11
+
+Existing strict sage.dev/online-only/MFA session reads protect ephemeral application, aggregate-health and Platform-audit projections. Generation-bound reads and the existing Platform invalidation event clear both protected navigation and resources after local/transport denial, expiry or connectivity/context changes. Decisions fresh-read selected details, confirm exact supported payloads, coalesce submissions and reconcile authoritative outcomes; an opaque nonpersisted ledger survives screen remounts. Supported public liveness has an exact existing-origin proxy/rewrite; secret-protected readiness remains outside the workspace. Minimal audit projections omit actor/target/metadata and preserve server page/order. Church Activity, server authorization/CSRF/RLS/provisioning/audit transactions and every encrypted store are unchanged. [UI-14 verification](../docs/qa/ui-14-platform-administration-verification.md).
+
 ## Verified birthday/notification/activity projections — 2026-10-11
 
 UI-13 uses current church transport and membership/assignment/Owner assurance for ephemeral today-only birthday and bounded audit projections. Server church-calendar date remains authoritative; online denial cannot decrypt cached names. Actual offline projection requires matching actor/church/current encrypted lease and post-read authorization, with no write. Explicit verified push setup precedes browser activation; exact receipts, stable existing subscription/device identity and independent permission/registration/revocation outcomes govern UI feedback. Scoped keyed generations reject old context completions. Existing server RLS/audit/CSRF, count-only worker payload, scheduling and cryptographic/persistence/synchronization formats are unchanged. [Evidence](../docs/qa/ui-13-birthdays-notifications-activity-verification.md).

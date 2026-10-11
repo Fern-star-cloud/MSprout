@@ -8,15 +8,15 @@ import { ApiError } from '../api/client'
 
 vi.mock('../features/auth/transport',async original=>({...await original() as typeof import('../features/auth/transport'),authRequest:vi.fn()}))
 const session={handle:'sage.dev',online_only:true}
-const application={id:'00000000-0000-4000-8000-000000000060',church_name:'Synthetic application',city:'Synthetic city',status:'pending'}
-const health={status:'healthy',checked_at:'2026-10-10T00:00:00Z',api:{status:'ok'},database:{status:'ok',size_bytes:2048,growth_bytes_24h:0},queue:{status:'ok',pending_count:42,failed_24h:0,oldest_age_seconds:0},scheduler:{status:'ok',last_run_at:null},birthdays:{status:'ok',failed_24h:0,last_dispatch_at:null},synchronization:{events_24h:0,rejected_24h:0,open_conflicts:0,error_rate:0}}
+const application={id:'00000000-0000-4000-8000-000000000060',church_name:'Synthetic application',city:'Synthetic city',status:'pending',address:null,timezone:'Asia/Manila',church_id:null,category:null,reason:null,submitted_at:'2026-10-10T00:00:00Z',decided_at:null}
+const health={status:'healthy',checked_at:'2026-10-10T00:00:00Z',api:{status:'ok'},database:{status:'ok',size_bytes:2048,growth_bytes_24h:0},queue:{status:'ok',pending_count:42,failed_24h:0,oldest_age_seconds:0},scheduler:{status:'ok',last_run_at:null},birthdays:{status:'ok',failed_24h:0,last_dispatch_at:null},synchronization:{status:'ok',events_24h:0,rejected_24h:0,open_conflicts:0,error_rate:0}}
 function open(path='/account/platform-applications'){history.replaceState(null,'',path);return render(<AppRouter/>)}
-function defaults(){vi.mocked(authRequest).mockImplementation(async path=>path==='/platform/me'?session:path.startsWith('/platform/applications')?{data:[application],has_more:false}:path==='/platform/system-health'?health:{scope:'platform',data:[],has_more:false})}
+function defaults(){vi.mocked(authRequest).mockImplementation(async path=>path==='/platform/me'?session:path.startsWith('/platform/applications')?{data:[application],page:1,has_more:false}:path==='/platform/system-health'?health:{scope:'platform',data:[],page:1,per_page:25,has_more:false})}
 afterEach(()=>{cleanup();vi.resetAllMocks();vi.restoreAllMocks();history.replaceState(null,'','/')})
 
 it('checks platform assurance before displaying navigation or requesting a protected destination',async()=>{
- let release!:(value:unknown)=>void
- vi.mocked(authRequest).mockImplementation(path=>path==='/platform/me'?new Promise(resolve=>{release=resolve}):Promise.resolve({data:[application]}))
+ let release!:(value:unknown)=>void;let verified=false
+ vi.mocked(authRequest).mockImplementation(path=>path==='/platform/me'?(verified?Promise.resolve(session):new Promise(resolve=>{release=value=>{verified=true;resolve(value)}})):Promise.resolve({data:[application],page:1,has_more:false}))
  open();await waitFor(()=>expect(release).toBeTypeOf('function'))
  expect(screen.queryByRole('navigation',{name:'Platform navigation'})).toBeNull()
  expect(vi.mocked(authRequest).mock.calls.map(([path])=>path)).toEqual(['/platform/me'])
@@ -139,4 +139,16 @@ it('performs no platform request when loaded offline',async()=>{
  await screen.findByText(/Protected platform information is unavailable offline/)
  expect(authRequest).not.toHaveBeenCalled()
  expect(screen.queryByRole('navigation',{name:'Platform navigation'})).toBeNull()
+})
+
+it('removes the shell when a protected screen detects changed platform identity during its own verification',async()=>{
+ let checks=0
+ vi.mocked(authRequest).mockImplementation(async path=>{
+  if(path==='/platform/me')return ++checks===1?session:{handle:'church-user',online_only:true}
+  return {data:[application],page:1,has_more:false}
+ })
+ open();await screen.findByRole('alert')
+ expect(screen.queryByRole('navigation',{name:'Platform navigation'})).toBeNull()
+ expect(screen.queryByText('Synthetic application')).toBeNull()
+ expect(vi.mocked(authRequest).mock.calls.every(([path])=>path==='/platform/me')).toBe(true)
 })

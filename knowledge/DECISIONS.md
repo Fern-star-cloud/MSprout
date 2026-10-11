@@ -4,6 +4,10 @@ Manual QA governance decision — 2026-10-07, explicit user direction: retain MT
 
 Only decisions established by the approved design, roadmap, committed implementation, or a validated current worktree belong here.
 
+## UI-14 outcomes require existing server evidence — 2026-10-11
+
+A confirmation or browser response alone cannot establish a final application decision. Fresh assurance/detail checks precede exact existing empty approval or category/reason rejection, and stale/uncertain outcomes reconcile by supported reads. Pending uncertainty blocks new decisions during the current page lifetime; no durable decision journal or new API is invented. Server immutable decisions/row locking remain authoritative across reload/concurrency. Liveness only proves a public response, aggregate health remains server-reported, and readiness explicitly requires separately authorized operational access. Audit uses only supported page/size controls and a fixed sanitized event projection. This implements Pack11 under shared Packs01–05 without impersonation, bulk decisions or tenant browsing. [UI-14 verification](../docs/qa/ui-14-platform-administration-verification.md).
+
 ## UI-10 uncertainty retains the same batch — 2026-10-11
 
 A failed response can follow a committed transaction. Import therefore retains the stable batch/key and opaque actor/church-bound tab pointer before POST, verifies that same batch and its row outcomes, and requires deliberate same-payload retry only when supported status is known. Storage failure blocks submission; unknown outcomes cannot invite a replacement or correction export of accepted rows. No child data enters the recovery receipt, and no unsupported failed-row count is invented. This implements approved Pack08 guarded/create-first behavior using existing contracts only. [Evidence](../docs/qa/ui-10-student-import-verification.md).

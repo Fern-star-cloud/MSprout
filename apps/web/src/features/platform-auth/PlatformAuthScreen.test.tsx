@@ -4,7 +4,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { PlatformAuthScreen } from './PlatformAuthScreen'
 import { authRequest } from '../auth/transport'
 
-vi.mock('../auth/transport', async (original) => ({ ...await original<typeof import('../auth/transport')>(), authRequest: vi.fn() }))
+vi.mock('../auth/transport', async (original) => ({ ...await original() as typeof import('../auth/transport'), authRequest: vi.fn() }))
 afterEach(() => { cleanup(); vi.resetAllMocks() })
 
 it('requires the platform challenge before displaying the platform session', async () => {

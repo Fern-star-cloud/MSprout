@@ -6,6 +6,7 @@
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://api.ministrysprout.app/api/:path*" },
     { "source": "/platform/:path*", "destination": "https://api.ministrysprout.app/platform/:path*" },
+    { "source": "/health/live", "destination": "https://api.ministrysprout.app/health/live" },
     { "source": "/sanctum/:path*", "destination": "https://api.ministrysprout.app/sanctum/:path*" },
     { "source": "/auth/:path*", "destination": "https://api.ministrysprout.app/auth/:path*" },
     { "source": "/login", "destination": "https://api.ministrysprout.app/login" },

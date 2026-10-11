@@ -52,7 +52,7 @@ it('clears events and pagination when the server denies a later page', async () 
 })
 
 it('requires the separate platform session and uses only the platform endpoint', async () => {
-  request.mockImplementation(async (path) => path === '/platform/me' ? { online_only: true } : { data: [], scope: 'platform', has_more: false })
+  request.mockImplementation(async (path) => path === '/platform/me' ? { handle: 'sage.dev', online_only: true } : { data: [], scope: 'platform', page: 1, per_page: 25, has_more: false })
   render(<AuditScreen platform />)
   await screen.findByRole('heading', { name: 'Platform audit' })
   expect(request.mock.calls.every(([path]) => path.startsWith('/platform/'))).toBe(true)
