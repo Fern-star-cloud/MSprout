@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-11 — UI-12 attendance reports and history
+
+Verified applied filters, authoritative totals, distinct pending/review/local work, supported read-only session disclosures and deliberate server CSV replace ambiguous reporting. Expiry/scope/offline clearing, Teacher assignment/privacy, native focus and encrypted-store preservation are qualified. Backend/export/date/immutable-history contracts remain unchanged. Finalization resolves through the reviewed Git subject and [verification](../docs/qa/ui-12-attendance-reports-verification.md); stop before UI-13.
+
 ## 2026-10-11 — UI-11 Owner conflict and temporary-guest review
 
 Separate verified Owner/MFA queues, initially unselected actual-value choices, required reasons and named confirmations replace immediate review writes. Authoritative stale/unknown reconciliation prevents replay; guest forms are mutually exclusive and confirmed dispositions cannot repeat. Teacher notice/privacy, keyboard return focus and encrypted pending-work preservation are verified. Focused92/4, frontend563/59, backend12/189 focused and279/2013 aggregate, browser76/76 and all applicable gates PASS. Original eight QA bodies remain preserved. Finalization resolves through the reviewed Git subject and [verification](../docs/qa/ui-11-owner-review-verification.md); stop before UI-12.

@@ -1,0 +1,6 @@
+import { expect, it } from 'vitest'
+import { dateStamp, defaultFilters, reportPath, validFilters } from './report-model'
+
+it('preserves UTC defaults across a browser-local midnight boundary',()=>{expect(defaultFilters(new Date('2026-10-01T00:15:00Z'))).toEqual({from:'2026-09-01',to:'2026-10-01',ministryId:''});expect(dateStamp('2026-09-30')).toBe(Date.parse('2026-09-30T00:00:00Z'))})
+it('accepts the server’s inclusive same-date and 366-day-apart boundaries without normalizing impossible dates',()=>{expect(validFilters({from:'2026-09-30',to:'2026-09-30',ministryId:''})).toBe(true);expect(validFilters({from:'2025-09-30',to:'2026-10-01',ministryId:''})).toBe(true);for(const [from,to] of [['2025-09-30','2026-10-02'],['2026-10-01','2026-09-30'],['2026-02-30','2026-03-01'],['2026-9-01','2026-09-30']])expect(validFilters({from,to,ministryId:''})).toBe(false)})
+it('uses precisely the same allowlisted applied filters for report and server export',()=>{const filters={from:'2026-09-01',to:'2026-09-30',ministryId:'22222222-2222-4222-8222-222222222222'};expect(reportPath(true,filters).replace('/export','')).toBe(reportPath(false,filters));expect(reportPath(false,filters)).not.toContain('session=')})

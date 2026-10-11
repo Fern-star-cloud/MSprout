@@ -14,10 +14,11 @@ const ministry = '22222222-2222-4222-8222-222222222222'
 
 beforeEach(() => {
   vi.mocked(authRequest).mockImplementation(async (path) => {
+    if (path === '/api/me') return { id:11,email_verified:true,memberships:[{church_id:church,role:'owner',status:'active'}],assignments:{ministry_ids:[]},active_session:{mfa_confirmed:true} } as never
     if (path === '/api/ministries') return { data: [{ id: ministry, name: 'Primary', status: 'active', version: 1 }] } as never
     return { data: {
       role: 'owner', can_export: true,
-      filters: { date_from: '2026-09-01', date_to: '2026-09-30', ministry_id: null },
+      filters: { date_from: '2026-09-01', date_to: '2026-09-30', ministry_id: new URLSearchParams(path.split('?')[1]).get('ministry_id') },
       summary: { present_count: 8, absent_count: 2, finalized_record_count: 10, attendance_rate: 0.8, pending_count: 1, conflict_count: 2, correction_count: 1 },
       sessions: [{
         id: '33333333-3333-4333-8333-333333333333', ministry_id: ministry, ministry_name: 'Primary',
@@ -40,7 +41,7 @@ it('loads online totals, keeps local pending work separate, and downloads the fi
   expect((await screen.findAllByText('80%')).length).toBeGreaterThan(0)
   expect(screen.getByText('3 local events')).toBeTruthy()
   expect(screen.getByRole('link', { name: '2 conflicts' }).getAttribute('href')).toContain('/account/conflicts')
-  expect(screen.getAllByRole('link', { name: '1 correction' }).some((link) => link.getAttribute('href')?.includes('/account/reports'))).toBe(true)
+  expect(screen.getAllByRole('link', { name: '1 correction' }).some((link) => document.querySelector(link.getAttribute('href')!))).toBe(true)
   await user.selectOptions(screen.getByLabelText('Ministry'), ministry)
   await user.click(screen.getByRole('button', { name: 'Apply filters' }))
 
@@ -58,7 +59,9 @@ it('loads online totals, keeps local pending work separate, and downloads the fi
 })
 
 it('does not offer CSV export to a Teacher', async () => {
-  vi.mocked(authRequest).mockImplementation(async (path) => path === '/api/ministries'
+  vi.mocked(authRequest).mockImplementation(async (path) => path === '/api/me'
+    ? { id:11,email_verified:true,memberships:[{church_id:church,role:'teacher',status:'active'}],assignments:{ministry_ids:[ministry]},active_session:{mfa_confirmed:false} } as never
+    : path === '/api/ministries'
     ? { data: [{ id: ministry, name: 'Primary', status: 'active', version: 1 }] } as never
     : { data: {
       role: 'teacher', can_export: false,

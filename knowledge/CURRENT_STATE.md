@@ -1,5 +1,13 @@
 # Current State
 
+## UI-12 qualified checkpoint — 2026-10-11
+
+UI-12 implementation is complete and validated; finalization resolves through the reviewed Git subject `feat: add authoritative attendance reports and history` and ignored qualification/finalization receipts. The verified entry was UI-11 `83f2dd2786ba554ae2c5f3876c7d167451ca5b76`, local/tracking/live feature0/0 on `feat/mvp-foundation`; main `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f` is unchanged. UI-01–UI-11 GREEN is preserved. Exact eight QA/environment bodies remain retained beneath additive knowledge sections and excluded from staging.
+
+Reports bind verified actor/church/role/assignment/Owner assurance to applied date/ministry filters, server totals and unchanged server CSV. Calendar dates/UTC defaults,366-day-apart bounds and100-session history limit remain explicit. Read-only disclosures do not invent revision/detail APIs. Local event counts require matching encrypted actor/church/lease/current authorization; unknown never means zero or synchronized. Late expiry/scope/offline reads/downloads cannot revive protected results. Pointer-safe visible focus and responsive summaries/history are verified. No production backend/API/schema/permission/dependency/offline writer/synchronization or human-data change.
+
+Current focused92/7, initial frontend aggregate596/62, backend14/95 focused and288/2065 aggregate,76 qualified unique browser outcomes and applicable type/lint/build/contract/structure/audit/security gates PASS. Isolated presentation/focus corrections retain unrelated aggregate proof; all affected report/history/workspace and current native focus/CSV/preservation cases rerun. See [UI-12 verification](../docs/qa/ui-12-attendance-reports-verification.md). Physical-device/human-screen-reader/400%zoom/hosted-CI claims are not added; historical manual/operational status stays intact. Stop after UI-12; UI-13–UI-16 remain unstarted.
+
 ## UI-11 — Owner conflict and temporary-guest review (validated, pre-finalization)
 
 UI-10 local/tracking/live feature checkpoint `58af8e41fc1edb3bfa706a827ae1f7f7159a23c4` was verified at 0/0. UI-11 is fully implemented and qualified; the one reviewed subject `feat: add guarded owner conflict and guest review` and [verification](../docs/qa/ui-11-owner-review-verification.md) resolve finalization through Git. Mandatory staging/live remote/preservation checks remain before commit/push. UI-12–UI-16 remain unstarted.

@@ -1,5 +1,9 @@
 # Architecture
 
+## Verified authoritative report projections — 2026-10-11
+
+Existing online church transport/workspace and current membership/assignment/Owner assurance authorize ephemeral applied report projections. Strict role/filter/session validation keeps aggregate counts independent of the bounded100-session history. Loaded session disclosures are read-only; no revision-detail API is added. Matching encrypted actor/church/lease/current authorization protects a read-only profile event count, independently nullable from server totals. Generation-bound reads/CSV and synchronous operation guards discard invalidated completions; actual server export bytes remain unchanged. Pointer-safe focus visibility alters only presentation. Server schema, tenant/RLS, immutable originals/revisions, audit, storage writers and synchronization remain unchanged. [Evidence](../docs/qa/ui-12-attendance-reports-verification.md).
+
 ## Verified Owner review projections — 2026-10-11
 
 Existing church transport and workspace authority protect ephemeral Owner/MFA conflict and guest queues. Actor/church/generation checks clear invalidated protected forms and suppress late callbacks. Conflict decisions use exact existing choice/reason and fresh detail reconciliation; guest actions use existing promote/link/merge contracts and fresh bounded pending/active-student projections. Accepted guest results are session-local receipts; pending-list absence never proves a disposition or permits replay. Teacher requests only the restricted needs-review notice. Immutable originals, append-only revisions, audit transactions, RLS, API/schema and encrypted offline stores remain unchanged. [verification](../docs/qa/ui-11-owner-review-verification.md).

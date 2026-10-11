@@ -22,10 +22,10 @@ for (const role of ['owner', 'teacher'] as const) {
       if (path === '/api/health') return json(route, { status: 'ok' })
       expect(route.request().headers()['x-church-id']).toBe(churchId)
       requests.push(path)
-      if (path === '/api/me') return json(route, { id: 11, memberships: [{ church_id: churchId, role, status: 'active' }], active_session: { mfa_confirmed: role === 'owner' } })
+      if (path === '/api/me') return json(route, { id: 11, email_verified:true, assignments:{ministry_ids:[]}, memberships: [{ church_id: churchId, role, status: 'active' }], active_session: { mfa_confirmed: role === 'owner' } })
       if (path === '/api/birthdays/today') return json(route, { data: { role, local_date: '2026-10-08', timezone: 'Asia/Manila', count: 0, birthdays: [] } })
       if (path === '/api/attendance-reports') return json(route, { data: {
-        role, can_export: role === 'owner', summary: { present_count: 0, absent_count: 0, finalized_record_count: 0, attendance_rate: 0, pending_count: 0, conflict_count: 0, correction_count: 0 }, sessions: [],
+        role, can_export: role === 'owner', filters:{date_from:new URL(route.request().url()).searchParams.get('date_from'),date_to:new URL(route.request().url()).searchParams.get('date_to'),ministry_id:null}, summary: { present_count: 0, absent_count: 0, finalized_record_count: 0, attendance_rate: 0, pending_count: 0, conflict_count: 0, correction_count: 0 }, sessions: [],
       } })
       if (path === '/api/sync-conflicts' && role === 'teacher') return json(route, { needs_owner_review: true })
       return json(route, { data: [] })

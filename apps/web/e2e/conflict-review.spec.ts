@@ -38,16 +38,18 @@ test('an Owner sees both immutable submissions, resolves the conflict, and repor
   await page.getByRole('button', { name: 'Confirm resolution' }).click()
   await expect(page.getByText('No attendance conflicts need review.')).toBeVisible()
 
-  await context.route('**/api/ministries', route => json(route, { data: [{ id: ministryId, name: 'Primary' }] }))
+  await context.route('**/api/ministries', route => json(route, { data: [{ id: ministryId, name: 'Primary', status:'active', version:1 }] }))
   await context.route('**/api/attendance-reports?**', route => json(route, { data: {
     role: 'owner', can_export: true,
-    filters: { date_from: '2026-09-01', date_to: '2026-09-30', ministry_id: null },
+    filters: { date_from: new URL(route.request().url()).searchParams.get('date_from'), date_to: new URL(route.request().url()).searchParams.get('date_to'), ministry_id: null },
     summary: { present_count: 1, absent_count: 0, finalized_record_count: 1, attendance_rate: 1, pending_count: 0, conflict_count: 0, correction_count: 1 },
     sessions: [{ id: '00000000-0000-4000-8000-000000000081', ministry_id: ministryId, ministry_name: 'Primary', attendance_date: '2026-09-28', status: 'revised', finalized_at: '2026-09-28T08:05:00Z', present_count: 1, absent_count: 0, attendance_rate: 1, correction_count: 1 }],
   } }))
   await page.goto(`/account/reports?church=${churchId}`)
-  await expect(page.getByText('Revised', { exact: true })).toHaveCount(2)
+  await expect(page.locator('.history-table').getByText('Revised', { exact: true })).toHaveCount(1)
+  await expect(page.locator('.history-cards').getByText('Revised', { exact: true })).toHaveCount(1)
+  await expect(page.locator('.history-records').getByText('Revised', { exact: true })).toHaveCount(1)
   await expect(page.getByRole('link', { name: '1 correction' }).first()).toBeVisible()
-  await expect(page.getByLabel('Attendance summary')).toContainText('100%')
+  await expect(page.getByRole('region', { name: 'Finalized attendance totals' })).toContainText('100%')
   await expectNoSeriousAccessibilityIssues(page)
 })

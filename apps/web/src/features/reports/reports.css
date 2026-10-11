@@ -1,0 +1,27 @@
+.report-screen { min-width: 0; }
+.report-screen > * { min-width: 0; }
+.report-screen .report-filters { grid-template-columns: repeat(auto-fit,minmax(min(100%,12rem),1fr)); }
+.report-screen h2 { margin-block: 0 1rem; }
+.report-screen .report-heading { flex-wrap: wrap; }
+.report-screen .report-heading h1 { overflow-wrap: anywhere; }
+.report-screen .report-summary { margin: 1rem 0; grid-template-columns: repeat(auto-fit,minmax(min(100%,10rem),1fr)); }
+.report-screen .report-summary > div { padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-medium); background: var(--color-surface); }
+.report-screen .report-summary dd { margin: var(--space-2) 0 0; font-size: 1.65rem; font-weight: 700; }
+.report-screen .report-work { display: grid; gap: var(--space-4); }
+.report-screen .report-work dd { margin: var(--space-2) 0 0; }
+.report-screen .report-filters input, .report-screen .report-filters select { width: 100%; min-width: 0; }
+.report-screen .report-filters p { grid-column: 1/-1; }
+.report-screen p, .report-screen dd, .report-screen th, .report-screen td, .report-screen summary { overflow-wrap: anywhere; }
+.report-screen .history-table-wrap { max-width: 100%; }
+.report-screen .history-table caption { padding: var(--space-3); text-align: left; }
+.report-screen .history-cards dl { grid-template-columns: minmax(0,1fr); }
+.report-screen .history-cards article > div { flex-wrap: wrap; }
+.report-screen .history-cards dl div { flex-wrap: wrap; }
+.report-screen .history-records { display: grid; gap: var(--space-4); margin-top: var(--space-4); }
+.report-screen .history-records details { padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-medium); }
+.report-screen .history-records summary { min-height: 44px; cursor: pointer; }
+.report-screen .history-records dl { display: grid; gap: var(--space-3); }
+.report-screen .history-records dd { margin: var(--space-1) 0 0; }
+.report-screen :is([id], button, a, input, select, summary, [tabindex]) { scroll-margin-block: 1rem 7rem; }
+@media (min-width: 48rem) { .report-screen .report-work { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 47.99rem) { .report-screen .attendance-history header { display: block; } }

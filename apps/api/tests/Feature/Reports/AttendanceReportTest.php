@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
@@ -169,3 +170,92 @@ it('does not disclose another church attendance through report filters', functio
     $this->getJson('/api/attendance-reports?date_from=2026-09-01&date_to=2026-09-30&ministry_id='.$foreignMinistry)
         ->assertOk()->assertJsonCount(0, 'data.sessions')->assertJsonPath('data.summary.finalized_record_count', 0);
 });
+
+it('keeps inclusive recorded dates and UTC defaults at a local midnight boundary', function (): void {
+    CarbonImmutable::setTestNow('2026-10-01T00:15:00Z');
+    try {
+        $student = reportStudent($this, 'Boundary Fixture');
+        foreach (['2026-08-31', '2026-09-01', '2026-10-01', '2026-10-02'] as $date) {
+            reportSession($this, $date, 'finalized', [$student => 'present']);
+        }
+        $this->getJson('/api/attendance-reports')->assertOk()
+            ->assertJsonPath('data.filters.date_from', '2026-09-01')
+            ->assertJsonPath('data.filters.date_to', '2026-10-01')
+            ->assertJsonPath('data.summary.present_count', 2)->assertJsonCount(2, 'data.sessions');
+        $this->getJson('/api/attendance-reports?date_from=2026-09-01&date_to=2026-09-01')
+            ->assertOk()->assertJsonPath('data.summary.present_count', 1);
+        $this->getJson('/api/attendance-reports?date_from=2025-09-30&date_to=2026-10-01')->assertOk();
+        $this->getJson('/api/attendance-reports?date_from=2025-09-30&date_to=2026-10-02')->assertUnprocessable();
+    } finally {
+        CarbonImmutable::setTestNow();
+    }
+});
+
+it('keeps authoritative totals and CSV complete when recent sessions are bounded to one hundred', function (): void {
+    $student = reportStudent($this, 'Bounded Fixture');
+    for ($index = 0; $index < 101; $index++) {
+        reportSession($this, CarbonImmutable::parse('2026-01-01')->addDays($index)->toDateString(), 'finalized', [$student => 'present']);
+    }
+    $path = '?date_from=2026-01-01&date_to=2026-04-30';
+    $this->getJson('/api/attendance-reports'.$path)->assertOk()
+        ->assertJsonPath('data.summary.present_count', 101)->assertJsonPath('data.summary.finalized_record_count', 101)
+        ->assertJsonCount(100, 'data.sessions');
+    $csv = $this->get('/api/attendance-reports/export'.$path)->assertOk()->streamedContent();
+    expect(substr_count($csv, 'Bounded Fixture'))->toBe(101);
+});
+
+it('keeps recorded attendance and append-only evidence unchanged through repeated report reads', function (): void {
+    $student = reportStudent($this, 'Immutable Fixture');
+    $session = reportSession($this, '2026-09-20', 'revised', [$student => 'absent']);
+    $db = DB::connection('pgsql_migration');
+    $record = $db->table('attendance_records')->where('attendance_session_id', $session)->first();
+    $db->table('attendance_revisions')->insert([
+        'id' => (string) Str::uuid(), 'church_id' => $this->church->id, 'attendance_session_id' => $session,
+        'attendance_record_id' => $record->id, 'before_state' => 'absent', 'after_state' => 'present',
+        'original_actor_id' => $this->owner->id, 'resolving_actor_id' => $this->owner->id,
+        'reason' => 'Synthetic revision.', 'revised_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $tables = ['attendance_sessions', 'attendance_records', 'attendance_revisions', 'sync_conflicts', 'audit_events'];
+    $before = array_map(fn ($table) => $db->table($table)->orderBy('id')->get()->toJson(), $tables);
+    for ($read = 0; $read < 2; $read++) {
+        $this->getJson('/api/attendance-reports?date_from=2026-09-01&date_to=2026-09-30')->assertOk()
+            ->assertJsonPath('data.summary.present_count', 1)->assertJsonPath('data.sessions.0.status', 'revised');
+    }
+    expect(array_map(fn ($table) => $db->table($table)->orderBy('id')->get()->toJson(), $tables))->toBe($before);
+});
+
+it('denies unassured Owner report and export without producing an export audit', function (): void {
+    $this->withSession(['church_mfa_user_id' => null]);
+    $this->getJson('/api/attendance-reports')->assertForbidden();
+    $this->get('/api/attendance-reports/export')->assertForbidden();
+    expect(DB::connection('pgsql_migration')->table('audit_events')->where('action', 'attendance.report.exported')->count())->toBe(0);
+});
+
+it('removes revoked Teacher assignment history and continues to deny CSV export', function (): void {
+    [$teacher, $membership] = ChurchScenario::teacher($this->church);
+    $db = DB::connection('pgsql_migration');
+    $assignment = (string) Str::uuid();
+    $db->table('teacher_ministry_assignments')->insert([
+        'id' => $assignment, 'church_id' => $this->church->id, 'membership_id' => $membership->id,
+        'ministry_id' => $this->ministryId, 'assigned_by' => $this->owner->id, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $student = reportStudent($this, 'Revocation Fixture');
+    reportSession($this, '2026-09-20', 'finalized', [$student => 'present']);
+    $teacher = User::findOrFail($teacher->id);
+    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    $query = '?date_from=2026-09-01&date_to=2026-09-30';
+    $this->getJson('/api/attendance-reports'.$query)->assertOk()->assertJsonPath('data.summary.present_count', 1);
+    $db->table('teacher_ministry_assignments')->where('id', $assignment)->update(['revoked_at' => now()]);
+    $this->getJson('/api/attendance-reports'.$query)->assertOk()
+        ->assertJsonPath('data.summary.present_count', 0)->assertJsonCount(0, 'data.sessions');
+    $this->get('/api/attendance-reports/export'.$query)->assertForbidden();
+    expect($db->table('audit_events')->where('action', 'attendance.report.exported')->count())->toBe(0);
+});
+
+it('escapes each supported CSV formula prefix while preserving authoritative export data', function (string $prefix): void {
+    $student = reportStudent($this, $prefix.'Synthetic');
+    reportSession($this, '2026-09-20', 'finalized', [$student => 'present']);
+    $csv = $this->get('/api/attendance-reports/export?date_from=2026-09-01&date_to=2026-09-30')->assertOk()->streamedContent();
+    expect($csv)->toStartWith("\xEF\xBB\xBF")->toContain("'".$prefix.'Synthetic')->toContain("'+Primary")
+        ->not->toContain('date_of_birth');
+})->with(['=', '+', '-', '@']);
