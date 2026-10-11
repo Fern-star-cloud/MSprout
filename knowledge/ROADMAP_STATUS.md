@@ -17,8 +17,9 @@ Separate [approved UI-01–UI-16 sequence](../docs/superpowers/plans/2026-10-09-
 | UI-09 — People Lists, Details & Protected Management | GREEN / COMMITTED / PUSHED | `24c21f4f5b7650d67b2f6e6e43d476476d8e57e3`; [verification](../docs/qa/ui-09-people-management-verification.md); synchronized at UI-10 entry |
 | UI-10 — Guarded Student Import Wizard | GREEN / COMMITTED / PUSHED | `58af8e41fc1edb3bfa706a827ae1f7f7159a23c4`; [verification](../docs/qa/ui-10-student-import-verification.md); synchronized at UI-11 entry |
 | UI-11 — Owner Conflict & Guest Review | GREEN / COMMITTED / PUSHED | `83f2dd2786ba554ae2c5f3876c7d167451ca5b76`; [verification](../docs/qa/ui-11-owner-review-verification.md); synchronized at UI-12 entry |
-| UI-12 — Attendance Reports & History | COMPLETE / VALIDATED (pre-finalization receipt) | [Verification](../docs/qa/ui-12-attendance-reports-verification.md); reviewed subject `feat: add authoritative attendance reports and history` resolves finalization through Git |
-| UI-13–UI-16 | NOT STARTED | Stop after UI-12; further authorization required |
+| UI-12 — Attendance Reports & History | GREEN / COMMITTED / PUSHED | `5a2a959961416cf17d8236da0dc4042a02958f47`; [verification](../docs/qa/ui-12-attendance-reports-verification.md); synchronized at UI-13 entry |
+| UI-13 — Birthdays, Notifications & Activity | GREEN / QUALIFIED (pre-finalization receipt) | [Verification](../docs/qa/ui-13-birthdays-notifications-activity-verification.md); reviewed subject `feat: add scoped birthdays notifications and activity` resolves finalization through Git |
+| UI-14–UI-16 | NOT STARTED | Stop after UI-13; further authorization required |
 
 
 Manual QA policy effective 2026-10-07: implementation Tasks 1–18 remain complete with their existing commit evidence. MT-00…MT-22 are optional risk-based references; 211-case sequential completion is not a development, merge, deployment or release requirement. MT-00/01 PASS and partial MT-02 results/blockers remain preserved in [manual knowledge](MANUAL_TESTING.md). Applicable automated/security/CI/deployment requirements and unresolved release-critical defects remain release criteria. No implementation task or manual phase is started by this governance update.

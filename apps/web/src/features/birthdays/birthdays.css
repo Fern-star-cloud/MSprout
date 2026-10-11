@@ -1,0 +1,11 @@
+.birthday-screen, .birthday-screen > *, .activity-screen, .activity-screen > * { min-width: 0; }
+.birthday-screen header, .activity-screen header { margin-bottom: var(--space-4); }
+.birthday-screen .birthday-list { margin-block: var(--space-4); }
+.birthday-screen .birthday-list li { min-width: 0; align-items: flex-start; }
+.birthday-screen .birthday-list li > span { min-width: 0; }
+.birthday-screen :is(p, strong, small), .activity-screen :is(p, strong, small, time) { overflow-wrap: anywhere; }
+.birthday-screen > section, .notification-settings { border: 1px solid var(--color-border); background: var(--color-surface); border-radius: var(--radius-medium); padding: var(--space-4); margin-block: var(--space-4); }
+.notification-actions, .activity-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.birthday-screen :is(button, a, h2), .activity-screen :is(button, a, h1) { scroll-margin-block: 1rem 7rem; }
+.activity-screen .audit-events { padding-inline-start: var(--space-5); }
+.activity-screen .audit-events li { padding-block: var(--space-3); border-bottom: 1px solid var(--color-border); }

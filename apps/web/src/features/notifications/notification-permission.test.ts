@@ -12,7 +12,7 @@ it('requests notification permission only from the deliberate enable action and 
   vi.stubGlobal('Notification', { permission: 'default', requestPermission })
   Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: {} })
   vi.stubGlobal('PushManager', class {})
-  vi.mocked(authRequest).mockResolvedValue({ configured: true, vapid_public_key: 'public-key' } as never)
+  vi.mocked(authRequest).mockImplementation(async path=>path==='/api/me'?{id:11,email_verified:true,memberships:[{church_id:'11111111-1111-4111-8111-111111111111',role:'teacher',status:'active'}]} as never:{configured:true,vapid_public_key:'public-key'} as never)
 
   expect(notificationCapability().state).toBe('available')
   expect(requestPermission).not.toHaveBeenCalled()

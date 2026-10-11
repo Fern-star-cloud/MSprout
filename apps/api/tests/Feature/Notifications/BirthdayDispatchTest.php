@@ -263,3 +263,41 @@ it('keeps birthday deliveries isolated by forced PostgreSQL tenant policy', func
 
     $this->withHeader('X-Church-Id', $foreignChurch->id)->getJson('/api/birthdays/today')->assertForbidden();
 });
+
+it('returns only the authoritative church-local today and refuses unsupported birthday periods', function (): void {
+    CarbonImmutable::setTestNow('2026-09-29T17:00:00Z');
+    try {
+        birthdayStudent($this, 'Yesterday Synthetic', '2018-09-29', $this->ministry);
+        birthdayStudent($this, 'Today Synthetic', '2018-09-30', $this->ministry);
+        birthdayStudent($this, 'Tomorrow Synthetic', '2018-10-01', $this->ministry);
+        $this->getJson('/api/birthdays/today')->assertOk()
+            ->assertJsonPath('data.local_date', '2026-09-30')->assertJsonPath('data.timezone', 'Asia/Manila')
+            ->assertJsonPath('data.count', 1)->assertJsonPath('data.birthdays.0.display_name', 'Today Synthetic Child')
+            ->assertJsonMissingPath('data.birthdays.0.date_of_birth');
+        $this->getJson('/api/birthdays/today?date=2026-10-01')->assertUnprocessable();
+        $this->getJson('/api/birthdays/today?period=upcoming')->assertUnprocessable();
+    } finally {
+        CarbonImmutable::setTestNow();
+    }
+});
+
+it('reuses registration identity on retry and revokes only the selected caller device', function (): void {
+    $device = (string) Str::uuid();
+    $other = (string) Str::uuid();
+    birthdaySubscription($this, $this->ownerMembership->id, $this->owner->id, $other);
+    $input = ['device_id' => $device, 'permission' => 'granted', 'subscription' => [
+        'endpoint' => 'https://fcm.googleapis.com/fcm/send/synthetic-retry', 'expirationTime' => null,
+        'keys' => ['p256dh' => 'synthetic-public', 'auth' => 'synthetic-auth'],
+    ]];
+    for ($attempt = 0; $attempt < 2; $attempt++) {
+        $this->postJson('/api/push-subscriptions', $input)->assertCreated()->assertExactJson(['device_id' => $device, 'permission' => 'granted']);
+    }
+    $db = DB::connection('pgsql_migration');
+    expect($db->table('push_subscriptions')->where('device_id', $device)->count())->toBe(1);
+    $before = $db->table('push_subscriptions')->where('device_id', $other)->first();
+    $this->deleteJson('/api/push-subscriptions/'.$device)->assertNoContent();
+    expect($db->table('push_subscriptions')->where('device_id', $other)->first())->toEqual($before);
+    foreach ($db->table('audit_events')->whereIn('action', ['birthday.push.registered', 'birthday.push.revoked'])->get() as $event) {
+        expect(json_encode($event))->not->toContain('synthetic-retry')->not->toContain('synthetic-auth')->not->toContain('synthetic-public');
+    }
+});

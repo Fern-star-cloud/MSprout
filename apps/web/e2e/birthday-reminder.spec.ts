@@ -5,6 +5,7 @@ test.use({ serviceWorkers: 'block' })
 
 test('authorized birthday fallback shows names only in-app and notification permission is deliberate and privacy-safe', async ({ page, context }) => {
   await mockOwner(context)
+  await context.route('**/api/me',route=>json(route,{id:11,email_verified:true,memberships:[{church_id:churchId,role:'owner',status:'active'}],active_session:{mfa_confirmed:true}}))
   await page.addInitScript(() => {
     Object.defineProperty(window, 'Notification', { configurable: true, value: {
       permission: 'default', requestPermission: async () => 'denied',
@@ -23,7 +24,7 @@ test('authorized birthday fallback shows names only in-app and notification perm
   await expect(page.getByText('Push reminders contain a count only.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Enable Birthday Notifications' })).toBeVisible()
   await page.getByRole('button', { name: 'Enable Birthday Notifications' }).click()
-  await expect(page.getByText('Notifications were not enabled. Sprout will not ask again.')).toBeVisible()
+  await expect(page.getByText('Notifications were not enabled. MinistrySprout will not ask again.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Enable Birthday Notifications' })).toHaveCount(0)
   await expectNoSeriousAccessibilityIssues(page)
 })

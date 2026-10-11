@@ -81,7 +81,7 @@ it('shows reviewed server file errors and moves focus to an accessible error sum
  upload.mockRejectedValue(new ApiError('validation','private','',422,{file:['The spreadsheet exceeds 500 data rows.','private child detail']}))
  render(<ImportScreen/>);const input=await screen.findByLabelText('Student spreadsheet');fireEvent.change(input,{target:{files:[new File(['x'],'synthetic.csv')]}})
  fireEvent.submit(screen.getByRole('button',{name:'Preview import'}).closest('form')!);const message=await screen.findByRole('alert')
- expect(message.textContent).toContain('The spreadsheet exceeds 500 data rows.');expect(message).toBe(document.activeElement);expect(screen.queryByText('private child detail')).toBeNull()
+ expect(message.textContent).toContain('The spreadsheet exceeds 500 data rows.');await waitFor(()=>expect(message).toBe(document.activeElement));expect(screen.queryByText('private child detail')).toBeNull()
 })
 
 it.each([401,419])('honors global session expiry HTTP %s even when another church request detected it',async(status)=>{

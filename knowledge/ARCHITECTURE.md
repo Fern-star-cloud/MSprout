@@ -1,5 +1,9 @@
 # Architecture
 
+## Verified birthday/notification/activity projections — 2026-10-11
+
+UI-13 uses current church transport and membership/assignment/Owner assurance for ephemeral today-only birthday and bounded audit projections. Server church-calendar date remains authoritative; online denial cannot decrypt cached names. Actual offline projection requires matching actor/church/current encrypted lease and post-read authorization, with no write. Explicit verified push setup precedes browser activation; exact receipts, stable existing subscription/device identity and independent permission/registration/revocation outcomes govern UI feedback. Scoped keyed generations reject old context completions. Existing server RLS/audit/CSRF, count-only worker payload, scheduling and cryptographic/persistence/synchronization formats are unchanged. [Evidence](../docs/qa/ui-13-birthdays-notifications-activity-verification.md).
+
 ## Verified authoritative report projections — 2026-10-11
 
 Existing online church transport/workspace and current membership/assignment/Owner assurance authorize ephemeral applied report projections. Strict role/filter/session validation keeps aggregate counts independent of the bounded100-session history. Loaded session disclosures are read-only; no revision-detail API is added. Matching encrypted actor/church/lease/current authorization protects a read-only profile event count, independently nullable from server totals. Generation-bound reads/CSV and synchronous operation guards discard invalidated completions; actual server export bytes remain unchanged. Pointer-safe focus visibility alters only presentation. Server schema, tenant/RLS, immutable originals/revisions, audit, storage writers and synchronization remain unchanged. [Evidence](../docs/qa/ui-12-attendance-reports-verification.md).

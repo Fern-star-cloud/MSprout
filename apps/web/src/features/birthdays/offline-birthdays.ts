@@ -13,6 +13,7 @@ interface OfflineBirthdayStore {
   readEncryptedRoster<T>(profileId: string): Promise<T>
   readEncryptedMinistries<T>(profileId: string): Promise<T>
   readEncryptedAuthorization<T>(profileId: string): Promise<T>
+  captureSyncAuthorization(profileId: string): { assertCurrent(): Promise<void> }
 }
 
 function localDateParts(date: Date, timezone: string): { year: number; monthDay: string } {
@@ -34,10 +35,13 @@ export async function loadOfflineBirthdays(
   churchId: string,
   store: OfflineBirthdayStore = profileStore,
   now = new Date(),
+  expectedActor?: number,
 ) {
   const profile = await store.activeProfile()
   if (!profile || profile.churchId !== churchId) return null
-  const authorization = await store.readEncryptedAuthorization<{ timezone?: string }>(profile.id)
+  const capture = store.captureSyncAuthorization(profile.id)
+  const authorization = await store.readEncryptedAuthorization<{ timezone?: string; actor: { id: string }; lease: { church_id: string } }>(profile.id)
+  if (authorization.lease.church_id !== churchId || !/^\d+$/.test(authorization.actor.id) || expectedActor !== undefined && authorization.actor.id !== String(expectedActor)) return null
   if (!authorization.timezone) return null
   const [{ year, monthDay }, roster, ministries] = await Promise.all([
     Promise.resolve(localDateParts(now, authorization.timezone)),
@@ -45,13 +49,16 @@ export async function loadOfflineBirthdays(
     store.readEncryptedMinistries<Array<{ id: string; name: string }>>(profile.id),
   ])
   const ministryNames = new Map(ministries.map((ministry) => [ministry.id, ministry.name]))
+  await capture.assertCurrent()
   const birthdays = roster.filter((student) => birthdayMonthDayMatches(student.next_birthday_month_day, monthDay, year))
-    .map((student) => ({
+    .map((student) => {
+      if (student.turning_age === null || !Number.isSafeInteger(student.turning_age) || student.turning_age < 0) throw new Error('Birthday metadata unavailable')
+      return {
       id: student.id,
       display_name: student.display_name,
-      turning_age: student.turning_age ?? 0,
+      turning_age: student.turning_age,
       ministry_names: student.ministry_ids.map((id) => ministryNames.get(id)).filter((name): name is string => Boolean(name)),
-    }))
+    }})
 
   return {
     local_date: `${year}-${monthDay}`, timezone: authorization.timezone, role: 'teacher' as const,

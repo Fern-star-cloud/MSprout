@@ -1,5 +1,13 @@
 # Testing Environment
 
+## UI-13 actual validation — 2026-10-11
+
+Focused birthday/notification/audit/workspace106 tests/11 files and import-focus fixture27/1 PASS; current aggregate638/67 PASS. Backend22 tests/108 assertions focused and290/2090 aggregate PASS, serial guarded isolated PostgreSQL. Browser76 unique current-build outcomes PASS across Chrome desktop/mobile and WebKit phone/tablet,19 each, no retries/skips. Exact seven-store equality with pending attendance and offline projection, accessible result focus, sanitized activity,200% text and five-width reflow are proved. [Verification](../docs/qa/ui-13-birthdays-notifications-activity-verification.md).
+
+Types/lint/production PWA build, actual api:check with byte-exact generated restoration, complete read-only structure, Pint, strict Composer validation/audit and pnpm audit PASS; no known advisories. OWASP98 rules/85 targets from85 explicit relevant inputs: zero findings/errors and reviewed exclusions/parse coverage. Complete current tracked/new-source and64-commit history secret scans PASS; final documentation scan/preservation/staging is recorded separately. TLS verification stayed enabled using existing process-scoped trusted CA. Node24/pnpm10/PHP8.3 remain process-scoped. Root verify components are individually evidenced; full CI OWASP unchanged.
+
+Initial TDD and corrected smoke11/12 failures remain historical failures; current76/76 closes WebKit phone focus. Interrupted aggregate had multi-hour durations/worker timeout;49 affected/omitted tests pass isolated. A subsequent unchanged import focus assertion race passed isolated27, then a minimal wait for its exact React-effect focus target passed27 and final aggregate638. No assertion/privacy/preservation requirement was weakened. Latest test-only change leaves bundled build/backend guarantees valid; affected types/lint rerun. Ignored evidence: `.git/msprout-ui13-20261011/`. Physical device/human AT/400%zoom/live Web Push/hosted CI claims are not added; optional manual/deployment status unchanged.
+
 ## UI-12 actual validation — 2026-10-11
 
 Focused report/history/workspace92 tests/7 files PASS; frontend aggregate596/62 PASS before isolated CSS/focus corrections, with all affected current tests rerun and unrelated proof retained. Backend14 tests/95 assertions focused and288/2065 aggregate PASS, serial guarded separate test DB. Browser76 unique qualified outcomes PASS across Chrome desktop/mobile and WebKit phone/tablet: current focus/CSV/history/preservation16, retained report/privacy/legacy/workspace36, new unavailable-choice4, remaining navigation15 plus unchanged initial desktop navigation5; no retries/skips. [Verification and invalidation rationale](../docs/qa/ui-12-attendance-reports-verification.md).

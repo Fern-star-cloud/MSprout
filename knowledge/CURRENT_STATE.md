@@ -1,5 +1,13 @@
 # Current State
 
+## UI-13 qualified checkpoint — 2026-10-11
+
+UI-13 is implemented and qualified; reviewed subject `feat: add scoped birthdays notifications and activity` and ignored finalization receipts resolve its commit/push. Entry UI-12 `5a2a959961416cf17d8236da0dc4042a02958f47` was local/tracking/live feature0/0 on `feat/mvp-foundation`, staging empty; main `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f` remains unchanged. UI-01–UI-12 GREEN and all eight original QA/environment bodies are preserved, with human deltas excluded from staging.
+
+Today-only server birthday dates/counts stay authoritative and authorized; online denial never decrypts cached names. Actual offline reads require matching actor/church/current encrypted lease and display cache limits. Notification consent occurs deliberately after verified setup, with fresh access checks, stable subscription/device retries and separate browser permission/subscription/backend confirmation. Partial revoke feedback never claims uncertain unsubscribe succeeded. Scoped sanitized Activity uses only existing audit pages. Stale responses and WebKit phone result-focus obstruction are closed. No production backend/API/schema/permission/schedule/dependency/offline writer/synchronization or human-data change.
+
+Current focused106/11 plus import-fixture27/1, frontend638/67, backend22/108 focused and290/2090 aggregate,76/76 current native browser outcomes and types/lint/build/contracts/structure/audits/security PASS. Full [UI-13 evidence and limitations](../docs/qa/ui-13-birthdays-notifications-activity-verification.md) records failed/interrupted runs accurately. Stop after UI-13; UI-14–UI-16 unstarted.
+
 ## UI-12 qualified checkpoint — 2026-10-11
 
 UI-12 implementation is complete and validated; finalization resolves through the reviewed Git subject `feat: add authoritative attendance reports and history` and ignored qualification/finalization receipts. The verified entry was UI-11 `83f2dd2786ba554ae2c5f3876c7d167451ca5b76`, local/tracking/live feature0/0 on `feat/mvp-foundation`; main `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f` is unchanged. UI-01–UI-11 GREEN is preserved. Exact eight QA/environment bodies remain retained beneath additive knowledge sections and excluded from staging.

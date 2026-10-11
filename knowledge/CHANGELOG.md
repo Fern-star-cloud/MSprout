@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-11 — UI-13 birthdays, notifications and activity
+
+Today-only authorized birthday provenance, safe cached offline limits, explicit count-only notification consent with truthful registration/partial revoke feedback, and sanitized role-scoped Activity are qualified. Current native phone/tablet/desktop focus and exact encrypted-store preservation pass. No new endpoint/schema/schedule/storage writer. Finalization resolves through the reviewed Git subject and [verification](../docs/qa/ui-13-birthdays-notifications-activity-verification.md); stop before UI-14.
+
 ## 2026-10-11 — UI-12 attendance reports and history
 
 Verified applied filters, authoritative totals, distinct pending/review/local work, supported read-only session disclosures and deliberate server CSV replace ambiguous reporting. Expiry/scope/offline clearing, Teacher assignment/privacy, native focus and encrypted-store preservation are qualified. Backend/export/date/immutable-history contracts remain unchanged. Finalization resolves through the reviewed Git subject and [verification](../docs/qa/ui-12-attendance-reports-verification.md); stop before UI-13.
