@@ -32,7 +32,7 @@ test('production CSP permits the required Turnstile script and frame while rejec
 test('authenticated API reads identify the first-party origin without disclosing the page path or query', async ({ page }) => {
   let referer: string | undefined
   await page.route('**/auth/session', route => route.fulfill({
-    contentType: 'application/json', body: JSON.stringify({ email_verified: true, mfa_confirmed: false }),
+    contentType: 'application/json', body: JSON.stringify({ id: 11, email_verified: true, mfa_confirmed: false, workspaces: [] }),
   }))
   await page.route('**/account/application?**', async route => {
     const response = await route.fetch()

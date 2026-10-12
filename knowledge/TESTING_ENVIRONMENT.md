@@ -1,5 +1,13 @@
 # Testing Environment
 
+## UI-16 — final local qualification (2026-10-12)
+
+Current 681 frontend/74files and294 backend/2,125 assertions PASS; backend serial guarded PostgreSQL. Types, lint (rerun after fixture fixes), production build, actual api:check, full structure script, Pint, strict Composer validation, Composer/pnpm audits PASS. Full initial browsers508/524 PASS;12 corrected-file and8 unchanged isolated cases close qualification to524 unique/131 per Chrome desktop/phone and WebKit phone/tablet, no accepted skips/retries. Current16 real-worker PWA cases include root offline start, protected fallback exclusions and exact encrypted-store update preservation.
+
+Gitleaks current tracked/new snapshot plus lock alias and67-commit history: zero findings. Full OWASP108rules/501appinputs: zero findings/timeouts, two reviewed generic mock-import PartialParsing warnings (~99.9%parsed); production source covered. Correction scan81rules/9targets and final probe guard70rules/2targets: zero findings/errors/timeouts. Actual Docker context21checks PASS; fresh273-source-input image plus synthetic markers passes non-root/extensions/config/routes/liveness200/readiness401/disconnected503, network none/no host mounts. No human runtime data copied. Late fixture/packaging-only corrections do not invalidate unchanged PHP/frontend runtime/contracts/dependency gates. Final report records actual limitations and source hashes.
+
+Use existing Node24.19/pnpm10.34.5/PHP8.3 process-scoped tools and trusted CA, installed Chrome/WebKit2336; no host install/reset/TLS bypass. External exact58-ID source mapping, A2/native artwork, physical/humanAT/actual400%zoom, real CAPTCHA/Push/provider readiness and hostedCI remain unverified/conditional. Task18 restore/queue evidence is dated historical proof, not a fresh current deployment drill. Detailed ignored evidence: `.git/msprout-ui16-20261012/`. See [UI-16 qualification](../docs/qa/ui-16-final-uiux-qualification.md).
+
 ## UI-15 actual validation — 2026-10-12
 
 Final focused frontend59 tests/9 files PASS. Comprehensive frontend681/74 PASS (maxWorkers2, isolated load); final isolated worker origin-normalization refinement passes current PWA/foundation/navigation/Platform focused proof and full types/lint. Backend294 tests/2125 assertions PASS, serial isolated guarded PostgreSQL; no backend inputs changed. Rebuilt production injectManifest7 static entries/647.64KiB and frozen manifest/icons/JS/CSS hashes verified. [UI-15 verification](../docs/qa/ui-15-consistency-pwa-branding-verification.md).

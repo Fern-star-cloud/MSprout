@@ -1,5 +1,11 @@
 # Current State
 
+## UI-16 — local final qualification (2026-10-12)
+
+GREEN for independently verifiable local qualification; exact external design conformance and production readiness remain conditional. Entry UI-15 `11577a63a0c0e1de3995850612e025e3babd2b3d` matched feature HEAD/tracking/live0/0. Current 681 frontend /294 backend (2,125 assertions),524 unique qualified browser cases (131/target), types/lint/build/contracts/audits and security passed. Docker runtime-input privacy corrected with actual synthetic matcher and fresh non-root image/runtime proof; no API/schema/authorization/encryption/sync logic changes. Finalization resolves by subject `test: qualify final UI journeys and protect image inputs` and Git/receipt, not this pre-commit section.
+
+All eight original QA/environment bodies and three private environment/SQLite bodies remain exact, with only separate additive UI-16 knowledge sections. Local main `d6c66694a8acc252815a088ada3ef8703340b038` differs historically from unchanged origin/live main `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f`. The user confirms original decision definitions exist in ChatGPT project files; no local definitions were found. All58 IDs remain NOT VERIFIED, without reconstructed requirements. Production recommendation NOT READY pending relevant original-design/branding/human/device/provider/CI acceptance conditions; local candidate CONDITIONALLY READY for review. See [UI-16 qualification](../docs/qa/ui-16-final-uiux-qualification.md). Stop after UI-16; no merge, deploy or next task.
+
 ## UI-15 qualified implementation; branding conditional — 2026-10-12
 
 UI-15 only is qualified against GREEN UI-14 entry305fe5035c1982f6dd01968523930fe1f32af2a5 at feature0/0. Shared tokens/forms/cards/heading/surface/touch consistency and a privacy-safe, fail-closed/coalesced update notice cover Church/public/Platform shells. Actual production manifest/theme/start URL/offline entry and7 static precache entries are verified; protected endpoints cannot fall back to cached shell success. Existing SVG artwork is exact; the unsafe unqualified maskable declaration is withdrawn. A2 vectors/approved exports/native installation/splash remain CONDITIONAL, not production-ready. No API/schema/authorization/encryption/sync/storage-writer or business change.

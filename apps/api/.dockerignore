@@ -6,6 +6,13 @@
 node_modules
 tests
 vendor
+# Local database files and their journal/WAL sidecars are never image inputs.
+database/*.sqlite*
+database/*.db*
+# Imported workbooks, student avatars and other runtime uploads stay on storage.
+storage/app/*
+# Cached configuration can contain resolved credentials; generate it at startup.
+bootstrap/cache/*.php
 storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/views/*
