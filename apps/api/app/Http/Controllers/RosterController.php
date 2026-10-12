@@ -129,7 +129,18 @@ final class RosterController extends Controller
             $visibleMinistryIds = null;
         }
 
-        return response()->json(['data' => $query->orderBy('last_name')->orderBy('first_name')->orderBy('id')->get()->map(fn ($s) => $s->projection($owner, $visibleMinistryIds))]);
+        $students = $query->orderBy('last_name')->orderBy('first_name')->orderBy('id')->get();
+        $enrolledMinistryIds = [];
+        // Batch only the authorized rows, keeping UUID bindings bounded and tenant/RLS scope intact.
+        foreach (array_chunk($students->modelKeys(), 500) as $studentIds) {
+            $enrollments = Enrollment::where('church_id', $church)->whereNull('deleted_at')
+                ->whereIn('student_id', $studentIds)->get(['student_id', 'ministry_id']);
+            foreach ($enrollments as $enrollment) {
+                $enrolledMinistryIds[$enrollment->student_id][] = $enrollment->ministry_id;
+            }
+        }
+
+        return response()->json(['data' => $students->map(fn ($s) => $s->projection($owner, $visibleMinistryIds, $enrolledMinistryIds[$s->id] ?? []))]);
     }
 
     public function showStudent(Request $request, string $id)

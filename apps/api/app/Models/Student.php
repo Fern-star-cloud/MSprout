@@ -21,10 +21,10 @@ class Student extends Model
         return $this->hasMany(Enrollment::class, 'student_id')->where('church_id', $this->church_id);
     }
 
-    public function projection(bool $owner, ?array $visibleMinistryIds = null): array
+    public function projection(bool $owner, ?array $visibleMinistryIds = null, ?array $enrolledMinistryIds = null): array
     {
         $display = $this->preferred_name ?: trim($this->first_name.' '.($this->middle_name ? $this->middle_name.' ' : '').$this->last_name.($this->suffix ? ' '.$this->suffix : ''));
-        $ministryIds = $this->enrollments()->whereNull('deleted_at')->pluck('ministry_id')->all();
+        $ministryIds = $enrolledMinistryIds ?? $this->enrollments()->whereNull('deleted_at')->pluck('ministry_id')->all();
         if (! $owner && $visibleMinistryIds !== null) {
             $ministryIds = array_values(array_intersect($ministryIds, $visibleMinistryIds));
         }
