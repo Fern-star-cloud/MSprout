@@ -1,5 +1,17 @@
 # Current State
 
+## UX-02A — Reports loading stabilization (2026-10-12)
+
+GREEN for this bounded frontend correction; stakeholder review passed and finalization was explicitly authorized on 2026-10-12. Starting branch feat/mvp-foundation and HEAD 503b7526fb2fb9dfca9c91efee63157513a5bb30 were verified. The reviewed subject is `fix: stabilize attendance report loading across workspace revalidation`; exact commit/push state resolves through Git and the ignored finalization receipt. UX-01/UX-01M evidence is reused; no isolated measurement environment was rebuilt.
+
+useAttendanceReport now depends on the verified workspace role rather than the workspace object reference. Fresh equivalent verification retains displayed Reports and valid in-flight reads. Existing church dependency, actor/church/role/assignment boundary remounts, current server verification, Owner MFA, denial events and generation guards remain intact. No TTL, protected-data cache, backend, authorization rule, encrypted storage, attendance or synchronization change.
+
+Four initial regressions failed before correction: direct equivalent context reloaded; warm Reports entry made 8 GETs and equivalent focus made 5 for both roles. After correction, deterministic transport/UI tests verify warm entry 5 GETs and focus 2, with the same displayed totals retained. Sixteen new integration cases cover equivalent/in-flight reads, changed actor/church/role/Teacher assignments, 401/403/419, MFA loss and delayed denial/completion. Existing filter, authoritative-total, CSV and Teacher/isolation assertions pass. Production timing remains unmeasured after correction; the earlier approximately 429 ms focus-loading baseline is not a new timing result.
+
+Focused 131 tests/9 files passed before the final additional in-flight case; final aggregate 697 tests/75 files includes all16 new cases. Types, lint, production build, contract drift, structure, current-source secrets and focused OWASP checks pass. Final review has no BLOCKING/SHOULD FIX findings. Unchanged UI-16 backend/Pint/Composer/dependency audits and full security/history baseline are retained by input-based invalidation; no new backend/browser/timing claim is made. See the UX-02A testing entry and ignored .git/msprout-ux02a-20261012 evidence.
+
+All pre-existing QA/environment bodies and private environment/SQLite files remain preserved; knowledge receives separate additive sections only. Stop after UX-02A. UX-02B and UX-03–UX-08 remain untouched; no merge or deployment.
+
 ## UI-16 — local final qualification (2026-10-12)
 
 GREEN for independently verifiable local qualification; exact external design conformance and production readiness remain conditional. Entry UI-15 `11577a63a0c0e1de3995850612e025e3babd2b3d` matched feature HEAD/tracking/live0/0. Current 681 frontend /294 backend (2,125 assertions),524 unique qualified browser cases (131/target), types/lint/build/contracts/audits and security passed. Docker runtime-input privacy corrected with actual synthetic matcher and fresh non-root image/runtime proof; no API/schema/authorization/encryption/sync logic changes. Finalization resolves by subject `test: qualify final UI journeys and protect image inputs` and Git/receipt, not this pre-commit section.

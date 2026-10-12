@@ -15,6 +15,8 @@ const signature=(value:Access)=>JSON.stringify(value)
 
 export function useAttendanceReport(church:string,initial:Filters,pendingCount:PendingCount){
   const workspace=useContext(ChurchWorkspaceContext),[state,setState]=useState<State>(empty),[applied,setApplied]=useState(initial),[downloading,setDownloading]=useState(false)
+  // The boundary remounts actor/church/role/assignment changes; equivalent verified objects retain this scope.
+  const workspaceRole=workspace?.role
   const alive=useRef(false),generation=useRef(0),localGeneration=useRef(0),reading=useRef<number|null>(null),exporting=useRef<number|null>(null),identity=useRef<Access|null>(null),selection=useRef(initial),lastOptions=useRef<MinistryOption[]>([])
   const clear=useCallback((failure:unknown,offline=false)=>{generation.current++;localGeneration.current++;identity.current=null;lastOptions.current=[];reading.current=null;exporting.current=null;setDownloading(false);setState(empty(offline?'offline':'error',offline?'Connect to the internet to view attendance reports.':safeAuthMessage(failure)))},[])
   const invalidatePending=useCallback(()=>{generation.current++;localGeneration.current++;reading.current=null;exporting.current=null},[])
@@ -22,12 +24,12 @@ export function useAttendanceReport(church:string,initial:Filters,pendingCount:P
     if(!uuid(church)||!navigator.onLine)throw Error('Online verified workspace required')
     const me=await authRequest<components['schemas']['ChurchAccount']>('/api/me','GET',undefined,church)
     const member=me.memberships?.find(row=>row.church_id===church&&row.status==='active')
-    if(!Number.isSafeInteger(me.id)||me.id<=0||me.email_verified!==true||!member||!['owner','teacher'].includes(member.role)||workspace&&workspace.role!==member.role||member.role==='owner'&&me.active_session?.mfa_confirmed!==true)throw{status:403}
+    if(!Number.isSafeInteger(me.id)||me.id<=0||me.email_verified!==true||!member||!['owner','teacher'].includes(member.role)||workspaceRole&&workspaceRole!==member.role||member.role==='owner'&&me.active_session?.mfa_confirmed!==true)throw{status:403}
     const assignments=[...new Set(me.assignments?.ministry_ids??[])].sort();if(!assignments.every(uuid))throw{status:403}
     const verified={actor:me.id,role:member.role,assignments}
     if(identity.current&&signature(identity.current)!==signature(verified))throw{status:403}
     return verified
-  },[church,workspace])
+  },[church,workspaceRole])
   const load=useCallback(async(filters:Filters)=>{
     if(reading.current!==null||exporting.current!==null)return
     const token=++generation.current,current=()=>alive.current&&token===generation.current;reading.current=token
@@ -51,11 +53,11 @@ export function useAttendanceReport(church:string,initial:Filters,pendingCount:P
   useEffect(()=>{const timer=setTimeout(()=>void load(selection.current),0);return()=>{clearTimeout(timer);invalidatePending()}},[load,invalidatePending])
   useEffect(()=>{
     const invalidate=(event:Event)=>{const detail=(event as CustomEvent<{status:number;churchId?:string}>).detail;if(detail?.status===403&&detail.churchId&&detail.churchId!==church)return;clear({status:detail?.status})}
-    const offline=()=>clear({},true),online=()=>void load(selection.current),focus=()=>{if(!workspace&&document.visibilityState==='visible')void load(selection.current)}
+    const offline=()=>clear({},true),online=()=>void load(selection.current),focus=()=>{if(!workspaceRole&&document.visibilityState==='visible')void load(selection.current)}
     const unsubscribe=profileStore.onLock(()=>{localGeneration.current++;setState(value=>({...value,local:null}))})
     window.addEventListener('church-workspace-invalidated',invalidate);window.addEventListener('offline',offline);window.addEventListener('online',online);window.addEventListener('focus',focus);document.addEventListener('visibilitychange',focus)
     return()=>{unsubscribe();window.removeEventListener('church-workspace-invalidated',invalidate);window.removeEventListener('offline',offline);window.removeEventListener('online',online);window.removeEventListener('focus',focus);document.removeEventListener('visibilitychange',focus)}
-  },[church,clear,load,workspace])
+  },[church,clear,load,workspaceRole])
   async function download(){
     if(exporting.current!==null||reading.current!==null||state.phase!=='ready'||!state.report?.can_export||identity.current?.role!=='owner'||!navigator.onLine)return
     const token=generation.current,current=()=>alive.current&&token===generation.current;exporting.current=token;setDownloading(true);setState(value=>({...value,exportNotice:'Preparing the server CSV…',error:''}))
