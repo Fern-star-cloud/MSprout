@@ -19,8 +19,9 @@ Separate [approved UI-01–UI-16 sequence](../docs/superpowers/plans/2026-10-09-
 | UI-11 — Owner Conflict & Guest Review | GREEN / COMMITTED / PUSHED | `83f2dd2786ba554ae2c5f3876c7d167451ca5b76`; [verification](../docs/qa/ui-11-owner-review-verification.md); synchronized at UI-12 entry |
 | UI-12 — Attendance Reports & History | GREEN / COMMITTED / PUSHED | `5a2a959961416cf17d8236da0dc4042a02958f47`; [verification](../docs/qa/ui-12-attendance-reports-verification.md); synchronized at UI-13 entry |
 | UI-13 — Birthdays, Notifications & Activity | GREEN / COMMITTED / PUSHED | `9767457c1ffc6b54ac582cf940cdf6c43a4dbbfa`; [verification](../docs/qa/ui-13-birthdays-notifications-activity-verification.md); synchronized at UI-14 entry |
-| UI-14 — Platform Administration | GREEN / QUALIFIED (pre-finalization receipt) | `feat: complete guarded platform administration`; [verification](../docs/qa/ui-14-platform-administration-verification.md); final commit/push resolve through Git and ignored receipts |
-| UI-15–UI-16 | NOT STARTED | Stop after UI-14; further authorization required |
+| UI-14 — Platform Administration | GREEN / COMMITTED / PUSHED | `305fe5035c1982f6dd01968523930fe1f32af2a5`; [verification](../docs/qa/ui-14-platform-administration-verification.md); synchronized at UI-15 entry |
+| UI-15 — Cross-pack consistency, PWA and branding | GREEN implementation / BRANDING CONDITIONAL | [verification](../docs/qa/ui-15-consistency-pwa-branding-verification.md); reviewed subject `feat: harmonize shared presentation and safe PWA updates`; task commit/push resolves in Git/receipt; retained artwork, no production A2 claim |
+| UI-16 | NOT STARTED | Stop after UI-15; further authorization required |
 
 
 Manual QA policy effective 2026-10-07: implementation Tasks 1–18 remain complete with their existing commit evidence. MT-00…MT-22 are optional risk-based references; 211-case sequential completion is not a development, merge, deployment or release requirement. MT-00/01 PASS and partial MT-02 results/blockers remain preserved in [manual knowledge](MANUAL_TESTING.md). Applicable automated/security/CI/deployment requirements and unresolved release-critical defects remain release criteria. No implementation task or manual phase is started by this governance update.

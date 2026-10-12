@@ -1,5 +1,9 @@
 # Development Changelog
 
+## 2026-10-12 — UI-15 consistency and PWA
+
+Shared token/radius/type/surface/touch consistency and safe update feedback across Church/authentication/Platform are qualified. Actual generated manifest, retained SVG cache, root offline entry and protected endpoint fallback boundaries pass real workers; encrypted pending work remains exact. A2 production/native branding remains conditional, with no substituted artwork. Finalization resolves through reviewed subject `feat: harmonize shared presentation and safe PWA updates` and [UI-15 verification](../docs/qa/ui-15-consistency-pwa-branding-verification.md); UI-16 remains unstarted.
+
 ## 2026-10-11 UI-14 Platform administration — 2026-10-11
 
 Selected-application confirmations, required rejection input, stale/unknown authoritative reconciliation, truthful aggregate health/public liveness and sanitized paginated Platform Audit are qualified. Native phone/tablet/desktop focus, shell/session separation, real provisioning concurrency and exact encrypted pending-work preservation pass. No backend/API/schema/permission/offline-writer change. Finalization resolves through reviewed subject `feat: complete guarded platform administration` and [UI-14 verification](../docs/qa/ui-14-platform-administration-verification.md); stop before UI-15/UI-16.

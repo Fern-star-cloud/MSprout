@@ -17,7 +17,27 @@ registerRoute(
 )
 
 const applicationShell = createHandlerBoundToURL('/index.html')
-registerRoute(new NavigationRoute(applicationShell, { denylist: [/^\/api(?:\/|$)/] }))
+const navigation = new NavigationRoute(applicationShell, { denylist: [/^\/(?:api|platform|auth|sanctum|health)(?:[/?]|$)/i] })
+const matchPublicNavigation = navigation.match
+navigation.match = options => {
+  if (!options.sameOrigin) return false
+  let candidate = options.url.pathname
+  try {
+    // Workbox tests pathname plus search. Normalize encoded separators and dot
+    // segments separately so an encoded protected root cannot become a shell.
+    for (let decoding = 0; decoding < 4; decoding++) {
+      const decoded = decodeURIComponent(candidate)
+      const normalized = new URL(decoded.replace(/\\/g, '/').replace(/\/+/g, '/'), options.url.origin)
+      if (normalized.origin !== options.url.origin || /^\/(?:api|platform|auth|sanctum|health)(?:\/|$)/i.test(normalized.pathname)) return false
+      if (decoded === candidate) return matchPublicNavigation(options)
+      candidate = normalized.pathname
+    }
+  } catch {
+    // Malformed or unresolved encoding is not an authorized public destination.
+  }
+  return false
+}
+registerRoute(navigation)
 
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') void self.skipWaiting()
@@ -31,8 +51,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(self.registration.showNotification('Birthday reminder', {
     body: countOnlyBody,
     tag: 'birthday-reminder',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
+    icon: '/icons/sprout-192.svg',
+    badge: '/icons/sprout-192.svg',
     data: { url: '/account/birthdays' },
   }))
 })

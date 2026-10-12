@@ -14,6 +14,7 @@
   --color-warning-ink: #805005;
   --color-warning-soft: #fff5dd;
   --color-danger: #b12535;
+  --color-danger-strong: #921e2c;
   --color-danger-soft: #fdedf0;
   --color-neutral: #526c81;
   --color-neutral-soft: #eef2f6;
@@ -24,11 +25,15 @@
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
+  --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
   --space-12: 48px;
   --font-body: 1rem;
   --font-supporting: .875rem;
+  --font-heading-1: 2rem;
+  --font-heading-2: 1.5rem;
+  --font-heading-3: 1.25rem;
   --shadow-card: 0 8px 32px rgb(16 44 70 / 6%);
   --radius-small: 8px;
   --radius-medium: 12px;

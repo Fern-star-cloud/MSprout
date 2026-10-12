@@ -1,5 +1,9 @@
 # Architecture
 
+## Verified shared presentation and PWA boundary — 2026-10-12
+
+One existing token/primitives system governs cross-pack presentation. A shared Church/public/Platform update projection consumes the existing unsafe-local-work checker, coalesces deliberate actions and fails closed on storage/activation errors without protected metadata. Production static precache includes manifest and retained SVGs; API/auth/Platform/CSRF/health roots, queries and encoded/normalized variants cannot become navigation-shell successes. Count-only push content and server/session/offline contracts are unchanged. Existing artwork remains exact and maskable/A2/native-brand qualification stays separate. [UI-15 evidence](../docs/qa/ui-15-consistency-pwa-branding-verification.md).
+
 ## Verified Platform administration projections — 2026-10-11
 
 Existing strict sage.dev/online-only/MFA session reads protect ephemeral application, aggregate-health and Platform-audit projections. Generation-bound reads and the existing Platform invalidation event clear both protected navigation and resources after local/transport denial, expiry or connectivity/context changes. Decisions fresh-read selected details, confirm exact supported payloads, coalesce submissions and reconcile authoritative outcomes; an opaque nonpersisted ledger survives screen remounts. Supported public liveness has an exact existing-origin proxy/rewrite; secret-protected readiness remains outside the workspace. Minimal audit projections omit actor/target/metadata and preserve server page/order. Church Activity, server authorization/CSRF/RLS/provisioning/audit transactions and every encrypted store are unchanged. [UI-14 verification](../docs/qa/ui-14-platform-administration-verification.md).

@@ -1,5 +1,13 @@
 # Current State
 
+## UI-15 qualified implementation; branding conditional — 2026-10-12
+
+UI-15 only is qualified against GREEN UI-14 entry305fe5035c1982f6dd01968523930fe1f32af2a5 at feature0/0. Shared tokens/forms/cards/heading/surface/touch consistency and a privacy-safe, fail-closed/coalesced update notice cover Church/public/Platform shells. Actual production manifest/theme/start URL/offline entry and7 static precache entries are verified; protected endpoints cannot fall back to cached shell success. Existing SVG artwork is exact; the unsafe unqualified maskable declaration is withdrawn. A2 vectors/approved exports/native installation/splash remain CONDITIONAL, not production-ready. No API/schema/authorization/encryption/sync/storage-writer or business change.
+
+Final focused59/9, comprehensive aggregate681/74 (earlier677/73 historical), serial backend294/2125 and192 unique native browser outcomes PASS (48 each Chrome desktop/mobile/WebKit phone/tablet; initial180/192 plus current20/20 plus repository-owned fixture16/16, no retries/skips). Types/lint/rebuilt production, contracts/structure/Pint/audits PASS. OWASP81/56 plus76/8 and final76/5 zero findings; current scopes close two analysis timeouts and one test parser span. Final reviewed-source secret scan and exact-eight-body receipts precede finalization. [UI-15 evidence](../docs/qa/ui-15-consistency-pwa-branding-verification.md).
+
+One automatic task commit/normal existing-feature push is authorized after GREEN source/staged review under subject `feat: harmonize shared presentation and safe PWA updates`; exact SHA/push evidence resolves in Git and the ignored finalization receipt after success. Original eight QA/environment bodies are retained and excluded from the task commit using established filtered-index preservation. Main remains5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f. UI-16 remains NOT STARTED; no merge/deploy. Physical-device/human-AT/actual400%zoom/hosted-CI/release acceptance is unclaimed.
+
 ## UI-14 qualified checkpoint — 2026-10-11
 
 UI-14 is implemented, validated and reviewed before its single task commit/push. Entry UI-13 `9767457c1ffc6b54ac582cf940cdf6c43a4dbbfa` matched local/tracking/live feature0/0 on `feat/mvp-foundation`, staging empty; main `5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f` remains unchanged. UI-01–UI-13 GREEN and all eight original QA/environment bodies are preserved beneath additive knowledge sections, excluded from task staging. Finalization resolves through reviewed subject `feat: complete guarded platform administration` and ignored Git/preservation receipts.

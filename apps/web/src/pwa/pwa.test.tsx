@@ -27,14 +27,13 @@ describe('installable application metadata', () => {
 
     expect(manifest).toMatchObject({
       name: 'MinistrySprout',
-      short_name: 'Sprout',
+      short_name: 'MSprout',
       start_url: '/',
       display: 'standalone',
     })
     expect(manifest.icons).toEqual(expect.arrayContaining([
-      expect.objectContaining({ sizes: '192x192' }),
-      expect.objectContaining({ sizes: '512x512' }),
-      expect.objectContaining({ purpose: expect.stringContaining('maskable') }),
+      expect.objectContaining({ sizes: '192x192', purpose: 'any' }),
+      expect.objectContaining({ sizes: '512x512', purpose: 'any' }),
     ]))
   })
 

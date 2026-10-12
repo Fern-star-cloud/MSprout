@@ -4,6 +4,10 @@ Manual QA governance decision — 2026-10-07, explicit user direction: retain MT
 
 Only decisions established by the approved design, roadmap, committed implementation, or a validated current worktree belong here.
 
+## UI-15 update preservation and brand qualification — 2026-10-12
+
+Update availability is not a durable-work or installation success receipt. Sensitive navigation is normalized/decoded with a bounded fail-closed guard; cross-origin, malformed and unresolved paths cannot receive the shell. Deliberate activation rechecks existing storage preservation; exceptions block safely, repeats coalesce and public/locked feedback names no actual local records. Shared tokens are reused instead of introducing a design system. A2 direction does not authorize production artwork generation: retain exact existing SVGs, withdraw the unqualified unsafe maskable declaration, and keep missing vectors/exports/native-device branding conditional under the approved prompt/master. [Evidence](../docs/qa/ui-15-consistency-pwa-branding-verification.md).
+
 ## UI-14 outcomes require existing server evidence — 2026-10-11
 
 A confirmation or browser response alone cannot establish a final application decision. Fresh assurance/detail checks precede exact existing empty approval or category/reason rejection, and stale/uncertain outcomes reconcile by supported reads. Pending uncertainty blocks new decisions during the current page lifetime; no durable decision journal or new API is invented. Server immutable decisions/row locking remain authoritative across reload/concurrency. Liveness only proves a public response, aggregate health remains server-reported, and readiness explicitly requires separately authorized operational access. Audit uses only supported page/size controls and a fixed sanitized event projection. This implements Pack11 under shared Packs01–05 without impersonation, bulk decisions or tenant browsing. [UI-14 verification](../docs/qa/ui-14-platform-administration-verification.md).

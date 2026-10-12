@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { ConnectivityStatus } from '../../components/ConnectivityStatus'
 import { Button, Dialog, StatusBadge } from '../../components/ui/Foundations'
-import { pwaUpdateController, usePwaUpdate } from '../../pwa/update-controller'
+import { PwaUpdateNotice } from '../../pwa/PwaUpdateNotice'
 import { ChurchNavigationContext } from '../workspace-context'
 import { navigationFor, type NavigationItem } from '../navigation'
 import type { PresentationRoute } from '../routes'
@@ -21,7 +21,6 @@ export function ChurchShell({ route, routeKey, children }: { route: Presentation
   const nav = navigationFor(workspace?.role ?? null)
   const [drawerRoute, setDrawerRoute] = useState<string | null>(null)
   const menu = useRef<HTMLButtonElement>(null), close = useRef<HTMLButtonElement>(null)
-  const update = usePwaUpdate()
   const churchHint = new URLSearchParams(location.search).get('church')
   const href = (path: string) => workspace && churchHint === workspace.church_id ? `${path}?church=${encodeURIComponent(workspace.church_id)}` : path
   useEffect(() => {
@@ -43,7 +42,7 @@ export function ChurchShell({ route, routeKey, children }: { route: Presentation
         {identity}{selector}<div className="workspace-tools"><ConnectivityStatus /><a className="protected-sync-link" href={href('/account/sync')}>Sync &amp; device</a></div>
       </header>
       <div className="application-content">
-        {update.updateAvailable && <section className="update-notice" role="status" aria-live="polite"><div><strong>Update available</strong><span>{update.updateBlocked ? 'Finish or safely save local work before updating.' : 'A new version of MinistrySprout is ready.'}</span></div><button type="button" onClick={() => void pwaUpdateController.applyUpdate()}>Update when safe</button></section>}
+        <PwaUpdateNotice />
         <main id="main-content" tabIndex={-1}>{children}</main>
       </div>
     </div>

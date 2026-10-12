@@ -5,12 +5,12 @@
 
 .brand, footer { text-align: center; margin-bottom: 2rem; }
 .brand p { color: var(--color-muted); }
-.auth-card { background: white; border: 1px solid var(--color-border); border-radius: var(--radius-medium); padding: clamp(var(--space-4), 4vw, var(--space-8)); box-shadow: 0 8px 32px rgb(16 44 70 / 6%); }
+.auth-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-medium); padding: clamp(var(--space-4), 4vw, var(--space-8)); box-shadow: var(--shadow-card); }
 .eyebrow { font-size: var(--font-supporting); text-transform: uppercase; letter-spacing: .1em; color: var(--color-muted); }
-.auth-card h2 { margin-top: .25rem; font-size: 1.5rem; }
+.auth-card h2 { margin-top: .25rem; font-size: var(--font-heading-2); }
 .form-field { margin-bottom: 1rem; }
 label { display: block; font-weight: 600; margin-bottom: .35rem; }
-input { width: 100%; min-height: 48px; border: 1px solid var(--color-control-border); border-radius: var(--radius-small); padding: .7rem; font: inherit; background: white; color: var(--color-ink); }
+input { width: 100%; min-height: 48px; border: 1px solid var(--color-control-border); border-radius: var(--radius-small); padding: .7rem; font: inherit; background: var(--color-surface); color: var(--color-ink); }
 input[type="checkbox"] { width: 24px; min-height: 24px; accent-color: var(--color-brand); }
 form { margin: 1.5rem 0; }
 form button { width: 100%; }
@@ -23,7 +23,7 @@ input:focus-visible, a:focus-visible, button:focus-visible { outline: 3px solid 
 .secondary { background: var(--color-brand-soft); color: var(--color-brand); }
 footer { margin-top: 2rem; font-size: var(--font-supporting); }
 
-select, textarea { width: 100%; min-height: 48px; border: 1px solid var(--color-control-border); border-radius: var(--radius-small); padding: .7rem; font: inherit; background: white; color: var(--color-ink); margin-bottom: 1rem; }
+select, textarea { width: 100%; min-height: 48px; border: 1px solid var(--color-control-border); border-radius: var(--radius-small); padding: .7rem; font: inherit; background: var(--color-surface); color: var(--color-ink); margin-bottom: 1rem; }
 textarea { min-height: 120px; resize: vertical; }
 select:focus-visible, textarea:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 .application-list { list-style: none; padding: 0; }
@@ -33,9 +33,9 @@ dd { margin: 0 0 1rem; overflow-wrap: anywhere; }
 dt { font-weight: 600; }
 .teacher-choice { display: flex; align-items: center; gap: .7rem; min-height: 48px; }
 .teacher-choice input { flex: 0 0 24px; }
-.teacher-confirmation { border: 2px solid var(--color-control-border); border-radius: 8px; padding: 1rem; margin-top: 1.5rem; }
+.teacher-confirmation { border: 2px solid var(--color-control-border); border-radius: var(--radius-small); padding: 1rem; margin-top: 1.5rem; }
 .teacher-confirmation button { margin-top: .75rem; }
-fieldset { min-width: 0; border: 1px solid var(--color-border); margin: 1rem 0; border-radius: 8px; }
+fieldset { min-width: 0; border: 1px solid var(--color-border); margin: 1rem 0; border-radius: var(--radius-small); }
 .profile-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-block: var(--space-4); }
 .profile-actions > button { flex: 1 1 180px; }
 .device-profiles > section { border-top: 1px solid var(--color-border); padding-block: var(--space-4); }
@@ -43,9 +43,9 @@ fieldset { min-width: 0; border: 1px solid var(--color-border); margin: 1rem 0; 
 .profile-guidance summary { cursor: pointer; min-height: 44px; display: list-item; align-content: center; font-weight: 600; }
 .device-profiles > button { width: 100%; }
 .birthday-screen { max-width: 760px; }
-.birthday-summary, .notification-settings { background: var(--color-brand-soft); border: 1px solid var(--color-border); border-radius: 12px; padding: 1rem; }
+.birthday-summary, .notification-settings { background: var(--color-brand-soft); border: 1px solid var(--color-border); border-radius: var(--radius-medium); padding: 1rem; }
 .birthday-list { list-style: none; padding: 0; display: grid; gap: .75rem; }
-.birthday-list li { display: flex; align-items: center; gap: .8rem; min-height: 64px; padding: .8rem 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-medium); background: white; }
+.birthday-list li { display: flex; align-items: center; gap: .8rem; min-height: 64px; padding: .8rem 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-medium); background: var(--color-surface); }
 .birthday-list small { display: block; color: var(--color-muted); margin-top: .2rem; }
 .birthday-mark { font-size: 1.5rem; }
 .notification-settings { margin-top: 1.5rem; }

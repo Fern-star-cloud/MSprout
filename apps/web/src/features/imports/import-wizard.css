@@ -2,13 +2,13 @@
 .import-wizard :is(input, select, button, summary, a, [tabindex]) { scroll-margin-top: 8px; scroll-margin-bottom: 8px; }
 .import-wizard h3:focus { outline: 3px solid var(--color-focus); outline-offset: 4px; }
 .import-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .6rem; padding: 0; list-style: none; margin: 1.25rem 0; }
-.import-steps li { display: flex; align-items: center; gap: .5rem; border: 1px solid var(--color-border); border-radius: .6rem; padding: .65rem; font-weight: 600; background: var(--color-canvas); }
+.import-steps li { display: flex; align-items: center; gap: .5rem; border: 1px solid var(--color-border); border-radius: var(--radius-small); padding: .65rem; font-weight: 600; background: var(--color-canvas); }
 .import-steps li[aria-current] { background: var(--color-brand-soft); border-color: var(--color-brand); color: var(--color-navy); }
 .import-steps li > span:first-child { display: grid; place-items: center; flex: 0 0 1.75rem; height: 1.75rem; border: 1px solid currentColor; border-radius: 50%; }
 .wizard-upload { display: grid; gap: .8rem; margin: 1rem 0; }
 .wizard-upload input { width: 100%; min-width: 0; }
 .wizard-counts, .wizard-actions { display: flex; flex-wrap: wrap; gap: .65rem; margin: 1rem 0; }
-.wizard-counts strong { background: var(--color-neutral-soft); border: 1px solid var(--color-border); border-radius: .5rem; padding: .45rem .65rem; }
+.wizard-counts strong { background: var(--color-neutral-soft); border: 1px solid var(--color-border); border-radius: var(--radius-small); padding: .45rem .65rem; }
 .wizard-mappings { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: .8rem; }
 .wizard-mappings label { min-width: 0; display: grid; gap: .4rem; }
 .wizard-mappings select { width: 100%; min-width: 0; contain: paint; outline-offset: -3px; }
@@ -20,7 +20,7 @@
 .wizard-table small, .wizard-confirm-rows small { display: block; margin-top: .35rem; font-weight: 400; }
 .wizard-row-choice { display: flex; align-items: center; justify-content: center; min-width: var(--touch-target); min-height: var(--touch-target); }
 .wizard-row-choice input { margin: 0; }
-.wizard-status { display: inline-block; font-weight: 600; border: 1px solid var(--color-control-border); border-radius: .4rem; padding: .2rem .4rem; background: var(--color-neutral-soft); }
+.wizard-status { display: inline-block; font-weight: 600; border: 1px solid var(--color-control-border); border-radius: var(--radius-small); padding: .2rem .4rem; background: var(--color-neutral-soft); }
 .wizard-status.valid { color: var(--color-navy); background: var(--color-brand-soft); }
 .wizard-status.invalid, .wizard-status.duplicate, .wizard-status.needs_mapping { color: var(--color-warning-ink); background: var(--color-warning-soft); }
 .import-wizard details { min-width: 0; }
@@ -28,18 +28,18 @@
 .import-wizard details dl { margin: .5rem 0; }
 .import-wizard details dt { font-weight: 600; }
 .import-wizard details dd { margin: 0 0 .6rem; white-space: pre-wrap; }
-.wizard-ack { display: flex; align-items: flex-start; gap: .65rem; padding: 1rem; background: var(--color-canvas); border: 1px solid var(--color-border); border-radius: .6rem; }
+.wizard-ack { display: flex; align-items: flex-start; gap: .65rem; padding: 1rem; background: var(--color-canvas); border: 1px solid var(--color-border); border-radius: var(--radius-small); }
 .wizard-ack input { flex: 0 0 auto; margin-top: .2rem; }
 .wizard-confirm-rows, .wizard-result-rows { padding-left: 1.5rem; }
 .wizard-confirm-rows li, .wizard-result-rows li { margin: .8rem 0; }
 .wizard-back { display: inline-block; padding: .7rem 0; }
 @media (max-width: 600px) {
-  .import-steps { grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); font-size: .85rem; }
+  .import-steps { grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); font-size: var(--font-supporting); }
   .wizard-table, .wizard-table tbody, .wizard-table tr, .wizard-table td, .wizard-table th[scope="row"] { display: block; width: auto; }
   .wizard-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .wizard-table caption { display: block; width: 100%; }
   .wizard-table-wrap { max-height: none; overflow: visible; }
-  .wizard-table tr { border: 1px solid var(--color-border); border-radius: .6rem; margin-bottom: .8rem; padding: .5rem; }
+  .wizard-table tr { border: 1px solid var(--color-border); border-radius: var(--radius-small); margin-bottom: .8rem; padding: .5rem; }
   .wizard-table td, .wizard-table th[scope="row"] { border: 0; padding: .35rem; }
   .wizard-table td:first-child { float: right; }
   .wizard-actions > button { width: 100%; }

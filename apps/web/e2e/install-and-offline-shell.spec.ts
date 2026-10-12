@@ -64,8 +64,9 @@ test('keyboard-only navigation and reduced motion keep the shell operable', asyn
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/account/students')
   await expect(page.getByRole('heading', { name: 'Students' })).toBeVisible()
-  // The heading precedes the scoped account read; mobile WebKit tabs to form controls.
-  await expect(page.getByRole('checkbox', { name: 'Show archived students' })).toBeVisible()
+  // UI-09 replaced the archive checkbox with the authorized status filter.
+  // Wait for that control before checking native keyboard navigation.
+  await expect(page.getByRole('combobox', { name: 'Status filter' })).toBeVisible()
   await page.keyboard.press('Tab')
   if (browserName === 'webkit') {
     // WebKit may apply keyboard focus asynchronously; retain the same focus guarantee.
