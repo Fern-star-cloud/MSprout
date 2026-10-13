@@ -1,5 +1,25 @@
 # Roadmap Status
 
+## UX-04 - final approval / implementation / validation GREEN (2026-10-13)
+
+Final stakeholder visual approval granted, including all Owner/Teacher navigation/People/More/drawer, branding/fidelity/density, church and compact-ministry/full-name protections. [Accepted review](../docs/qa/ux-04-shared-navigation-review.md). Exact approved scope qualifies for the separately authorized single commit/normal push `feat: finalize approved UX-04 shared navigation`, parent approved UX-03 496c2245b4987e43787ad454bfb12005fed71a5b; actual SHA/synchronization resolve through Git history and .git/msprout-ux04-finalization-20261013/finalization.json. Earlier YELLOW entries are historical. Protected unrelated stash/backups retained; no merge/deployment or UX-05-UX-08. Stop after UX-04 finalization.
+
+
+## UX-04 final targeted name correction - YELLOW (2026-10-13)
+
+Stakeholder accepts submitted navigation/density/branding and church-name protection. Remaining compact Teacher ministry-name correction implemented with bounded two-line ellipsis, complete mobile/accessible full-name view and preserved normal pixels/data/actions; same-risk compact record labels bounded with existing details. Focused validation passes; [current review](../docs/qa/ux-04-shared-navigation-review.md) awaits explicit confirmation. HEAD496c2245b4987e43787ad454bfb12005fed71a5b; protected stash preserved. Unstaged/uncommitted, no commit/push/merge/deploy; UX-05-UX-08 untouched.
+
+
+## UX-04 density refinement - YELLOW (2026-10-13)
+
+Requested final visual-density corrections implemented and focused proof passed; [review](../docs/qa/ux-04-shared-navigation-review.md) records measurements, current native views and retained evidence. Global density requirement is durable in the existing visual-governance addendum. Stakeholder visual approval remains pending; HEAD496c2245b4987e43787ad454bfb12005fed71a5b and protected stash unchanged. No staging/commit/push/merge/deploy; UX-05-UX-08 untouched. Finalization requires separate authorization after approval.
+
+
+## UX-04 - shared navigation and role-aware grouping (2026-10-13)
+
+YELLOW: implemented/technically reviewed, stakeholder visual approval pending. Starts from approved/pushed UX-03 commit496c2245b4987e43787ad454bfb12005fed71a5b, which remains HEAD. Shared compact Owner/Teacher chrome, accessible grouped People/drawer/More, truthful persistent Sync access and responsive full-value protection are reviewable in [the UX-04 report](../docs/qa/ux-04-shared-navigation-review.md). No staging/finalization; UX-05-UX-08 untouched. Nine human QA/environment files remain in unchanged stash 1e104f06fbe3091b54e3916f612668b93f0107b4. Stop for explicit visual approval before commit/push.
+
+
 
 ## UX-03 final approval — 2026-10-13
 

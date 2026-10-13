@@ -1,5 +1,15 @@
 # Technical Decisions
 
+## UX-04 final stakeholder-approved implementation decisions - 2026-10-13
+
+Explicit final visual acceptance covers Owner nine-item grouped People rail and five-item phone bar/persistent Sync; compact Teacher hierarchy/four-item phone bar, authorized More destinations and accessible branded drawer; Pack01 blue/navy/light identity, approved sprout/MSprout, density/proportions,50-code-point compact church presentation and complete names; two-line compact ministry/record-name labels with full accessible data and mobile/keyboard complete-name views. Normal-name pixels and44/48px targets remain. Preserve real permissions/state, all server authorization/contracts and encrypted offline/synchronization behavior. [Accepted review](../docs/qa/ux-04-shared-navigation-review.md) and [unchanged permanent artwork/density guidance plus approval](../docs/superpowers/specs/2026-10-13-stakeholder-visual-clarification.md). This authorizes UX-04-only reviewed GREEN commit/push and stop; no future-task implementation, competing theme, universal record limit, merge or deployment. Earlier pending decisions/status below are historical.
+
+
+## Permanent approved-artwork density requirement - 2026-10-13
+
+Explicit UX-04 stakeholder clarification: **Every authorized UI implementation must match the corresponding original approved mockup's visual appearance, spacing, alignment, and component proportions. Excessive spacing and unnecessarily oversized components are prohibited unless required by responsive layout, accessibility, or functional constraints.** The [existing visual-governance addendum](../docs/superpowers/specs/2026-10-13-stakeholder-visual-clarification.md) is the durable authority for all subsequently authorized modified screens, including forms/tables/lists/details/dialogs/authentication/states. Compare actual CSS and corresponding original artwork; do not invent source CSS from raster pixels, sacrifice usability/security/truth, or restyle unrelated screens. This refines approved artwork authority without creating a competing design system or authorizing later work. UX-04 remains YELLOW pending explicit visual review and separately authorized finalization.
+
+
 
 ## Final stakeholder design decisions for all12 packs — 2026-10-13
 

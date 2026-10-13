@@ -1,5 +1,29 @@
 # Current State
 
+## UX-04 final stakeholder approval and finalization checkpoint - 2026-10-13
+
+GREEN: final stakeholder visual approval explicitly granted for complete Owner/Teacher navigation, People/More/drawer, identity/fidelity/density and responsive names including the final two-line compact ministry correction/full-name disclosure. [Accepted UX-04 review](../docs/qa/ux-04-shared-navigation-review.md). Preserve all approved UX-03/UX-04 decisions and project-wide artwork/spacing/field-appropriate text safety; real state, authorization, encrypted offline handling and synchronization remain unchanged.
+
+All approved application/test/style bytes match their qualified evidence: initial709/78 aggregate retained for unaffected guarantees;29/4 compact-name and88/5 shell proof, qualified native browser/axe/name/reflow/navigation matrix, lint/type/build and scoped OWASP pass. Final approval changes only documents/knowledge; final secret/index/scope/private/human/backup/whitespace/Git checks resolve in .git/msprout-ux04-finalization-20261013/finalization.json. Entry UX-03 is496c2245b4987e43787ad454bfb12005fed71a5b; resulting task commit is identified by reviewed subject `feat: finalize approved UX-04 shared navigation` and Git history/receipt. Previous YELLOW/uncommitted checkpoints below are historical. The user authorizes exactly one task commit/normal push on feat/mvp-foundation; protected stash1e104f06fbe3091b54e3916f612668b93f0107b4 and backups remain untouched. Stop after finalization. No merge/deployment or UX-05-UX-08.
+
+
+## UX-04 targeted compact-name correction - current review stop (2026-10-13)
+
+Stakeholder accepts navigation, menus, density, MSprout identity, long church-name protection and blue/navy styling. YELLOW remains only for confirmation of the requested Teacher compact-ministry-name correction. Two-line CSS ellipsis preserves full heading data/accessibility; measured clipping adds44px information control with mobile/keyboard full-name dialog and safe focus on close/reflow. Compact Student/Teacher/Ministry list-name buttons use the same bound with their existing full detail views; forms/contracts/validation unchanged. Normal screenshots pixel-exact at320/390/768/1440;390 extreme card376.38->230.59px. [Review and before/after](../docs/qa/ux-04-shared-navigation-review.md). Current29/4 focused, affected lint/build/typecheck and28 qualified browser outcomes (28 initial +12 closure passes,16 unaffected retained); risk-scoped security/secret checks pass. Existing visual guidance already covers field-appropriate bounded names/full access and is unchanged. Evidence .git/msprout-ux04-ministry-20261013. HEAD496c2245b4987e43787ad454bfb12005fed71a5b, staging empty; protected stash/private files/earlier work preserved. No commit/push/merge/deploy or UX-05-UX-08. Stop for final confirmation.
+
+
+## UX-04 density refinement - current review stop (2026-10-13)
+
+YELLOW / explicit stakeholder visual approval pending. Shared rail starts12px earlier on Home and20px earlier on non-Home after removal of legacy logo-plaque spacing; desktop/tablet Owner cards270.30->262.30px with three-card composition,44px links and48px primary actions preserved. Permanent artwork/density directive recorded in existing visual addendum and DECISIONS. [Current review and native comparisons](../docs/qa/ux-04-shared-navigation-review.md). Current build/typecheck and20 affected browser outcomes PASS, with8 closure passes superseding the corresponding earlier8. Earlier aggregate/focused/security/lint and unchanged phone/drawer evidence retained under documented effect-based invalidation. New source/knowledge/preservation receipts: .git/msprout-ux04-density-20261013. HEAD stays496c2245b4987e43787ad454bfb12005fed71a5b; staging empty, protected stash/private files unchanged. No commit/push/merge/deploy or UX-05-UX-08. Stop for review; finalization separately authorized after approval.
+
+
+## UX-04 shared navigation - visual review checkpoint (2026-10-13)
+
+YELLOW / stakeholder visual approval pending; unstaged, uncommitted, unpushed. Entry/current feat/mvp-foundation 496c2245b4987e43787ad454bfb12005fed71a5b confirms approved UX-03. Owner nine-item rail with accessible People disclosure/current-child semantics; five-item phone bar and persistent Sync. Teacher compact rail/4-item phone; More prioritizes the five approved rows and preserves scoped/device destinations. Shared light/blue/navy church chrome, branded accessible tablet drawer, full-value/name targets/enlarged text and navigation panels; public/Platform and unrelated interiors remain separate. No fake counts/unlock/permissions, new endpoint, auth/crypto/store change or automatic attendance draft.
+
+[UX-04 review](../docs/qa/ux-04-shared-navigation-review.md) includes original-versus-actual, before/after, exact files/CSS and every remaining visual difference. Technical proof:709/78 initial aggregate retained after isolated presentation deltas; final focused 88/5, lint/build/typecheck and104 unique browser outcomes qualified (68 initial,64 header/invariant,16 drawer passes;76 latest/28 unaffected retained). Source/OWASP/secret/structure/whitespace and exact preservation close in .git/msprout-ux04-20261013/final-preservation.json. Stash 1e104f06fbe3091b54e3916f612668b93f0107b4 and private/unrelated files remain exact; no restore/drop. Existing databases/profiles untouched; fresh synthetic intercepted browser contexts only. Stop for visual approval. No commit/push/merge/deploy or UX-05-UX-08.
+
+
 
 ## UX-03 final stakeholder approval and finalization — 2026-10-13
 

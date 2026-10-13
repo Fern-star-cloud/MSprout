@@ -1,0 +1,102 @@
+/* UX-04: approved Pack 01 church chrome. Internal screen tokens/content and
+   the separate platform workspace keep their existing specifications. */
+.church-shell { --sidebar-width: 224px; }
+.church-shell :is(.wide-layout, .workspace-header, .phone-navigation, .tablet-drawer, .destination-panel) { font-family: Arial, Helvetica, sans-serif; color: #102c46; }
+.church-shell .workspace-header { gap: 8px 12px; min-height: 56px; padding: 8px 16px; border-color: #dce8f5; background: white; }
+.church-shell .workspace-identity { gap: 8px; font-size: .875rem; }
+.church-shell .workspace-name > svg { width: 18px; height: 18px; color: #087754; }
+.church-shell .workspace-identity .ui-status-badge { padding: 4px 8px; border: 0; border-radius: 8px; font-size: .875rem; font-weight: 600; }
+.church-shell .workspace-identity .tone-info { color: #104fa9; background: #eaf3fe; }
+.church-shell .workspace-tools { gap: 8px; margin-left: auto; }
+.church-shell .connectivity-status { min-height: 24px; padding: 0; border: 0; border-radius: 0; font-size: .875rem; color: #405c78; background: transparent; }
+.church-shell .connectivity-status svg { display: none; }
+.church-shell .connectivity-status::before { content: ''; width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: #087754; }
+.church-shell .connectivity-status.is-offline::before { background: #526c81; }
+.church-shell .protected-sync-link { gap: 8px; font-size: .875rem; color: #104fa9; }
+.church-shell .protected-sync-link svg { width: 20px; height: 20px; flex: 0 0 20px; }
+.church-shell .compact-brand { width: auto; }
+.church-shell .brand-link { min-height: 44px; color: #102c46; text-decoration: none; }
+.church-shell.church-shell .wide-layout .msprout-brand { padding: 0; background: transparent; }
+.church-shell :is(.wide-navigation, .tablet-drawer nav) { display: grid; gap: 0; }
+.church-shell :is(.wide-navigation, .tablet-drawer) a { display: flex; align-items: center; gap: 12px; min-width: 0; min-height: 44px; padding: 8px 12px; border-radius: 8px; font-size: .9375rem; line-height: 1.4; text-decoration: none; color: #102c46; }
+.church-shell :is(.wide-navigation, .tablet-drawer) svg { width: 20px; height: 20px; flex: 0 0 20px; }
+.church-shell :is(.wide-navigation, .tablet-drawer) a:is(:hover, [aria-current]) { background: #d4e8ff; color: #104fa9; }
+.church-shell :is(.wide-navigation, .tablet-drawer) a[aria-current] { font-weight: 600; }
+.church-shell :is(.wide-navigation, .tablet-drawer) .navigation-child { padding-left: 28px; font-size: .875rem; }
+.church-shell .people-destinations { display: grid; gap: 0; }
+.church-shell .people-destinations[hidden] { display: none; }
+.church-shell .home-people-navigation { display: flex; min-width: 0; border-radius: 8px; }
+.church-shell .home-people-navigation[data-active-group] { background: #d4e8ff; }
+.church-shell .home-people-navigation > a { flex: 1; min-width: 0; }
+.church-shell .home-people-navigation > button { flex: 0 0 44px; min-width: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 8px; color: #102c46; background: transparent; }
+.church-shell .home-people-navigation > button:hover { background: #d4e8ff; }
+.church-shell :is(.wide-navigation, .tablet-drawer) a[href*='/account/sync'] { margin-top: 12px; padding-top: 12px; border-top: 1px solid #dce8f5; border-radius: 0; }
+.church-shell .ui-dialog:has(.tablet-drawer) { width: min(280px, calc(100% - 32px)); padding: 12px; border-color: #dce8f5; background: linear-gradient(100deg, white, #eff7ff); color: #102c46; }
+.church-shell .ui-dialog:has(.tablet-drawer)::backdrop { background: rgb(16 44 70 / 12%); }
+.church-shell .ui-dialog:has(.tablet-drawer) > h2 { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.church-shell .drawer-brand { display: flex; align-items: center; gap: 8px; }
+.church-shell .tablet-drawer .drawer-close { min-width: 44px; width: 44px; min-height: 44px; padding: 8px; border: 0; color: #102c46; background: transparent; }
+.church-shell .tablet-drawer .ui-button-secondary { color: #104fa9; border-color: #1565d8; background: white; }
+.church-shell .tablet-menu { gap: 8px; color: #102c46; border: 0; background: transparent; padding: 8px; }
+.church-shell .tablet-menu svg { width: 20px; height: 20px; }
+.church-shell :is(.wide-layout, .workspace-header, .phone-navigation, .tablet-drawer, .destination-panel) :focus-visible { outline: 3px solid #1565d8; outline-offset: 2px; }
+.church-shell .phone-navigation { padding: 0 4px env(safe-area-inset-bottom); border-color: #dce8f5; background: white; box-shadow: 0 -2px 8px rgb(16 44 70 / 3%); }
+.church-shell .phone-navigation a { position: relative; min-height: 64px; padding: 4px 0; font-size: .875rem; line-height: 1.2; color: #102c46; }
+.church-shell .phone-navigation a[aria-current] { border: 0; color: #1565d8; background: white; }
+.church-shell .phone-navigation a[aria-current]::after { content: ''; position: absolute; bottom: 0; width: min(64px, 80%); height: 3px; border-radius: 3px; background: #1565d8; }
+.church-shell .destination-panel { width: 100%; max-width: 560px; margin-inline: auto; border: 1px solid #dce8f5; border-radius: 12px; overflow: hidden; background: white; box-shadow: 0 8px 32px rgb(16 44 70 / 6%); }
+.church-shell .destination-panel > header { display: flex; align-items: center; gap: 8px; padding: 4px 12px; border-bottom: 1px solid #dce8f5; }
+.church-shell .destination-panel h1 { margin: 0; color: #081731; font-size: 1.5rem; line-height: 1.2; font-weight: 700; }
+.church-shell .destination-panel > header > a { display: grid; place-items: center; min-width: 44px; min-height: 44px; color: #102c46; font-size: 28px; text-decoration: none; }
+.church-shell .destination-list { gap: 0; }
+.church-shell .destination-list a { display: flex; align-items: center; gap: 16px; min-height: 48px; padding: 12px 16px; border-bottom: 1px solid #eaf3fe; font-size: .9375rem; line-height: 1.4; text-decoration: none; color: #102c46; }
+.church-shell .destination-list a:hover { background: #eaf3fe; color: #104fa9; }
+.church-shell .destination-list svg { width: 20px; height: 20px; flex: 0 0 20px; }
+.church-shell .destination-list a > span:not(.destination-chevron) { flex: 1; min-width: 0; }
+.church-shell .destination-chevron { flex: 0 0 12px; font-size: 20px; line-height: 1; }
+.church-shell .destination-list .destination-secondary-start { border-top: 8px solid #f1f6fc; }
+.church-shell .destination-context { margin: 0; padding: 8px 16px; font-size: .875rem; line-height: 1.4; color: #405c78; background: linear-gradient(100deg, white, #eaf3fe); text-align: center; }
+@media (max-width: 767px) {
+  .church-shell .workspace-header { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 4px 8px; padding: 8px 12px; }
+  .church-shell .compact-brand { grid-column: 1; }
+  .church-shell .compact-brand .brand-link { width: 44px; min-width: 44px; }
+  .church-shell .compact-brand .brand-wordmark, .church-shell .workspace-name > svg { display: none; }
+  .church-shell .workspace-identity { grid-column: 2; flex-wrap: wrap; gap: 6px; }
+  /* Keep the name disclosure a usable target when enlarged role/status text
+     takes the remaining line; preserve full-name access rather than a sliver. */
+  .church-shell.church-shell .workspace-identity > .workspace-name { flex: 1 1 44px; min-width: min(44px, 100%); }
+  .church-shell[data-navigation-role='device'] .workspace-identity { grid-column: 1/-1; grid-row: 2; }
+  .church-shell .workspace-tools { display: contents; }
+  .church-shell .workspace-tools .connectivity-status { grid-column: 3; }
+  .church-shell .workspace-selector, .church-shell .protected-sync-link { grid-column: 1/-1; }
+  .church-shell[data-navigation-role='teacher'] .protected-sync-link { display: none; }
+  .church-shell.church-shell[data-navigation-role='owner'] .protected-sync-link, .church-shell[data-navigation-role='device'] .protected-sync-link { display: inline-flex; }
+  .church-shell .church-name-expanded { left: -40px; width: calc(100vw - 24px); }
+  .church-shell.church-shell .application-content { padding-bottom: calc(7rem + env(safe-area-inset-bottom)); }
+  .church-shell #main-content :is(a, button, input, select) { scroll-margin-block: 8px calc(7rem + env(safe-area-inset-bottom)); }
+}
+@media (min-width: 1024px) {
+  .church-shell .wide-layout { gap: 8px; padding: 12px; border-color: #dce8f5; background: linear-gradient(100deg, white, #eff7ff); }
+  .church-shell .wide-layout .brand-link { padding: 4px 8px; }
+  .church-shell .workspace-header { padding: 6px 32px; }
+  .church-shell .protected-sync-link { display: none; }
+}
+/* UX-04 density refinement: reduce demonstrated desktop card whitespace while
+   retaining the approved three-card composition and 44px link targets. */
+@media (min-width: 768px) {
+  .church-home.home-owner .home-actions .home-card { min-height: 0; }
+  .church-home.home-owner .home-actions .home-icon-circle { margin-bottom: 8px; }
+  .church-home.home-owner .home-actions .home-card h2 { margin-bottom: 4px; }
+}
+@media (forced-colors: active) {
+  .church-shell :is(.wide-navigation, .phone-navigation, .tablet-drawer) a[aria-current] { outline: 2px solid Highlight; outline-offset: -3px; }
+  .church-shell :is(.wide-layout, .workspace-header, .tablet-drawer, .destination-panel) { border: 1px solid CanvasText; }
+}
+/* Field-specific compact names: two visual lines, complete accessible text.
+   Home offers a full-name dialog only when clipped; People rows keep details. */
+.compact-name-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; min-width: 0; }
+.compact-name-heading { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
+.compact-name-heading > h2 { flex: 1; min-width: 0; }
+.church-home .compact-name-reveal { flex: 0 0 44px; width: 44px; min-width: 44px; min-height: 44px; padding: 8px; border-color: #1565d8; color: #104fa9; background: white; }
+.compact-name-reveal svg { width: 20px; height: 20px; }
+.full-name-value { overflow-wrap: anywhere; white-space: normal; }

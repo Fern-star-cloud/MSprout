@@ -1,5 +1,10 @@
 # Development Changelog
 
+## 2026-10-13 - UX-04 stakeholder-approved shared navigation
+
+Final stakeholder visual approval grants complete Owner/Teacher navigation, People grouping, More panels, branded accessible drawer, Pack01 spacing/proportions and responsive complete-name safety. Two-line compact ministry/record names preserve normal pixels and full accessible/detail values; existing roles, routes, truthful states and data/security/offline/synchronization behavior remain. Qualified source/focused/browser/security evidence and protected stash/backups are retained. Final task identity resolves through reviewed subject `feat: finalize approved UX-04 shared navigation`, parent UX-03 496c2245b4987e43787ad454bfb12005fed71a5b, [accepted review](../docs/qa/ux-04-shared-navigation-review.md) and Git/finalization receipt. Stop after this authorized finalization; no merge/deploy or UX-05-UX-08.
+
+
 ## 2026-10-12 — UI-16 final local qualification
 
 681 frontend,294 backend/2,125 assertions and524 unique four-target browser cases qualify the current independent local UI scope. Actual Docker exclusions prevent runtime SQLite/upload/configuration leakage into images; repeatable synthetic regression and fresh non-root image/runtime checks pass. Contracts/security/audits remain green. Exact58 original design identifiers and production branding/human/device/provider commissioning remain unverified/conditional; no reconstructed requirements or deployment readiness claim. See [UI-16 qualification](../docs/qa/ui-16-final-uiux-qualification.md); final commit resolves by reviewed subject `test: qualify final UI journeys and protect image inputs`. Stop after UI-16, no merge/deploy.

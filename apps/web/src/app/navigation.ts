@@ -5,11 +5,11 @@ const home = item('home', 'Home'), attendance = item('attendance', 'Attendance')
 const ownerPeople = [item('students', 'Students', 'People'), item('ministries', 'Ministries', 'People'), item('teachers', 'Teachers', 'People'), item('imports', 'Import', 'People')]
 export function navigationFor(role: 'owner' | 'teacher' | null) {
   const supporting = role === 'owner'
-    ? [item('reports', 'Reports'), item('birthdays', 'Birthdays'), item('audit', 'Church activity')]
+    ? [item('reports', 'Reports & history'), item('birthdays', 'Birthdays'), item('audit', 'Activity')]
     : role === 'teacher' ? [item('ministries', 'My ministries'), item('students', 'Assigned roster'), item('reports', 'Recent sessions'), item('birthdays', 'Birthdays'), item('audit', 'My activity')] : []
   const people = item('people', 'People'), review = item('conflicts', 'Review')
   return {
-    main: [home, attendance, ...(role === 'owner' ? [people, ...ownerPeople, review] : []), ...supporting, sync, account],
+    main: [home, attendance, ...(role === 'owner' ? [people, review, ...supporting] : role === 'teacher' ? [supporting[0], more] : []), sync, account],
     phone: role === 'owner' ? [home, attendance, review, people, more] : [home, attendance, item('sync', 'Sync'), more],
     more: [...supporting, sync, item('profiles', 'Device profiles'), item('prepare', 'Prepare this device'), account],
     people: role === 'owner' ? ownerPeople : [],

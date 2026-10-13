@@ -1,5 +1,25 @@
 # MinistrySprout Knowledge Index
 
+## Current UX-04 final approval and handoff
+
+UX-04 has explicit final stakeholder visual approval, including compact ministry-name correction/full-name access. Read [the accepted review](../docs/qa/ux-04-shared-navigation-review.md) for exact committed scope, qualified evidence and preserved design/data/accessibility/security decisions. The one reviewed feature-branch finalization is identified by `feat: finalize approved UX-04 shared navigation`; resulting SHA/synchronization resolve in Git/current finalization receipt. All older pending/YELLOW review entries below are historical. Preserve [existing visual governance](../docs/superpowers/specs/2026-10-13-stakeholder-visual-clarification.md) and the unrelated protected stash/backups. Stop after UX-04; no merge, deployment or UX-05-UX-08.
+
+
+## Latest UX-04 targeted mobile review
+
+Navigation/density/branding are stakeholder-accepted; compact ministry-name correction awaits confirmation. Read [the current review](../docs/qa/ux-04-shared-navigation-review.md) for normal/50/extreme before/after, full-name mobile access, same-risk compact label bounds, validation and preservation. Existing [visual guidance](../docs/superpowers/specs/2026-10-13-stakeholder-visual-clarification.md) already covers bounded field-appropriate names/full-value access and remains unchanged in this correction. YELLOW; no finalization or later UX task.
+
+
+## Latest UX-04 density clarification
+
+Read [the current visual review](../docs/qa/ux-04-shared-navigation-review.md) for final measured density corrections and required navigation-state captures. The [existing design addendum](../docs/superpowers/specs/2026-10-13-stakeholder-visual-clarification.md) now records the exact permanent appearance/spacing/alignment/proportions requirement for every subsequently authorized screen, with accessibility/functionality/security/truthful-state constraints. UX-04 remains YELLOW and uncommitted pending stakeholder review.
+
+
+## Current UX-04 review
+
+UX-04 is authorized and implemented, with stakeholder visual approval pending. Read [the shared-navigation review](../docs/qa/ux-04-shared-navigation-review.md) for exact scope, native source/actual comparisons, computed CSS, validation retention and preservation. Current work remains unstaged/uncommitted; no commit/push or UX-05-UX-08 until separately authorized. Approved UX-03 branding/source decisions below remain authoritative.
+
+
 
 ## Current stakeholder visual governance
 

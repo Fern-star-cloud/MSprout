@@ -1,5 +1,5 @@
 import type { NavigationItem } from '../../app/navigation'
-type HomeIconId = NavigationItem['id'] | 'device' | 'info' | 'arrow' | 'verified'
+type HomeIconId = NavigationItem['id'] | 'device' | 'info' | 'arrow' | 'verified' | 'sessions'
 
 // Small, local SVGs keep the Home reference language independent of icon packages.
 export function HomeIcon({ id, solid = false }: { id: HomeIconId; solid?: boolean }) {
@@ -17,6 +17,7 @@ export function HomeIcon({ id, solid = false }: { id: HomeIconId; solid?: boolea
     conflicts: 'M5 3h9l5 5v13H5ZM14 3v6h5M9 13h6m-6 4h6',
     imports: 'M5 3h9l5 5v13H5ZM14 3v6h5M8 15h8m-4-3v6',
     reports: 'M4 20v-6m5 6V9m5 11V5m5 15V2',
+    sessions: 'M7 6h14M7 12h14M7 18h14M3 6h.01M3 12h.01M3 18h.01',
     birthdays: 'M3 8h18v4H3Zm2 4v9h14v-9M12 8v13m0-13C3 8 5 1 9 3l3 5Zm0 0c9 0 7-7 3-5Z',
     audit: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 4v5l4 3',
     sync: 'M7 19H6a4 4 0 0 1-1-8 7 7 0 0 1 13-2 5 5 0 0 1 0 10H7',

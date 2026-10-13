@@ -25,6 +25,7 @@ import { ChurchShell } from './layouts/ChurchShell'
 import { ChurchWorkspaceBoundary } from './ChurchWorkspaceBoundary'
 import { ChurchNavigationContext } from './workspace-context'
 import { HomeScreen } from './HomeScreen'
+import { HomeIcon } from '../components/ui/HomeIcon'
 import { navigationFor } from './navigation'
 import { resolveRoute, type PresentationRoute } from './routes'
 import { PlatformSessionBoundary } from './PlatformSessionBoundary'
@@ -34,8 +35,11 @@ function DestinationList({ people = false }: { people?: boolean }) {
   const { workspace } = useContext(ChurchNavigationContext)
   const nav = navigationFor(workspace?.role ?? null)
   const church = new URLSearchParams(location.search).get('church')
-  return <section className="dashboard-card"><h1>{people ? 'People' : 'More'}</h1><p>{people ? 'Manage people and ministries with the existing church tools.' : 'Church and device destinations.'}</p>
-    <nav className="destination-list" aria-label={people ? 'People destinations' : 'More destinations'}>{(people ? nav.people : nav.more).map(item => <a key={item.id} href={workspace && church === workspace.church_id ? `${item.href}?church=${encodeURIComponent(church)}` : item.href}>{item.label}</a>)}</nav>
+  const primaryTeacher = ['ministries', 'reports', 'birthdays', 'audit', 'account']
+  const destinations = people ? nav.people : workspace?.role === 'teacher' ? [...nav.more.filter(item => primaryTeacher.includes(item.id)), ...nav.more.filter(item => !primaryTeacher.includes(item.id))] : nav.more
+  return <section className="destination-panel"><header><a href={workspace && church === workspace.church_id ? `/account/home?church=${encodeURIComponent(church)}` : '/account/home'} aria-label="Back to Home"><span aria-hidden="true">‹</span></a><h1>{people ? 'People' : 'More'}</h1></header>
+    <nav className="destination-list" aria-label={people ? 'People destinations' : 'More destinations'}>{destinations.map((item, index) => <a className={!people && workspace?.role === 'teacher' && index === primaryTeacher.length ? 'destination-secondary-start' : undefined} key={item.id} href={workspace && church === workspace.church_id ? `${item.href}?church=${encodeURIComponent(church)}` : item.href}><HomeIcon id={item.id === 'reports' && workspace?.role === 'teacher' ? 'sessions' : item.id === 'profiles' ? 'device' : item.id === 'prepare' ? 'account' : item.id} /><span>{item.label}</span><span aria-hidden="true" className="destination-chevron">›</span></a>)}</nav>
+    <p className="destination-context">{workspace ? `${workspace.role === 'owner' ? 'Owner' : 'Teacher'} workspace` : 'Device workspace'}</p>
   </section>
 }
 

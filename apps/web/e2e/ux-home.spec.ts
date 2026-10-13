@@ -69,7 +69,7 @@ for (const role of ['owner', 'teacher'] as const) {
   })
 }
 
-test('Home-only styles retain the existing People shell and do not create a session on attendance navigation', async ({ page, context }) => {
+test('approved shared navigation persists on People and does not create a session on attendance navigation', async ({ page, context }) => {
   await home(context, 'owner')
   await context.route('**/api/students**', route => json(route, { data: [] }))
   await page.setViewportSize({ width: 1440, height: 900 })
@@ -78,7 +78,7 @@ test('Home-only styles retain the existing People shell and do not create a sess
   await page.getByRole('navigation', { name: 'Main navigation', exact: true }).getByRole('link', { name: 'People', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'People', exact: true })).toBeVisible()
   await expect(page.locator('.home-shell')).toHaveCount(0)
-  expect(await page.locator('.wide-layout').evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(16, 44, 70)')
+  expect(await page.locator('.wide-layout').evaluate(el => getComputedStyle(el).backgroundImage)).toContain('linear-gradient')
   await page.getByRole('navigation', { name: 'Main navigation', exact: true }).getByRole('link', { name: 'Home', exact: true }).click()
   await expect(page.locator('.home-shell')).toBeVisible()
   await page.getByRole('link', { name: 'Take attendance', exact: true }).click()
@@ -112,7 +112,7 @@ test('Home tablet drawer uses light surfaces and keyboard containment with narro
   await menu.focus(); await page.keyboard.press('Enter')
   const dialog = page.getByRole('dialog', { name: 'Navigation', exact: true })
   await expect(dialog).toBeVisible()
-  expect(await dialog.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(241, 246, 252)')
+  expect(await dialog.evaluate(el => getComputedStyle(el).backgroundImage)).toContain('linear-gradient')
   for (let i = 0; i < 16; i++) { await page.keyboard.press('Tab'); expect(await page.evaluate(() => !!document.activeElement?.closest('dialog'))).toBe(true) }
   await expectNoSeriousAccessibilityIssues(page)
   await page.screenshot({ path: test.info().outputPath('teacher-tablet-drawer.png'), fullPage: true })

@@ -37,7 +37,7 @@ it.each([
   await waitFor(() => expect(vi.mocked(authRequest).mock.calls.some(([path, , , id]) => path.startsWith(endpoint) && id === church)).toBe(true))
   expect(screen.queryByLabelText('Church workspace ID')).toBeNull()
   expect(authRequest).toHaveBeenCalledWith('/auth/session')
-  expect(screen.getAllByRole('link', { name: 'Students' })[0].getAttribute('href')).toBe('/account/students')
+  expect(navigationLink('Students').getAttribute('href')).toBe('/account/students')
   view.unmount()
   render(<App />)
   await waitFor(() => expect(vi.mocked(authRequest).mock.calls.filter(([path]) => path === '/auth/session').length).toBe(2))
@@ -81,7 +81,7 @@ it('handles missing membership and offers verified multi membership selection', 
   fireEvent.change(selector, { target: { value: other } })
   await waitFor(() => expect(authRequest).toHaveBeenCalledWith('/api/students', 'GET', undefined, other))
   expect(location.search).toContain(other)
-  expect(screen.getAllByRole('link', { name: 'Reports' })[0].getAttribute('href')).toBe(`/account/reports?church=${other}`)
+  expect(screen.getAllByRole('link', { name: 'Reports & history' })[0].getAttribute('href')).toBe(`/account/reports?church=${other}`)
   expect(screen.getAllByRole('link', { name: 'Students' })[0].getAttribute('aria-current')).toBe('page')
   expect(screen.queryByLabelText('Church workspace ID')).toBeNull()
 })
@@ -281,6 +281,13 @@ it('discards a Teacher view when the validated ministry assignment scope changes
   await waitFor(() => expect(vi.mocked(authRequest).mock.calls.filter(([path]) => path === '/api/students')).toHaveLength(2))
 })
 
+// UX-04 groups People on every screen; exercise the visible disclosure when needed.
+function navigationLink(name: string) {
+  const nav = within(screen.getByRole('navigation', { name: 'Main navigation' }))
+  if (!nav.queryByRole('link', { name }) && nav.queryByRole('button', { name: 'Show People destinations' })) fireEvent.click(nav.getByRole('button', { name: 'Show People destinations' }))
+  return nav.getByRole('link', { name })
+}
+
 it('reuses the workspace and sidebar through Students → Ministries → Reports and all six routes', async () => {
   history.replaceState(null, '', '/account/students')
   render(<App />)
@@ -291,11 +298,11 @@ it('reuses the workspace and sidebar through Students → Ministries → Reports
   vi.mocked(authRequest).mockImplementation((...args) => args[0] === '/auth/session'
     ? new Promise(done => { resolve = done }) : implementation(...args))
   for (const [label, heading, page] of [
-    ['Ministries', 'Ministries', 'ministries'], ['Reports', 'Attendance reports', 'reports'],
+    ['Ministries', 'Ministries', 'ministries'], ['Reports & history', 'Attendance reports', 'reports'],
     ['Review', 'Attendance review', 'conflicts'], ['Birthdays', "Today's Birthdays", 'birthdays'],
     ['Import', 'Import students', 'imports'], ['Students', 'Students', 'students'],
   ]) {
-    fireEvent.click(sidebar.querySelector(`a[href="/account/${page}"]`)!)
+    fireEvent.click(navigationLink(label))
     expect(location.pathname).toBe(`/account/${page}`)
     expect(screen.getByRole('heading', { name: heading })).toBeTruthy()
     expect(screen.queryByText('Loading church workspace…')).toBeNull()
@@ -320,7 +327,7 @@ it.each(['session', 'membership', 'role', 'mfa'])('fails closed when navigation 
     if (args[0] === '/api/me' && failure === 'mfa') return { id: 7, memberships: [{ church_id: church, role, status: 'active' }], active_session: { mfa_confirmed: false } } as never
     return implementation(...args)
   })
-  fireEvent.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Import' }))
+  fireEvent.click(navigationLink('Import'))
   if (failure === 'role') {
     await screen.findByText('Student imports are available only to the church Owner with confirmed MFA.')
     expect(screen.queryByLabelText('Student spreadsheet')).toBeNull()
@@ -336,7 +343,7 @@ it('preserves selected multi-church scope across navigation and gates a real chu
   render(<App />)
   fireEvent.change(await screen.findByLabelText('Church workspace'), { target: { value: church } })
   await screen.findByRole('button', { name: 'Add student' })
-  fireEvent.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Ministries' }))
+  fireEvent.click(navigationLink('Ministries'))
   expect(location.search).toBe(`?church=${church}`)
   expect(screen.queryByText('Loading church workspace…')).toBeNull()
   expect(screen.getByLabelText<HTMLSelectElement>('Church workspace').value).toBe(church)
@@ -372,14 +379,14 @@ it('does not apply a superseded navigation response or resurrect content after l
   const implementation = vi.mocked(authRequest).getMockImplementation()!
   let oldResolve!: (value: never) => void
   vi.mocked(authRequest).mockImplementationOnce(() => new Promise(done => { oldResolve = done }))
-  fireEvent.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Ministries' }))
-  fireEvent.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Reports' }))
+  fireEvent.click(navigationLink('Ministries'))
+  fireEvent.click(navigationLink('Reports & history'))
   await screen.findByRole('heading', { name: 'Attendance reports' })
   await act(async () => { oldResolve({ id: 7, email_verified: true, workspaces: [] } as never) })
   expect(screen.getByRole('heading', { name: 'Attendance reports' })).toBeTruthy()
   vi.mocked(authRequest).mockImplementation((...args) => args[0] === '/auth/session'
     ? new Promise(done => { oldResolve = done }) : implementation(...args))
-  fireEvent.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Import' }))
+  fireEvent.click(navigationLink('Import'))
   fireEvent(window, new CustomEvent('church-workspace-invalidated', { detail: { status: 401 } }))
   expect(screen.queryByRole('heading', { name: 'Import students' })).toBeNull()
   await act(async () => { oldResolve({ id: 7, email_verified: true, workspaces } as never) })
@@ -413,8 +420,8 @@ it('preserves native modified clicks and routes ordinary Attendance navigation i
   const observe = (event: Event) => { prevented.push(event.defaultPrevented); event.preventDefault() }
   window.addEventListener('click', observe)
   try {
-    fireEvent.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Ministries' }), { ctrlKey: true })
-    fireEvent.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Attendance' }))
+    fireEvent.click(navigationLink('Ministries'), { ctrlKey: true })
+    fireEvent.click(navigationLink('Attendance'))
   } finally { window.removeEventListener('click', observe) }
   expect(prevented).toEqual([false, true])
   expect(location.pathname).toBe('/account/attendance')

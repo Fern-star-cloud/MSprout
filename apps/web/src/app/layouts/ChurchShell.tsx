@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { ConnectivityStatus } from '../../components/ConnectivityStatus'
 import { Button, Dialog, StatusBadge } from '../../components/ui/Foundations'
 import { PwaUpdateNotice } from '../../pwa/PwaUpdateNotice'
@@ -9,58 +9,58 @@ import { Brand } from '../../components/ui/Brand'
 import { ChurchName } from '../../components/ui/CompactText'
 import { HomeIcon } from '../../components/ui/HomeIcon'
 
-function Icon({ id }: { id: NavigationItem['id'] }) {
-  const paths: Partial<Record<NavigationItem['id'], string>> = {
-    home: 'M4 11.5 12 5l8 6.5V20h-5v-5H9v5H4Z', attendance: 'M6 4h12v17H6Zm3 5 2 2 4-4m-6 9 2 2 4-4',
-    sync: 'M7 7a7 7 0 0 1 12 3m0-5v5h-5M17 17a7 7 0 0 1-12-3m0 5v-5h5',
-    people: 'M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM2 21v-3a5 5 0 0 1 10 0v3m3-16a3 3 0 0 1 0 6m0 3a5 5 0 0 1 5 5v2',
-    more: 'M4 6h16M4 12h16M4 18h16', conflicts: 'M6 4h12v17H6Zm6 4v6m0 3h.01',
-  }
-  return <svg aria-hidden="true" viewBox="0 0 24 24"><path d={paths[id] ?? 'M5 4h14v17H5Zm3 5h8m-8 4h8m-8 4h5'} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>
-}
-
 export function ChurchShell({ route, routeKey, children }: { route: PresentationRoute; routeKey: string; children: ReactNode }) {
   const { workspace, selector } = useContext(ChurchNavigationContext)
   const nav = navigationFor(workspace?.role ?? null)
   const isHome = route.id === 'home'
   const [drawerRoute, setDrawerRoute] = useState<string | null>(null)
-  const [peopleExpanded, setPeopleExpanded] = useState(false)
+  const peopleActive = nav.people.some(child => child.id === route.id)
+  const [peopleDisclosure, setPeopleDisclosure] = useState<{ routeKey: string; expanded: boolean } | null>(null)
+  const peopleExpanded = peopleDisclosure?.routeKey === routeKey ? peopleDisclosure.expanded : peopleActive
+  const groupId = useId()
   const menu = useRef<HTMLButtonElement>(null), close = useRef<HTMLButtonElement>(null)
   const churchHint = new URLSearchParams(location.search).get('church')
   const href = (path: string) => workspace && churchHint === workspace.church_id ? `${path}?church=${encodeURIComponent(workspace.church_id)}` : path
   useEffect(() => {
-    const resize = () => { if (innerWidth < 768 || innerWidth >= 1024) setDrawerRoute(null) }
+    const resize = () => {
+      if (innerWidth < 768 || innerWidth >= 1024) {
+        setDrawerRoute(null)
+        if (drawerRoute === routeKey) requestAnimationFrame(() => document.getElementById('main-content')?.focus())
+      }
+    }
     window.addEventListener('resize', resize)
     return () => window.removeEventListener('resize', resize)
-  }, [])
-  const links = (items: NavigationItem[], icons = false, compact = false) => items.map(item => {
-    const link = <a key={item.id} href={href(item.href)} className={item.group ? 'navigation-child' : undefined} aria-current={route.id === item.id ? 'page' : icons && item.id === 'people' && nav.people.some(child => child.id === route.id) ? 'location' : undefined} data-active-group={item.id === 'people' && nav.people.some(child => child.id === route.id) || undefined}>
-    {icons && (isHome ? <HomeIcon id={item.id} /> : <Icon id={item.id} />)}<span>{isHome && workspace?.role === 'owner' && item.id === 'reports' ? 'Reports & history' : isHome && workspace?.role === 'owner' && item.id === 'audit' ? 'Activity' : item.label}</span>
-  </a>
-    if (!compact) return link
-    if (item.group) return <div key={item.id} hidden={!peopleExpanded}>{link}</div>
-    if (item.id === 'people') return <div className="home-people-navigation" key={item.id}>{link}<button type="button" aria-label="Show People destinations" aria-expanded={peopleExpanded} onClick={() => setPeopleExpanded(value => !value)}><span aria-hidden="true">{peopleExpanded ? '⌃' : '⌄'}</span></button></div>
+  }, [drawerRoute, routeKey])
+  const links = (items: NavigationItem[], surface: 'wide' | 'tablet' | 'phone', grouped = false) => items.map(item => {
+    const activeGroup = item.id === 'people' && peopleActive || item.id === 'more' && nav.more.some(child => child.id === route.id) && !nav.phone.some(child => child.id === route.id)
+    const link = <a key={item.id} href={href(item.href)} className={item.group ? 'navigation-child' : undefined} aria-current={route.id === item.id ? 'page' : activeGroup ? 'location' : undefined} data-active-group={activeGroup || undefined}>
+      <HomeIcon id={item.id} /><span>{surface === 'phone' && item.id === 'attendance' ? <>Attend<wbr />ance</> : item.label}</span>
+    </a>
+    if (grouped && item.id === 'people') return <div className="people-navigation-group" key={item.id}>
+      <div className="home-people-navigation" data-active-group={peopleActive || undefined}>{link}<button type="button" aria-label="Show People destinations" aria-controls={`${groupId}-${surface}`} aria-expanded={peopleExpanded} onClick={() => setPeopleDisclosure({ routeKey, expanded: !peopleExpanded })}><span aria-hidden="true">{peopleExpanded ? '⌃' : '⌄'}</span></button></div>
+      <div id={`${groupId}-${surface}`} className="people-destinations" hidden={!peopleExpanded}>{links(nav.people, surface)}</div>
+    </div>
     return link
   })
   const brand = <a className="brand-link" href={href('/account/home')} aria-label="MSprout home"><Brand /></a>
-  const identity = <div className="workspace-identity">{workspace ? <><div className="workspace-name">{isHome && <HomeIcon id="verified" />}<ChurchName value={workspace.name} /></div><StatusBadge tone={isHome && workspace.role === 'owner' ? 'success' : 'info'}>{workspace.role === 'owner' ? 'Owner' : 'Teacher'}</StatusBadge></> : <span>Device workspace · Online church access verified separately</span>}</div>
-  return <div className={`church-shell application-layout${isHome ? ' home-shell' : ''}`}>
+  const identity = <div className="workspace-identity">{workspace ? <><div className="workspace-name"><HomeIcon id="verified" /><ChurchName value={workspace.name} /></div><StatusBadge tone={workspace.role === 'owner' ? 'success' : 'info'}>{workspace.role === 'owner' ? 'Owner' : 'Teacher'}</StatusBadge></> : <span>Device workspace<span className="sr-only"> · Online church access verified separately</span></span>}</div>
+  return <div className={`church-shell application-layout${isHome ? ' home-shell' : ''}`} data-navigation-role={workspace?.role ?? 'device'}>
     <a className="skip-link" href="#main-content">Skip to content</a>
-    <aside className="wide-layout">{brand}<nav className="wide-navigation" aria-label="Main navigation">{links(nav.main, isHome, isHome)}</nav><ConnectivityStatus /></aside>
+    <aside className="wide-layout">{brand}<nav className="wide-navigation" aria-label="Main navigation">{links(nav.main, 'wide', true)}</nav></aside>
     <div className="church-workspace">
       <header className="workspace-header">
-        <div className="compact-brand"><Button ref={menu} variant="secondary" className="tablet-menu" onClick={() => setDrawerRoute(routeKey)} aria-haspopup="dialog" aria-expanded={drawerRoute === routeKey}>Menu</Button>{brand}</div>
-        {identity}{selector}<div className="workspace-tools"><ConnectivityStatus /><a className="protected-sync-link" href={href('/account/sync')}>Sync &amp; device</a></div>
+        <div className="compact-brand"><Button ref={menu} variant="secondary" className="tablet-menu" onClick={() => setDrawerRoute(routeKey)} aria-haspopup="dialog" aria-expanded={drawerRoute === routeKey}><HomeIcon id="more" /><span className="sr-only">Menu</span></Button>{brand}</div>
+        {identity}{selector}<div className="workspace-tools"><ConnectivityStatus /><a className="protected-sync-link" href={href('/account/sync')} aria-current={route.id === 'sync' ? 'page' : undefined}><HomeIcon id="sync" /><span>Sync &amp; device</span></a></div>
       </header>
       <div className="application-content">
         <PwaUpdateNotice />
         <main id="main-content" tabIndex={-1}>{children}</main>
       </div>
     </div>
-    <nav className={`phone-navigation phone-count-${nav.phone.length}`} aria-label="Phone navigation">{links(nav.phone, true)}</nav>
+    <nav className={`phone-navigation phone-count-${nav.phone.length}`} aria-label="Phone navigation">{links(nav.phone, 'phone')}</nav>
     <Dialog open={drawerRoute === routeKey} title="Navigation" onClose={() => setDrawerRoute(null)} initialFocus={close} returnFocus={menu}>
-      <div className="tablet-drawer"><Button ref={close} variant="secondary" onClick={() => setDrawerRoute(null)}>Close navigation</Button>
-        <nav aria-label="Tablet navigation" onClick={event => { if (event.target instanceof Element && event.target.closest('a') && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) setDrawerRoute(null) }}>{links(nav.main, isHome)}</nav>
+      <div className="tablet-drawer" onClick={event => { if (event.target instanceof Element && event.target.closest('a') && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) setDrawerRoute(null) }}><div className="drawer-brand"><Button ref={close} variant="secondary" className="drawer-close" onClick={() => setDrawerRoute(null)}><HomeIcon id="more" /><span className="sr-only">Close navigation</span></Button>{brand}</div>
+        <nav aria-label="Tablet navigation">{links(nav.main, 'tablet', true)}</nav>
       </div>
     </Dialog>
   </div>

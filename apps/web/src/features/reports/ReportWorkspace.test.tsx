@@ -58,7 +58,7 @@ it('uses five GETs for warm Reports entry after fresh equivalent navigation veri
   let finish!: (value: never) => void
   vi.mocked(authRequest).mockImplementation((...args) => args[0] === '/auth/session' ? new Promise(resolve => { finish = resolve }) : implementation(...args))
   vi.mocked(authRequest).mockClear()
-  fireEvent.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Reports' }))
+  fireEvent.click(within(screen.getByRole('navigation', { name: 'Main navigation' })).getByRole('link', { name: 'Reports & history' }))
   await screen.findByText('Finalized attendance totals')
   const displayed = totals()
   await act(async () => { finish(session() as never) })
