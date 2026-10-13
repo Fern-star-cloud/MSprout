@@ -113,6 +113,6 @@ export function AppRouter() {
     <header className="brand"><h1><Brand /></h1><p>Children&apos;s ministry, ready anywhere.</p></header>
     <PwaUpdateNotice />
     <main id="main-content" tabIndex={-1}>{route ? <PublicPage key={route.id} route={route} fragment={entry.fragment} navigate={navigate} /> : <section className="auth-card"><h2>Page not found</h2><p>Choose a supported MSprout destination.</p><a href="/account/home">Open Home</a></section>}</main>
-    <footer><ConnectivityStatus /><a href="/account">Account</a><a href="/profiles">Device profiles</a><a href="/account/attendance">Attendance</a><a href="/account/sync">Sync &amp; device</a><a href="/account/platform-login">Platform administration</a></footer>
+    {route?.id !== 'profiles' && <footer><ConnectivityStatus /><a href="/account">Account</a><a href="/profiles">Device profiles</a><a href="/account/attendance">Attendance</a><a href="/account/sync">Sync &amp; device</a><a href="/account/platform-login">Platform administration</a></footer>}
   </div>}</div>
 }

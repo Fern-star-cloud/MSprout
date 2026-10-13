@@ -7,6 +7,7 @@ import { accountEntry } from '../auth/account-session'
 import { authRequest, safeAuthMessage } from '../auth/transport'
 import { readPreparationAccess, validatePreparationBootstrap, type PreparationAccess } from './preparation-access'
 import '../../styles/preparation.css'
+import { HomeIcon } from '../../components/ui/HomeIcon'
 
 type PreparationStore = Pick<LocalProfileStore, 'listProfiles' | 'createProfile' | 'unlockProfile' | 'saveBootstrap' | 'isUnlocked' | 'isLeaseValid' | 'lockProfile' | 'onLock'>
 const interrupted = (profile: ProfileRecord) => profile.leaseExpiresAt === null && profile.leaseSignature === null && profile.requiresReauthentication === true
@@ -157,9 +158,9 @@ export function DevicePreparationScreen({ store = profileStore, onAttendance }: 
   }
 
   return <section className="auth-card device-preparation" aria-busy={busy}>
-    <p className="eyebrow">Encrypted device preparation</p><h1>Prepare this device</h1>
+    <header className="preparation-heading"><span className="preparation-icon"><HomeIcon id="device" /></span><div><p className="eyebrow">Encrypted device preparation</p><h1>Prepare this device</h1></div></header>
     <p>Verify church access, protect this profile with a local PIN, then save the authorized roster securely.</p>
-    <ol className="preparation-steps" aria-label="Preparation stages">{['Verified access', 'Local PIN', 'Encrypted readiness'].map((label, index) => <li key={label} aria-current={stage === index + 1 ? 'step' : undefined}><span>{index + 1}</span>{label}</li>)}</ol>
+    <ol className="preparation-steps" aria-label="Preparation stages">{['Online sign-in', 'Verify church', 'Choose PIN', 'Ready'].map((label, index) => <li key={label} aria-current={(ready ? 3 : stage === 1 ? access ? 1 : 0 : 2) === index ? 'step' : undefined}><span>{index + 1}</span>{label}</li>)}</ol>
     <h2 ref={stageHeading} tabIndex={-1}>{ready ? 'Ready for offline attendance' : stage === 1 ? '1. Verify your church access' : stage === 2 ? '2. Protect this device profile' : '3. Save encrypted data'}</h2>
     {busy && <LoadingState label={stage === 3 ? 'Verifying access and saving encrypted data…' : 'Checking verified access…'} />}
     {error && <ErrorSummary message={error} />}
@@ -175,8 +176,8 @@ export function DevicePreparationScreen({ store = profileStore, onAttendance }: 
     </>}
     {stage === 2 && access && !busy && <form noValidate onSubmit={event => { event.preventDefault(); void prepare() }}>
       <p>This PIN unlocks only the encrypted local profile. It is separate from your church-account password. There is no PIN-reset shortcut.</p>
-      <Field label={selection ? 'Existing local PIN' : 'Choose a 6–12 digit local PIN'} inputMode="numeric" type="password" autoComplete={selection ? 'off' : 'new-password'} value={pin} onChange={event => setPin(event.target.value)} error={pinError} hint="Use 6–12 digits; leading zeros are preserved." required />
-      {!selection && <Field label="Confirm local PIN" type="password" inputMode="numeric" autoComplete="new-password" value={confirmation} onChange={event => setConfirmation(event.target.value)} required />}
+      <Field label={selection ? 'Existing local PIN' : 'Choose a 6–12 digit local PIN'} inputMode="numeric" type="password" pattern="[0-9]{6,12}" minLength={6} maxLength={12} autoComplete={selection ? 'off' : 'new-password'} value={pin} onChange={event => setPin(event.target.value)} error={pinError} hint="Use 6–12 digits; leading zeros are preserved." required />
+      {!selection && <Field label="Confirm local PIN" type="password" inputMode="numeric" pattern="[0-9]{6,12}" minLength={6} maxLength={12} autoComplete="new-password" value={confirmation} onChange={event => setConfirmation(event.target.value)} error={pinError && pin === confirmation ? undefined : pinError || undefined} required />}
       <Button type="submit" disabled={remaining > 0}>{selection ? 'Continue encrypted preparation' : 'Prepare encrypted profile'}</Button>
     </form>}
     {ready && access && <><StatusBanner tone="success" live>Authorized data has been saved durably with encryption. No attendance draft or upload event was created by preparation.</StatusBanner><p>Opening Attendance is a separate action.</p><Button onClick={onAttendance}>Open Attendance</Button><Button variant="secondary" onClick={() => { if (target.current) store.lockProfile(target.current.id) }}>Lock profile</Button></>}

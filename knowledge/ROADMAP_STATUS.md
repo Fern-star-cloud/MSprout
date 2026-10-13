@@ -1,5 +1,18 @@
 # Roadmap Status
 
+## UX-05 — stakeholder-approved / qualified final task checkpoint (2026-10-13)
+
+Explicit final approval closes all Pack02 visual findings, including desktop/mobile profile/preparation/state/removal presentation, compact mobile header, single status and profile-only footer removal. [Accepted report](../docs/qa/ux-05-device-profiles-visual-review.md). The authorized final task commit is `feat: finalize encrypted device profiles UX-05`, parent approved UX-04 `d7c7236a7b23cc392ba6373f51004e474f8067ec`, on `feat/mvp-foundation`. Resolve its actual SHA and verified push via Git history and `.git/msprout-ux05-finalization-20261013/finalization.json`; GREEN is assigned only after successful commit/push, clean worktree, matching local/upstream/live HEAD, 0/0 and unchanged main.
+
+Technical/security qualification is retained by source/effect evidence; no unresolved findings. Protected stash/originals/backups and previous tasks remain intact. Earlier pending entries below are historical. UX-06, UX-07 and UX-08 are unstarted/unapproved; stop after UX-05, no merge/deployment.
+
+
+
+## UX-05 - implemented; stakeholder visual approval pending (2026-10-13)
+
+YELLOW / authorized UX-05 only. Device picker/PIN/preparation/locked/retry/recovery/guarded removal presentation is technically qualified and reviewable in [the UX-05 report](../docs/qa/ux-05-device-profiles-visual-review.md). Entry and unchanged HEAD d7c7236a7b23cc392ba6373f51004e474f8067ec on feat/mvp-foundation confirms approved/pushed UX-04.77 qualified browser outcomes,121 focused and719 aggregate frontend proof with current applicable/security gates and preserved backend/contract baselines. Original artwork and approved blue/navy/MSprout identity remain authority; visual approval is not inferred from tests. Unstaged/uncommitted/unpushed, protected stash/backups preserved. Stop for explicit stakeholder visual acceptance; separate finalization authorization follows. UX-06-UX-08, merge and deployment untouched/unapproved. Previous UX-04 stop entries below are historical.
+
+
 ## UX-04 - final approval / implementation / validation GREEN (2026-10-13)
 
 Final stakeholder visual approval granted, including all Owner/Teacher navigation/People/More/drawer, branding/fidelity/density, church and compact-ministry/full-name protections. [Accepted review](../docs/qa/ux-04-shared-navigation-review.md). Exact approved scope qualifies for the separately authorized single commit/normal push `feat: finalize approved UX-04 shared navigation`, parent approved UX-03 496c2245b4987e43787ad454bfb12005fed71a5b; actual SHA/synchronization resolve through Git history and .git/msprout-ux04-finalization-20261013/finalization.json. Earlier YELLOW entries are historical. Protected unrelated stash/backups retained; no merge/deployment or UX-05-UX-08. Stop after UX-04 finalization.

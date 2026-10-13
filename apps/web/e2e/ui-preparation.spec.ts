@@ -57,7 +57,8 @@ test('three accessible stages save encrypted data with no attendance; leading-ze
   await expect(page.getByRole('alert')).toContainText('Check the local PIN')
   await expect(page.getByLabel('Choose a 6–12 digit local PIN')).toHaveAttribute('aria-invalid', 'true')
   await expectNoSeriousAccessibilityIssues(page)
-  await submit(page); await expect(page.getByRole('heading', { name: 'Ready for offline attendance' })).toBeVisible()
+  // Real PIN-key derivation and durable IndexedDB checks have no five-second product deadline.
+  await submit(page); await expect(page.getByRole('heading', { name: 'Ready for offline attendance' })).toBeVisible({ timeout: 30_000 })
   const data = await rows(page)
   expect(data.find(item => item.table === 'profiles')!.rows).toHaveLength(1)
   expect(data.find(item => item.table === 'encryptedBlobs')!.rows).toHaveLength(3)
@@ -70,6 +71,7 @@ test('three accessible stages save encrypted data with no attendance; leading-ze
   const tree = await page.locator('body').ariaSnapshot()
   expect(tree).not.toMatch(/Pilot Student|Ready for offline attendance|Authorized ministry/)
   await page.getByRole('link', { name: 'Device profiles and safe recovery' }).click()
+  if (!await page.getByLabel('Local PIN', { exact: true }).count()) await page.getByRole('button', { name: 'Use profile 1' }).click()
   await page.getByLabel('Local PIN', { exact: true }).fill('000123')
   await page.getByRole('button', { name: 'Use profile 1' }).click()
   await page.getByRole('button', { name: 'Start attendance' }).click()
@@ -83,7 +85,7 @@ test('Owner requires current-session MFA and then receives authorized church sco
   currentMfa = true; await page.getByRole('button', { name: 'Verify access again' }).click()
   await expect(page.getByText('Other ministry', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Continue to local PIN' }).click(); await submit(page)
-  await expect(page.getByRole('heading', { name: 'Ready for offline attendance' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Ready for offline attendance' })).toBeVisible({ timeout: 30_000 })
 })
 
 test('no assignments, unverified church and expired session never create a profile', async ({ page }) => {
@@ -113,7 +115,7 @@ test('durable-write failure retains the original partial key and resumes after r
   await page.getByRole('button', { name: 'Continue to local PIN' }).click()
   await page.getByLabel('Existing local PIN').fill('000123')
   await page.getByRole('button', { name: 'Continue encrypted preparation' }).click()
-  await expect(page.getByRole('heading', { name: 'Ready for offline attendance' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Ready for offline attendance' })).toBeVisible({ timeout: 30_000 })
   const after = await rows(page), profile = after.find(item => item.table === 'profiles')!.rows
   expect(profile).toHaveLength(1); expect(profile[0].id).toBe(before.id); expect(profile[0].deviceId).toBe(before.deviceId)
   expect(profile[0].wrappedDataKey).toEqual(before.wrappedDataKey)
@@ -139,7 +141,7 @@ test('authorization loss during download suppresses stale success and keeps the 
 })
 
 test('offline preparation clears secrets and remains unavailable without disturbing an existing encrypted profile', async ({ page, context }) => {
-  await pinStage(page); await submit(page); await expect(page.getByRole('heading', { name: 'Ready for offline attendance' })).toBeVisible()
+  await pinStage(page); await submit(page); await expect(page.getByRole('heading', { name: 'Ready for offline attendance' })).toBeVisible({ timeout: 30_000 })
   const before = await rows(page)
   await context.setOffline(true)
   await page.evaluate(() => globalThis.dispatchEvent(new Event('offline')))

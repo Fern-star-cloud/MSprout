@@ -1,5 +1,32 @@
 # MinistrySprout Knowledge Index
 
+## UX-05 accepted visual review and final delivery
+
+UX-05 has explicit final stakeholder visual approval; all visual findings are closed. Read [the accepted review](../docs/qa/ux-05-device-profiles-visual-review.md) for final Pack02 desktop/mobile captures, exact 23 paths, private workflows, focused/retained evidence and preservation. The authorized task commit is `feat: finalize encrypted device profiles UX-05`, parent `d7c7236a7b23cc392ba6373f51004e474f8067ec`; actual SHA and delivery/GREEN synchronization resolve through Git and `.git/msprout-ux05-finalization-20261013/finalization.json`, only after successful commit/push. Preserve UX-03/UX-04 and all protected work. Earlier YELLOW entries are historical. Stop after UX-05; UX-06/07/08, merge and deployment remain unauthorized.
+
+
+
+## UX-05 one-row mobile header correction — 2026-10-13
+
+YELLOW; footer removal is stakeholder-accepted. CSS-only alignment keeps Back, full Online/Offline text and unchanged approved MSprout branding in one 57px header at 320/360/390/768px; desktop 1024/1440 geometry remains exact. Existing padding, typography, logo dimensions, 44px Back target and status accessibility are preserved. [Latest review](../docs/qa/ux-05-device-profiles-visual-review.md) supplies fresh 390×900 actual screenshot/Pack02 comparison, exact six correction paths and measured proof. Previous second-row screenshots/geometry are historical.
+
+Focused native 8/8 PASS (Chrome desktop/mobile, WebKit phone/tablet), plus 4 picker-order closure cases and 1 duplicate final screenshot closure PASS. Picker order is preserved by scoping flex ordering to headers with Back; PIN results remain valid by effect. Final build/TS check and changed-test ESLint PASS; OWASP 76/3 zero findings/errors/timeouts. Retain prior 43/2 unit and unchanged aggregate/backend/contracts/audits/security guarantees by effect; no full-suite repetition. Final source/secret/preservation/cleanup receipt: .git/msprout-ux05-header-20261013/final-preservation.json. HEAD d7c7236a7b23cc392ba6373f51004e474f8067ec, existing 22 candidate paths unstaged/uncommitted/unpushed; protected work and historical knowledge preserved. No merge/deploy/UX-06. Stakeholder visual approval remains pending.
+
+
+## UX-05 stakeholder footer/connectivity correction — 2026-10-13
+
+YELLOW — stakeholder visual approval pending. Profile-route public footer removed only by resolved profiles ID; four device links unchanged. One polite atomic browser-connectivity header remains at desktop and mobile PIN/locked widths, with truthful server/sign-in caveat. Scoped compact CSS preserves the desktop header and provides a 21px mobile status row. [Updated review](../docs/qa/ux-05-device-profiles-visual-review.md) contains actual 1024×900 desktop and 390×900 unlock captures, original-artwork comparisons, exact correction files and current CSS.
+
+Current focused 43/2 PASS; final native 8/8 PASS across Chrome desktop/mobile and WebKit phone/tablet plus one duplicate screenshot closure PASS. Typecheck/lint/final build/final test-input lint and scoped OWASP76/11 PASS. Prior frontend719/79, focused121/6, browser77 and backend/contracts/audits/structure/security evidence retained only for unchanged guarantees; no new aggregate/full backend run. Receipt and final source/secret/preservation checks: .git/msprout-ux05-footer-20261013/final-preservation.json. Earlier profile header/footer pictures are historical.
+
+HEAD/tracking/live feature d7c7236a7b23cc392ba6373f51004e474f8067ec; main5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f. Existing UX-05 work, protected stash/backups, private environment/SQLite and all unrelated source preserved. Unstaged/uncommitted/unpushed; no merge/deployment/UX-06. Stop for stakeholder visual approval.
+
+
+## Current UX-05 visual review checkpoint
+
+UX-05 alone is now authorized, implemented and technically qualified; YELLOW pending explicit stakeholder visual approval. Read [the device-profiles review](../docs/qa/ux-05-device-profiles-visual-review.md) for original Pack02/actual screenshots, exact scope, computed CSS,77 qualified browser outcomes, validated security/preservation and remaining visual differences. Unstaged/uncommitted/unpushed at approved UX-04 d7c7236a7b23cc392ba6373f51004e474f8067ec. Preserve the protected stash/backups and approved UX-03/UX-04 identity/navigation. No commit/push or UX-06-UX-08; finalization is separately authorized after visual acceptance. Older UX-04-only stop language below is historical.
+
+
 ## Current UX-04 final approval and handoff
 
 UX-04 has explicit final stakeholder visual approval, including compact ministry-name correction/full-name access. Read [the accepted review](../docs/qa/ux-04-shared-navigation-review.md) for exact committed scope, qualified evidence and preserved design/data/accessibility/security decisions. The one reviewed feature-branch finalization is identified by `feat: finalize approved UX-04 shared navigation`; resulting SHA/synchronization resolve in Git/current finalization receipt. All older pending/YELLOW review entries below are historical. Preserve [existing visual governance](../docs/superpowers/specs/2026-10-13-stakeholder-visual-clarification.md) and the unrelated protected stash/backups. Stop after UX-04; no merge, deployment or UX-05-UX-08.

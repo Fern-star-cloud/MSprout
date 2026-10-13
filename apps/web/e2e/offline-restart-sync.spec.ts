@@ -60,6 +60,7 @@ test('offline attendance survives browser closure and converges exactly once aft
   const reopened = await context.newPage()
   await reopened.goto(`/profiles?church=${churchId}`)
   await context.setOffline(true)
+  if (!await reopened.getByLabel('Local PIN', { exact: true }).count()) await reopened.getByRole('button', { name: 'Use profile 1' }).click()
   await reopened.getByLabel('Local PIN').fill('184629')
   await reopened.getByRole('button', { name: 'Use profile 1' }).click()
   await reopened.getByRole('button', { name: 'Resume attendance' }).click()
@@ -68,7 +69,9 @@ test('offline attendance survives browser closure and converges exactly once aft
 
   await context.setOffline(false)
   await reopened.goto(`/profiles?church=${churchId}`)
+  if (!await reopened.getByLabel('Local PIN', { exact: true }).count()) await reopened.getByRole('button', { name: 'Use profile 1' }).click()
   await reopened.getByLabel('Local PIN').fill('184629')
+  if (!await reopened.getByRole('button', { name: 'Refresh authorization and sync' }).isVisible()) await reopened.locator('.profile-recovery > summary').click()
   await reopened.getByRole('button', { name: 'Refresh authorization and sync' }).click()
   await expect.poll(() => outboxCount(reopened), { timeout: 10_000 }).toBe(0)
   expect(pushAttempts).toBe(3)

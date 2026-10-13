@@ -66,9 +66,12 @@ async function addUncertainWork(page: Page) {
 }
 
 async function recover(page: Page) {
+  if (!await page.getByLabel('Local PIN', { exact: true }).count()) await page.getByRole('button', { name: 'Use profile 1' }).click()
   await page.getByLabel('Local PIN', { exact: true }).fill('184629')
+  if (!await page.getByRole('button', { name: 'Refresh authorization and sync' }).isVisible()) await page.locator('.profile-recovery > summary').click()
   await page.getByRole('button', { name: 'Refresh authorization and sync' }).click()
-  await expect(page.getByText(/Synchronization complete\. All download pages applied/)).toBeVisible()
+  // Real PBKDF2 and IndexedDB recovery in native WebKit can outlast the default observation budget.
+  await expect(page.getByText(/Synchronization complete\. All download pages applied/)).toBeVisible({ timeout: 30_000 })
 }
 
 test('locked profiles disclose no protected metadata in DOM or accessibility tree across responsive states', async ({ page }) => {
@@ -77,7 +80,7 @@ test('locked profiles disclose no protected metadata in DOM or accessibility tre
     const tree = await page.locator('body').ariaSnapshot()
     expect(tree).not.toMatch(/Protected Student|76543|00000000|pending uploads:|Downloads incomplete|0 pending uploads/i)
     expect(await page.locator('#root').innerHTML()).not.toMatch(/Protected Student|76543|"churchId"|"actorId"|"deviceId"/)
-    await expect(page.getByRole('button', { name: 'Remove selected profile' })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'Remove selected profile' })).toHaveCount(0)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await expectNoSeriousAccessibilityIssues(page)
   }
@@ -101,6 +104,9 @@ test('wrong PIN enforces persisted retry delay and correct unlock followed by lo
     await new Promise<void>(resolve => { tx.oncomplete = () => resolve() })
     db.close()
   })
+  await page.getByRole('button', { name: 'Use profile 1' }).click()
+  await page.locator('.profile-recovery > summary').click()
+  await page.locator('.profile-management > summary').click()
   await page.getByLabel('Local PIN', { exact: true }).fill('000000')
   await page.getByRole('button', { name: 'Unlock to manage profile' }).click()
   await expect(page.getByRole('alert')).toContainText('local PIN is incorrect')
@@ -108,6 +114,7 @@ test('wrong PIN enforces persisted retry delay and correct unlock followed by lo
   await expect(page.getByRole('button', { name: 'Use profile 1' })).toBeDisabled()
   await expect(page.getByRole('button', { name: 'Refresh authorization and sync' })).toBeDisabled()
   await page.reload()
+  await page.getByRole('button', { name: 'Use profile 1' }).click()
   await expect(page.getByText(/Try again in \d+ seconds/)).toBeVisible()
   await page.clock.fastForward(33_000)
   await expect(page.getByRole('button', { name: 'Use profile 1' })).toBeEnabled()
@@ -126,7 +133,11 @@ test('unknown local work blocks removal without deleting any encrypted records',
   const before = await snapshot(page)
   await page.getByRole('button', { name: 'Remove selected profile' }).click()
   await expect(page.getByRole('alert')).toContainText('Keep this profile')
-  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.getByRole('dialog', { name: 'This profile cannot be removed' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Cancel', exact: true })).toBeFocused()
+  await expect(page.getByRole('link', { name: 'Open Sync' })).toHaveAttribute('href', '/account/sync')
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Remove selected profile' })).toBeFocused()
   expect(await snapshot(page)).toEqual(before)
 })
 

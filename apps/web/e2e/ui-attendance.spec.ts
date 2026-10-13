@@ -143,6 +143,7 @@ test('guest cancellation writes nothing; quota recovery preserves input and encr
   const reopened = await context.newPage()
   await reopened.goto('/profiles')
   await context.setOffline(true)
+  if (!await reopened.getByLabel('Local PIN', { exact: true }).count()) await reopened.getByRole('button', { name: 'Use profile 1' }).click()
   await reopened.getByLabel('Local PIN', { exact: true }).fill('184629')
   await reopened.getByRole('button', { name: 'Use profile 1' }).click()
   await expect(reopened.getByRole('button', { name: 'Resume attendance' })).toBeEnabled()

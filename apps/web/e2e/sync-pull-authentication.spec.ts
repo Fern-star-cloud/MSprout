@@ -94,7 +94,9 @@ for (const failPull of [false, true]) {
     await page.getByRole('button', { name: 'Add guest as present' }).click()
     await expect(page.getByText(/3 pending/)).toBeVisible()
     await page.goto('/profiles')
+    if (!await page.getByLabel('Local PIN', { exact: true }).count()) await page.getByRole('button', { name: 'Use profile 1' }).click()
     await page.getByLabel('Local PIN', { exact: true }).fill('184629')
+    if (!await page.getByRole('button', { name: 'Refresh authorization and sync' }).isVisible()) await page.locator('.profile-recovery > summary').click()
     await page.getByRole('button', { name: 'Refresh authorization and sync' }).click()
     await expect.poll(() => outboxCount(page)).toBe(0)
     await expect(page).toHaveURL(/\/profiles$/)
@@ -128,7 +130,9 @@ for (const failPull of [false, true]) {
     // acknowledgements are durable and Attendance is never mounted by recovery.
     pullDenied = false
     for (let attempt = 0; attempt < 2; attempt++) {
+      if (!await page.getByLabel('Local PIN', { exact: true }).count()) await page.getByRole('button', { name: 'Use profile 1' }).click()
       await page.getByLabel('Local PIN', { exact: true }).fill('184629')
+      if (!await page.getByRole('button', { name: 'Refresh authorization and sync' }).isVisible()) await page.locator('.profile-recovery > summary').click()
       await page.getByRole('button', { name: 'Refresh authorization and sync' }).click()
       await expect(page.getByText(/Synchronization complete.*download pages/)).toBeVisible()
       await expect(page).toHaveURL(/\/profiles$/)

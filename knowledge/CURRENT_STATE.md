@@ -1,5 +1,44 @@
 # Current State
 
+## UX-05 final stakeholder approval and delivery checkpoint — 2026-10-13
+
+Stakeholder visual approval is granted for the corrected Pack 02 desktop/mobile implementation, compact one-row header, one connectivity status and profile-only footer removal. All visual findings are closed; technical/security qualification and final review have no BLOCKING/SHOULD FIX findings. [Accepted UX-05 review](../docs/qa/ux-05-device-profiles-visual-review.md) is the primary implementation/approval/evidence handoff. Earlier YELLOW/pending entries are historical.
+
+The authorized final task identity is `feat: finalize encrypted device profiles UX-05`, parent approved UX-04 `d7c7236a7b23cc392ba6373f51004e474f8067ec`, on `feat/mvp-foundation`; exact SHA and commit/normal-push verification resolve through Git history and `.git/msprout-ux05-finalization-20261013/finalization.json`. That receipt assigns GREEN only after clean worktree, matching local/upstream/live feature HEAD, 0/0 and unchanged main are verified. No later task is authorized.
+
+Validated behavior: generic private picker, masked 6–12 digit string PIN/leading zeros, actual retry, genuine locked versus expired/unknown authorization, preserved matching-account recovery/safe removal, verified encrypted preparation and unchanged sign-out/Attendance transitions. Full Online/Offline text and approved branding fit one 57px header at 320/360/390/768px; desktop geometry remains exact. Source/engines/security/contracts and qualified tests/build/browser/scanner inputs match the successful receipts. Finalization changes only documents; preservation/secret/link/whitespace/staging/Git checks supply fresh evidence.
+
+Protected stash `1e104f06fbe3091b54e3916f612668b93f0107b4`, nine original blobs, ten backups, private environment/SQLite and unrelated source are preserved. Screenshots/runner artifacts remain ignored under `.git`; no human browser/PostgreSQL data was operated on. STOP after UX-05: no UX-06/07/08, merge or deployment.
+
+
+
+## UX-05 one-row mobile header correction — 2026-10-13
+
+YELLOW; footer removal is stakeholder-accepted. CSS-only alignment keeps Back, full Online/Offline text and unchanged approved MSprout branding in one 57px header at 320/360/390/768px; desktop 1024/1440 geometry remains exact. Existing padding, typography, logo dimensions, 44px Back target and status accessibility are preserved. [Latest review](../docs/qa/ux-05-device-profiles-visual-review.md) supplies fresh 390×900 actual screenshot/Pack02 comparison, exact six correction paths and measured proof. Previous second-row screenshots/geometry are historical.
+
+Focused native 8/8 PASS (Chrome desktop/mobile, WebKit phone/tablet), plus 4 picker-order closure cases and 1 duplicate final screenshot closure PASS. Picker order is preserved by scoping flex ordering to headers with Back; PIN results remain valid by effect. Final build/TS check and changed-test ESLint PASS; OWASP 76/3 zero findings/errors/timeouts. Retain prior 43/2 unit and unchanged aggregate/backend/contracts/audits/security guarantees by effect; no full-suite repetition. Final source/secret/preservation/cleanup receipt: .git/msprout-ux05-header-20261013/final-preservation.json. HEAD d7c7236a7b23cc392ba6373f51004e474f8067ec, existing 22 candidate paths unstaged/uncommitted/unpushed; protected work and historical knowledge preserved. No merge/deploy/UX-06. Stakeholder visual approval remains pending.
+
+
+## UX-05 stakeholder footer/connectivity correction — 2026-10-13
+
+YELLOW — stakeholder visual approval pending. Profile-route public footer removed only by resolved profiles ID; four device links unchanged. One polite atomic browser-connectivity header remains at desktop and mobile PIN/locked widths, with truthful server/sign-in caveat. Scoped compact CSS preserves the desktop header and provides a 21px mobile status row. [Updated review](../docs/qa/ux-05-device-profiles-visual-review.md) contains actual 1024×900 desktop and 390×900 unlock captures, original-artwork comparisons, exact correction files and current CSS.
+
+Current focused 43/2 PASS; final native 8/8 PASS across Chrome desktop/mobile and WebKit phone/tablet plus one duplicate screenshot closure PASS. Typecheck/lint/final build/final test-input lint and scoped OWASP76/11 PASS. Prior frontend719/79, focused121/6, browser77 and backend/contracts/audits/structure/security evidence retained only for unchanged guarantees; no new aggregate/full backend run. Receipt and final source/secret/preservation checks: .git/msprout-ux05-footer-20261013/final-preservation.json. Earlier profile header/footer pictures are historical.
+
+HEAD/tracking/live feature d7c7236a7b23cc392ba6373f51004e474f8067ec; main5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f. Existing UX-05 work, protected stash/backups, private environment/SQLite and all unrelated source preserved. Unstaged/uncommitted/unpushed; no merge/deployment/UX-06. Stop for stakeholder visual approval.
+
+
+## UX-05 encrypted device profiles - visual approval checkpoint (2026-10-13)
+
+YELLOW / stakeholder visual approval pending. Authorized UX-05 only, implemented and technically qualified; unstaged/uncommitted/unpushed. Entry/current feat/mvp-foundation HEAD and live/tracking feature match d7c7236a7b23cc392ba6373f51004e474f8067ec, 0/0; origin/main remains 5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f. Approved UX-03/UX-04 source/identity remains intact. Earlier UX-04 stop entries below are historical; current explicit scope authorizes UX-05 implementation only, then this review stop.
+
+[UX-05 review](../docs/qa/ux-05-device-profiles-visual-review.md) supplies original Pack02-versus-production comparisons, exact files, native screenshots, computed CSS, justified differences and all evidence limitations. Generic private picker -> single masked 6-12 digit string PIN with real retry deadline; genuine locked/expired/unavailable distinctions, matching-account recovery and guarded removal/cancel. Preparation retains verified membership/Owner MFA/Teacher scope, matching PIN, durable encryption/readiness and partial-creation preservation. Correct PIN does not renew an expired lease; unreadable queue count is independently unknown. Role-neutral church-account guidance and explicit password-reset/local-decryption distinction infer no offline role. No API/store/crypto/lease/retry/removal-engine/sync-engine/dependency/asset/global-church-navigation change.
+
+Aggregate frontend719/79 PASS; latest focused121/6 PASS plus final25-test copy closure; build/typecheck/lint, current pnpm/Composer audits/Composer strict/Pint/structure pass.77 qualified browser outcomes (64 four-target native screen cases +13 Chrome regression cases); latest affected density/count/copy closures supersede corresponding earlier outcomes, remaining valid evidence retained by effect. OWASP76/32 plus76/2 literal-copy closure: zero findings/errors/timeouts, full relevant parsing/test coverage. Current-source/final-document Gitleaks, exact hashes and cleanup/Git receipts resolve in .git/msprout-ux05-20261013/final-preservation.json. Backend306/3626, unchanged contract/history/full-app security/PWA guarantees retained; no fresh backend/root verify claim. Installed native WebKit2336 and process-local system trust resolved tooling/TLS; real-crypto completion observation budgets30s preserve all safety assertions/policy.
+
+Protected stash1e104f06fbe3091b54e3916f612668b93f0107b4, nine originals and ten backups are unchanged. No human/live browser profile, PostgreSQL or existing saved work was operated on; private environment/SQLite and unrelated files match entry hashes. Ignore-only artifacts retained for review. STOP for explicit visual acceptance; finalization remains separately authorized. No commit/push/merge/deploy or UX-06-UX-08.
+
+
 ## UX-04 final stakeholder approval and finalization checkpoint - 2026-10-13
 
 GREEN: final stakeholder visual approval explicitly granted for complete Owner/Teacher navigation, People/More/drawer, identity/fidelity/density and responsive names including the final two-line compact ministry correction/full-name disclosure. [Accepted UX-04 review](../docs/qa/ux-04-shared-navigation-review.md). Preserve all approved UX-03/UX-04 decisions and project-wide artwork/spacing/field-appropriate text safety; real state, authorization, encrypted offline handling and synchronization remain unchanged.

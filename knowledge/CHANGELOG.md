@@ -1,5 +1,13 @@
 # Development Changelog
 
+## 2026-10-13 — stakeholder-approved UX-05 encrypted device profiles
+
+Pack02 profile picker/PIN/preparation/locked/retry/recovery/guarded-removal presentation is approved. Generic identities stay private before unlock, PIN is masked with existing digit/retry policy, expired leases require real reauthentication, and guarded removal preserves uncertain work. The accepted desktop device rail remains four items; redundant public profile footer is removed; one accessible browser-connectivity label and unchanged MSprout branding fit a compact single-row mobile header. Existing authorization/encryption/storage/synchronization engines remain intact.
+
+Qualified technical/security/visual evidence, final review and protected stash/nine originals/ten backups are preserved. Task identity: `feat: finalize encrypted device profiles UX-05`, parent UX-04 `d7c7236a7b23cc392ba6373f51004e474f8067ec`; exact SHA/successful delivery resolve through Git and the finalization receipt. [Accepted UX-05 review](../docs/qa/ux-05-device-profiles-visual-review.md). Stop after verified UX-05 delivery; no UX-06/07/08, merge or deployment.
+
+
+
 ## 2026-10-13 - UX-04 stakeholder-approved shared navigation
 
 Final stakeholder visual approval grants complete Owner/Teacher navigation, People grouping, More panels, branded accessible drawer, Pack01 spacing/proportions and responsive complete-name safety. Two-line compact ministry/record names preserve normal pixels and full accessible/detail values; existing roles, routes, truthful states and data/security/offline/synchronization behavior remain. Qualified source/focused/browser/security evidence and protected stash/backups are retained. Final task identity resolves through reviewed subject `feat: finalize approved UX-04 shared navigation`, parent UX-03 496c2245b4987e43787ad454bfb12005fed71a5b, [accepted review](../docs/qa/ux-04-shared-navigation-review.md) and Git/finalization receipt. Stop after this authorized finalization; no merge/deploy or UX-05-UX-08.

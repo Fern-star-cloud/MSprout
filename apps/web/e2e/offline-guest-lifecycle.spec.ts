@@ -18,7 +18,7 @@ test.beforeEach(async ({ context }) => {
 
 test('preparation requires verified membership rather than a raw Church ID', async ({ page }) => {
   await page.goto(`/profiles?church=${churchId}`)
-  await page.getByRole('link', { name: 'Add profile' }).click()
+  await page.getByRole('link', { name: 'Prepare this device', exact: true }).click()
   await expect(page.getByText('Online church sign-in is required.', { exact: false })).toBeVisible()
   await expect(page.getByLabel('Church ID')).toHaveCount(0)
   await expect(page.getByLabel('Choose a 6–12 digit local PIN')).toHaveCount(0)
@@ -90,6 +90,7 @@ test('a hidden page locks the key, clears stale attendance controls, and preserv
   await context.setOffline(false)
   await page.getByRole('link', { name: 'Unlock an existing device profile' }).click()
   await context.setOffline(true)
+  if (!await page.getByLabel('Local PIN', { exact: true }).count()) await page.getByRole('button', { name: 'Use profile 1' }).click()
   await page.getByLabel('Local PIN', { exact: true }).fill('184629')
   await expect(page.getByLabel('Local PIN', { exact: true })).toHaveAttribute('type', 'password')
   await page.getByRole('button', { name: 'Use profile 1' }).click()

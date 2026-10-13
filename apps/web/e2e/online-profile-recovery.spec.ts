@@ -84,6 +84,7 @@ test('online profile use logs out a recent session; signing in afterward opens R
   await signIn()
   expect(authentication.slice(-2)).toEqual(['login:200', 'session:200'])
   await page.goto('/profiles')
+  if (!await page.getByLabel('Local PIN', { exact: true }).count()) await page.getByRole('button', { name: 'Use profile 1' }).click()
   await page.getByLabel('Local PIN', { exact: true }).fill('184629')
   await page.getByRole('button', { name: 'Use profile 1' }).click()
   await page.getByRole('button', { name: 'Resume attendance' }).click()

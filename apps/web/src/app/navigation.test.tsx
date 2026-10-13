@@ -24,6 +24,29 @@ beforeEach(() => {
 })
 afterEach(() => {cleanup();vi.restoreAllMocks();vi.clearAllMocks();history.replaceState(null,'','/')})
 
+it.each(['/profiles', '/', '/account/profiles'])('omits the public footer only for the profile flow at %s', async path => {
+  vi.spyOn(profileStore, 'listProfiles').mockResolvedValue([])
+  history.replaceState(null, '', path)
+  render(<App />)
+  await screen.findByRole('heading', { name: 'Choose a device profile' })
+  expect(screen.queryByRole('contentinfo')).toBeNull()
+  expect(document.querySelector('footer')).toBeNull()
+  expect(document.querySelectorAll('.connectivity-status,.device-entry-connection')).toHaveLength(1)
+  expect(screen.getAllByRole('status').filter(status => status.textContent?.startsWith('Browser connectivity:'))).toHaveLength(1)
+  const device = within(screen.getByRole('navigation', { name: 'Device navigation' }))
+  expect(device.getAllByRole('link').map(link => link.textContent)).toEqual(['Use this device', 'Prepare device', 'Sync & device', 'Help'])
+  expect(device.getByRole('link', { name: 'Prepare device' }).getAttribute('href')).toBe('/account/prepare')
+  expect(device.getByRole('link', { name: 'Sync & device' }).getAttribute('href')).toBe('/account/sync')
+})
+
+it.each(['/account/login', '/account/application', '/account'])('preserves the shared public footer at %s', async path => {
+  history.replaceState(null, '', path)
+  render(<App />)
+  const footer = within(screen.getByRole('contentinfo'))
+  expect(footer.getAllByRole('link').map(link => link.textContent)).toEqual(['Account', 'Device profiles', 'Attendance', 'Sync & device', 'Platform administration'])
+  expect(footer.getByRole('status').textContent).toBe('Online')
+})
+
 it('Home presents a verified church and supported actions without invented metrics', async () => {
   history.replaceState(null,'','/account/home')
   render(<App />)
@@ -54,7 +77,7 @@ it('Owner Home compacts People links without dropping authorized destinations or
 it('Teacher Home and navigation expose only assignment-scoped destinations', async () => {
   role='teacher';history.replaceState(null,'','/account/home')
   render(<App />)
-  await screen.findByText('Assigned ministry')
+  await screen.findByRole('heading', { name: 'Assigned ministry' })
   expect(screen.queryByText('Unassigned ministry')).toBeNull()
   const phone=within(screen.getByRole('navigation',{name:'Phone navigation'}))
   expect(phone.getAllByRole('link').map(link=>link.textContent)).toEqual(['Home','Attendance','Sync','More'])

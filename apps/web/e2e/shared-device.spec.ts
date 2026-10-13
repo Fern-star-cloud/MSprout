@@ -24,6 +24,7 @@ test('two encrypted PIN profiles keep assigned rosters and actors separate', asy
 
   await page.goto(`/profiles?church=${churchId}`)
   await page.getByLabel(/Profile 1/).check()
+  if (!await page.getByLabel('Local PIN', { exact: true }).count()) await page.getByRole('button', { name: 'Use profile 1' }).click()
   await page.getByLabel('Local PIN').fill('184629')
   await page.getByRole('button', { name: 'Use profile 1' }).click()
   await page.getByRole('button', { name: 'Resume attendance' }).click()
