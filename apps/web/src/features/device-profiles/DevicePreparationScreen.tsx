@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type FocusEvent } from 'react'
 import { Button, ErrorSummary, Field, LoadingState, StatusBadge, StatusBanner } from '../../components/ui/Foundations'
 import { ProfilePinError, profileStore, type LocalProfileStore } from '../../offline/profile-store'
 import type { OfflineBootstrap, ProfileRecord } from '../../offline/schema'
@@ -8,6 +8,7 @@ import { authRequest, safeAuthMessage } from '../auth/transport'
 import { readPreparationAccess, validatePreparationBootstrap, type PreparationAccess } from './preparation-access'
 import '../../styles/preparation.css'
 import { HomeIcon } from '../../components/ui/HomeIcon'
+import { ChurchName } from '../../components/ui/CompactText'
 
 type PreparationStore = Pick<LocalProfileStore, 'listProfiles' | 'createProfile' | 'unlockProfile' | 'saveBootstrap' | 'isUnlocked' | 'isLeaseValid' | 'lockProfile' | 'onLock'>
 const interrupted = (profile: ProfileRecord) => profile.leaseExpiresAt === null && profile.leaseSignature === null && profile.requiresReauthentication === true
@@ -20,6 +21,10 @@ export function DevicePreparationScreen({ store = profileStore, onAttendance }: 
   const [selection, setSelection] = useState('')
   const [pin, setPin] = useState(''), [confirmation, setConfirmation] = useState('')
   const [pinError, setPinError] = useState(''), [error, setError] = useState('')
+  const [pinErrorField, setPinErrorField] = useState<'pin' | 'confirmation'>('pin')
+  const [showPin, setShowPin] = useState(false), [showConfirmation, setShowConfirmation] = useState(false)
+  const [progress, setProgress] = useState('Checking verified access…')
+  const [leaseDeadline, setLeaseDeadline] = useState<string | null>(null)
   const [busy, setBusy] = useState(false), [ready, setReady] = useState(false)
   const [retryUntil, setRetryUntil] = useState(0), [clock, setClock] = useState(Date.now)
   const mounted = useRef(false), generation = useRef(0), operating = useRef(false)
@@ -33,7 +38,7 @@ export function DevicePreparationScreen({ store = profileStore, onAttendance }: 
   const verify = useCallback(async (church?: string) => {
     if (operating.current) return
     const run = ++generation.current
-    setBusy(true); setError(''); setAccess(null); setWorkspaces([]); setReady(false); setStage(1); setPin(''); setConfirmation('')
+    setBusy(true); setError(''); setAccess(null); setWorkspaces([]); setReady(false); setStage(1); setPin(''); setConfirmation(''); setShowPin(false); setShowConfirmation(false); setLeaseDeadline(null)
     try {
       const result = await readPreparationAccess(church)
       const values = await store.listProfiles()
@@ -63,7 +68,7 @@ export function DevicePreparationScreen({ store = profileStore, onAttendance }: 
     const invalidate = (event: Event) => {
       const detail = (event as CustomEvent<{ status?: number; churchId?: string }>).detail
       if (detail?.status === 403 && detail.churchId && detail.churchId !== selectedChurch.current) return
-      cancel(); setAccess(null); setWorkspaces([]); setReady(false); setStage(1); setPin(''); setConfirmation('')
+      cancel(); setAccess(null); setWorkspaces([]); setReady(false); setStage(1); setPin(''); setConfirmation(''); setShowPin(false); setShowConfirmation(false); setLeaseDeadline(null)
       if (!operating.current) setBusy(false)
       setError('Access or device state changed. Keep this profile and its existing PIN. Connect and verify access again; do not clear browser storage.')
       if (target.current) store.lockProfile(target.current.id)
@@ -92,9 +97,10 @@ export function DevicePreparationScreen({ store = profileStore, onAttendance }: 
     if (operating.current || !access || !access.ministries.length || remaining) return
     if (uncertainDevice.current && !target.current) { setError('The previous creation could not be reconciled. Keep browser storage and check Device profiles before preparing another profile.'); return }
     if (!/^\d{6,12}$/.test(pin) || (!selection && pin !== confirmation)) {
+      setPinErrorField(!/^\d{6,12}$/.test(pin) ? 'pin' : 'confirmation')
       setPinError(!/^\d{6,12}$/.test(pin) ? 'Enter 6–12 digits. Leading zeros are kept.' : 'The PINs must match. Enter them again.'); setError('Check the local PIN fields before continuing.'); return
     }
-    operating.current = true; setBusy(true); setError(''); setPinError(''); setReady(false); setStage(3)
+    operating.current = true; setBusy(true); setError(''); setPinError(''); setReady(false); setStage(3); setProgress('Checking verified access…'); setShowPin(false); setShowConfirmation(false)
     const run = generation.current, expected = access
     const current = () => mounted.current && run === generation.current && navigator.onLine && document.visibilityState !== 'hidden'
     const assertCurrent = () => { if (!current()) throw new Error('Preparation interrupted') }
@@ -106,6 +112,7 @@ export function DevicePreparationScreen({ store = profileStore, onAttendance }: 
     let deviceId: string | undefined
     try {
       await verifyCurrent()
+      setProgress('Protecting the encrypted profile…')
       let profile = target.current ?? profiles.find(item => item.id === selection)
       if (profile && (!interrupted(profile) || profile.actorId !== expected.actorId || profile.churchId !== expected.workspace.church_id)) throw new Error('Profile access changed')
       if (!profile) {
@@ -121,17 +128,20 @@ export function DevicePreparationScreen({ store = profileStore, onAttendance }: 
       await store.unlockProfile(profile.id, pin)
       assertCurrent()
       if (!store.isUnlocked(profile.id)) throw new Error('Profile locked')
+      setProgress('Downloading the authorized roster…')
       const bootstrap = await authRequest<OfflineBootstrap>(`/api/offline/bootstrap?device_id=${profile.deviceId}`, 'GET', undefined, expected.workspace.church_id)
       assertCurrent(); validatePreparationBootstrap(expected, bootstrap)
       await verifyCurrent()
       if (!store.isUnlocked(profile.id)) throw new Error('Profile locked')
+      setProgress('Saving the encrypted roster…')
       await store.saveBootstrap(profile.id, bootstrap, { preserveCursor: true, preparationOnly: true })
       assertCurrent()
+      setProgress('Confirming offline authorization…')
       await verifyCurrent()
       const valid = await store.isLeaseValid(profile.id)
       assertCurrent()
       if (!valid || !store.isUnlocked(profile.id)) throw new Error('Readiness could not be verified')
-      setReady(true)
+      setLeaseDeadline(bootstrap.lease.expires_at); setReady(true)
     } catch (cause) {
       if (target.current) store.lockProfile(target.current.id)
       if (!mounted.current) return
@@ -146,6 +156,7 @@ export function DevicePreparationScreen({ store = profileStore, onAttendance }: 
       if (target.current) setSelection(target.current.id)
       setAccess(null); setWorkspaces([]); setStage(1)
       if (cause instanceof ProfilePinError) {
+        setPinErrorField('pin')
         setRetryUntil(Date.parse(cause.retryAfter)); setClock(Date.now()); setPinError('The existing local PIN could not be accepted. Wait for the retry delay before trying again.')
       }
       setError(cause instanceof ProfilePinError
@@ -153,35 +164,71 @@ export function DevicePreparationScreen({ store = profileStore, onAttendance }: 
         : 'Preparation is incomplete. Keep this profile and its existing PIN. Verify access again and continue the same profile. If it already has authorization, open Device profiles to check it. Do not remove, recreate or clear browser storage.')
     } finally {
       operating.current = false
-      if (mounted.current) { setBusy(false); setPin(''); setConfirmation('') }
+      if (mounted.current) { setBusy(false); setPin(''); setConfirmation(''); setShowPin(false); setShowConfirmation(false) }
     }
   }
 
-  return <section className="auth-card device-preparation" aria-busy={busy}>
-    <header className="preparation-heading"><span className="preparation-icon"><HomeIcon id="device" /></span><div><p className="eyebrow">Encrypted device preparation</p><h1>Prepare this device</h1></div></header>
-    <p>Verify church access, protect this profile with a local PIN, then save the authorized roster securely.</p>
-    <ol className="preparation-steps" aria-label="Preparation stages">{['Online sign-in', 'Verify church', 'Choose PIN', 'Ready'].map((label, index) => <li key={label} aria-current={(ready ? 3 : stage === 1 ? access ? 1 : 0 : 2) === index ? 'step' : undefined}><span>{index + 1}</span>{label}</li>)}</ol>
-    <h2 ref={stageHeading} tabIndex={-1}>{ready ? 'Ready for offline attendance' : stage === 1 ? '1. Verify your church access' : stage === 2 ? '2. Protect this device profile' : '3. Save encrypted data'}</h2>
-    {busy && <LoadingState label={stage === 3 ? 'Verifying access and saving encrypted data…' : 'Checking verified access…'} />}
-    {error && <ErrorSummary message={error} />}
-    {remaining > 0 && !busy && !ready && <StatusBanner live tone="warning">Try again in {remaining} seconds.</StatusBanner>}
-    {!access && !busy && <><p>Online church sign-in is required. The local PIN does not sign you in to your church account.</p><p><a href={accountEntry('/account/login', '/account/prepare')}>Check church Account</a></p></>}
-    {stage === 1 && !busy && <>
-      {workspaces.length > 0 && <div className="form-field ui-field"><label htmlFor="preparation-workspace">Verified church workspace</label><select id="preparation-workspace" value={access?.workspace.church_id ?? ''} onChange={event => { target.current = null; setSelection(''); void verify(event.target.value || undefined) }}><option value="">Choose a verified workspace</option>{workspaces.map(item => <option value={item.church_id} key={item.church_id}>{item.name}</option>)}</select></div>}
-      {access && <><StatusBadge tone="info">Verified {access.workspace.role === 'owner' ? 'Owner' : 'Teacher'} access</StatusBadge><p>{access.workspace.role === 'teacher' ? 'Only your active assigned ministries will be downloaded.' : 'Active ministries in this church will be downloaded under your verified Owner access.'}</p>
-        {access.ministries.length ? <ul>{access.ministries.map(item => <li key={item.id}>{item.name}</li>)}</ul> : <StatusBanner tone="warning">No authorized active ministries are available. Ask your church Owner to check assignments, or manage active ministries with Owner access. No profile will be created.</StatusBanner>}
-        {continuations.length > 0 && <fieldset><legend>Continue interrupted preparation</legend>{continuations.map(item => <label className="teacher-choice" key={item.id}><input type="radio" name="preparation-profile" checked={selection === item.id} onChange={() => { setSelection(item.id); target.current = item; setRetryUntil(Date.parse(item.retryAfter ?? '') || 0) }} />Continue Profile {profiles.findIndex(value => value.id === item.id) + 1}</label>)}<p>Use its existing PIN. Its encryption key and device binding will be kept.</p></fieldset>}
-        {!selection && <p>A new encrypted profile will be created. Existing profiles and local work will be kept.</p>}
-        <Button disabled={!access.ministries.length} onClick={() => { setStage(2); setError('') }}>Continue to local PIN</Button></>}
-    </>}
-    {stage === 2 && access && !busy && <form noValidate onSubmit={event => { event.preventDefault(); void prepare() }}>
-      <p>This PIN unlocks only the encrypted local profile. It is separate from your church-account password. There is no PIN-reset shortcut.</p>
-      <Field label={selection ? 'Existing local PIN' : 'Choose a 6–12 digit local PIN'} inputMode="numeric" type="password" pattern="[0-9]{6,12}" minLength={6} maxLength={12} autoComplete={selection ? 'off' : 'new-password'} value={pin} onChange={event => setPin(event.target.value)} error={pinError} hint="Use 6–12 digits; leading zeros are preserved." required />
-      {!selection && <Field label="Confirm local PIN" type="password" inputMode="numeric" pattern="[0-9]{6,12}" minLength={6} maxLength={12} autoComplete="new-password" value={confirmation} onChange={event => setConfirmation(event.target.value)} error={pinError && pin === confirmation ? undefined : pinError || undefined} required />}
-      <Button type="submit" disabled={remaining > 0}>{selection ? 'Continue encrypted preparation' : 'Prepare encrypted profile'}</Button>
-    </form>}
-    {ready && access && <><StatusBanner tone="success" live>Authorized data has been saved durably with encryption. No attendance draft or upload event was created by preparation.</StatusBanner><p>Opening Attendance is a separate action.</p><Button onClick={onAttendance}>Open Attendance</Button><Button variant="secondary" onClick={() => { if (target.current) store.lockProfile(target.current.id) }}>Lock profile</Button></>}
-    {!busy && !ready && <Button variant="secondary" onClick={() => void verify(selectedChurch.current)}>Verify access again</Button>}
-    <p><a href="/profiles">Device profiles and safe recovery</a></p>
+  const backToAccess = () => { setPin(''); setConfirmation(''); setPinError(''); setError(''); setShowPin(false); setShowConfirmation(false); setStage(1) }
+  function keepPinControlVisible(event: FocusEvent<HTMLFormElement>) {
+    if (innerWidth >= 768) return
+    const control = event.target
+    // Native focus scrolling in mobile WebKit can place the field behind the
+    // fixed phone navigation. Recheck after native focus, without moving focus.
+    requestAnimationFrame(() => {
+      if (!control.isConnected || document.activeElement !== control) return
+      const box = control.getBoundingClientRect(), top = visualViewport?.offsetTop ?? 0
+      const bottom = Math.min(top + (visualViewport?.height ?? innerHeight), document.querySelector('.phone-navigation')?.getBoundingClientRect().top ?? innerHeight)
+      if (box.top < top + 8 || box.bottom > bottom - 8) window.scrollBy({ top: box.top - top - (bottom - top - box.height) / 2, behavior: 'instant' })
+    })
+  }
+  const workspaceLink = access ? `/account/home?church=${encodeURIComponent(access.workspace.church_id)}` : '/account/home'
+  const verifiedContext = access && <div className="preparation-context">
+    <div className="preparation-context-heading"><span className="preparation-context-icon"><HomeIcon id="verified" /></span><div><p className="preparation-caption">Current verified context</p><ChurchName value={access.workspace.name} /></div><StatusBadge tone="success">{access.workspace.role === 'owner' ? 'Owner' : 'Teacher'}</StatusBadge></div>
+    <div className="preparation-assignments"><p>{access.workspace.role === 'teacher' ? 'Assigned ministry' : 'Authorized ministries'}</p>{access.ministries.length > 0 && <ul>{access.ministries.map(item => <li key={item.id}>{item.name}</li>)}</ul>}</div>
+  </div>
+  const pinNotice = <StatusBanner tone="info"><HomeIcon id="info" /><div><strong>Local PIN ≠ account password</strong><p>This PIN unlocks only this encrypted profile. Your church password does not unlock device data.</p></div></StatusBanner>
+  const protectedNotice = <StatusBanner tone={ready ? 'success' : 'neutral'}><HomeIcon id="verified" /><div><strong>{ready ? 'Protected when locked' : 'Encryption on this device'}</strong><p>{ready ? 'The saved roster is encrypted and protected by your local PIN.' : 'The roster will be encrypted and protected by your local PIN. There is no PIN-reset shortcut.'}</p></div></StatusBanner>
+  return <section className="device-preparation" aria-busy={busy}>
+    <header className="preparation-heading"><h1>Prepare this device</h1><p>For attendance when you are offline</p></header>
+    <ol className="preparation-steps" aria-label="Preparation stages">{['Confirm access', 'Local PIN', 'Ready'].map((label, index) => <li key={label} aria-current={stage === index + 1 ? 'step' : undefined}><span>{index + 1}</span>{label}</li>)}</ol>
+    <div className="preparation-layout" data-stage={stage}>
+      {stage !== 1 && <aside className="preparation-panel preparation-access-summary" aria-label="Verified access summary"><p className="preparation-panel-bar">Confirm access</p><div className="preparation-panel-body"><p className="preparation-caption">Verified for this preparation</p><h3>Church and access</h3>{verifiedContext}<p>{access?.workspace.role === 'owner' ? 'Current Owner verification and MFA are required.' : 'Only your active assigned ministries can be saved.'}</p></div></aside>}
+      {stage === 3 && <aside className="preparation-panel preparation-pin-summary" aria-label="Local protection summary"><p className="preparation-panel-bar">Local PIN</p><div className="preparation-panel-body"><p className="preparation-caption">{ready ? 'Profile protected' : 'Preparation in progress'}</p><h3>Local profile protection</h3>{pinNotice}{protectedNotice}</div></aside>}
+      <div className={`preparation-panel preparation-active preparation-stage-${stage}`}>
+        {stage !== 1 && <p className="preparation-panel-bar">{stage === 2 ? 'Prepare profile' : 'MSprout · Device'}</p>}
+        <div className="preparation-panel-body">
+          <p className="preparation-stage-count">Step {stage} of 3</p>
+          <h2 ref={stageHeading} tabIndex={-1}>{ready ? 'Ready for offline attendance' : stage === 1 ? '1. Confirm church and access' : stage === 2 ? '2. Protect this device profile' : '3. Save encrypted data'}</h2>
+          <p className="preparation-introduction">{stage === 1 ? 'A verified online account is required for preparation.' : stage === 2 ? 'Use a PIN only for this device.' : ready ? 'Your authorized roster is ready on this device.' : 'Keep this page open while preparation completes.'}</p>
+          {busy && <LoadingState label={stage === 3 ? progress : 'Checking verified access…'} />}
+          {error && <ErrorSummary message={error} errors={stage === 2 && pinError ? [{ target: pinErrorField === 'confirmation' ? 'preparation-confirmation' : 'preparation-pin', message: pinError }] : []} />}
+          {remaining > 0 && !busy && !ready && <StatusBanner live tone="warning">Try again in {remaining} seconds.</StatusBanner>}
+          {!access && !busy && <><p>Online church sign-in is required. The local PIN does not sign you in to your church account.</p><a className="preparation-account-link" href={accountEntry('/account/login', '/account/prepare')}>Check church Account</a></>}
+          {stage === 1 && !busy && <>
+            {workspaces.length > 1 && <div className="form-field ui-field"><label htmlFor="preparation-workspace">Verified church workspace</label><select id="preparation-workspace" value={access?.workspace.church_id ?? ''} onChange={event => { target.current = null; setSelection(''); void verify(event.target.value || undefined) }}><option value="">Choose a verified workspace</option>{workspaces.map(item => <option value={item.church_id} key={item.church_id}>{item.name}</option>)}</select></div>}
+            {access && <>{verifiedContext}
+              {!access.ministries.length && <StatusBanner tone="warning"><div><strong>No ministry assigned</strong><p>No authorized active ministries are available. Ask your church Owner to check assignments, or manage active ministries with Owner access. No profile will be created.</p></div></StatusBanner>}
+              <StatusBanner tone="info"><HomeIcon id="info" /><div><strong>No Church ID needed</strong><p>Your eligible membership and assignments are checked online.</p></div></StatusBanner>
+              {continuations.length > 0 && <fieldset><legend>Continue interrupted preparation</legend>{continuations.map(item => <label className="teacher-choice" key={item.id}><input type="radio" name="preparation-profile" checked={selection === item.id} onChange={() => { setSelection(item.id); target.current = item; setRetryUntil(Date.parse(item.retryAfter ?? '') || 0) }} />Continue Profile {profiles.findIndex(value => value.id === item.id) + 1}</label>)}<p>Use its existing PIN. Its encryption key and device binding will be kept.</p></fieldset>}
+              <div className="preparation-actions"><Button disabled={!access.ministries.length} onClick={() => { setStage(2); setError('') }}>Continue to local PIN</Button><a className="ui-button ui-button-secondary" href={workspaceLink}>Back to workspace</a></div>
+              <p className="preparation-preservation">{selection ? 'Continue the same profile with its existing PIN.' : 'A new encrypted profile will be created. Existing profiles and local work will be kept.'}</p>
+            </>}
+          </>}
+          {stage === 2 && access && !busy && <form noValidate onFocus={keepPinControlVisible} onSubmit={event => { event.preventDefault(); void prepare() }}>
+            {pinNotice}
+            <div className="preparation-pin-field"><Field id="preparation-pin" label={selection ? 'Existing local PIN' : 'Choose a 6–12 digit local PIN'} inputMode="numeric" type={showPin ? 'text' : 'password'} pattern="[0-9]{6,12}" minLength={6} maxLength={12} autoComplete={selection ? 'off' : 'new-password'} value={pin} onChange={event => setPin(event.target.value)} error={pinErrorField === 'pin' ? pinError : undefined} hint="6–12 digits, including leading zeros" required /><Button variant="secondary" className="preparation-pin-toggle" aria-controls="preparation-pin" aria-pressed={showPin} onClick={() => setShowPin(value => !value)} aria-label={showPin ? 'Hide local PIN' : 'Show local PIN'}>{showPin ? 'Hide' : 'Show'}</Button></div>
+            {!selection && <div className="preparation-pin-field"><Field id="preparation-confirmation" label="Confirm local PIN" type={showConfirmation ? 'text' : 'password'} inputMode="numeric" pattern="[0-9]{6,12}" minLength={6} maxLength={12} autoComplete="new-password" value={confirmation} onChange={event => setConfirmation(event.target.value)} error={pinErrorField === 'confirmation' ? pinError : undefined} hint="The two PIN entries must match." required /><Button variant="secondary" className="preparation-pin-toggle" aria-controls="preparation-confirmation" aria-pressed={showConfirmation} onClick={() => setShowConfirmation(value => !value)} aria-label={showConfirmation ? 'Hide confirmation PIN' : 'Show confirmation PIN'}>{showConfirmation ? 'Hide' : 'Show'}</Button></div>}
+            {protectedNotice}
+            <Button className="preparation-submit" type="submit" disabled={remaining > 0}>{selection ? 'Continue encrypted preparation' : 'Prepare encrypted profile'}</Button>
+            <Button variant="secondary" className="preparation-back" onClick={backToAccess}>Back to access</Button>
+          </form>}
+          {ready && access && <><StatusBanner tone="success" live><HomeIcon id="verified" /><div><strong>Saved securely on this device</strong><p>Authorized data has been saved durably with encryption.</p></div></StatusBanner><div className="preparation-ready-scope"><p className="preparation-caption">Profile scope</p>{verifiedContext}{leaseDeadline && <p className="preparation-deadline">Offline authorization until <time dateTime={leaseDeadline}>{new Date(leaseDeadline).toLocaleString()}</time></p>}</div><StatusBanner><HomeIcon id="info" /><div><strong>No attendance created</strong><p>No attendance draft or upload event was created by preparation. Opening Attendance is a separate action.</p></div></StatusBanner><div className="preparation-ready-actions"><Button onClick={onAttendance}>Open Attendance</Button><a className="ui-button ui-button-secondary" href={workspaceLink}>Back to workspace</a><Button variant="secondary" onClick={() => { if (target.current) store.lockProfile(target.current.id) }}>Lock profile</Button></div></>}
+          {!busy && !ready && stage === 1 && <Button variant="secondary" className="preparation-retry" onClick={() => void verify(selectedChurch.current)}>Verify access again</Button>}
+        </div>
+      </div>
+      {stage === 1 && <aside className="preparation-panel preparation-pin-guide" aria-label="Next: local PIN"><p className="preparation-panel-bar">Prepare profile</p><div className="preparation-panel-body"><p className="preparation-caption">Next · Step 2</p><h3>Protect this profile</h3><p>Choose and confirm a local PIN after verifying access.</p>{pinNotice}{protectedNotice}</div></aside>}
+      {stage !== 3 && <aside className="preparation-panel preparation-ready-guide" aria-label="After secure save"><p className="preparation-panel-bar">MSprout · Device</p><div className="preparation-panel-body"><p className="preparation-caption">After secure save · Step 3</p><h3>Encrypted readiness</h3><p>Readiness is confirmed after your authorized roster has been saved securely on this device.</p><StatusBanner><HomeIcon id="info" /><div><strong>No attendance created</strong><p>Preparing a device does not start a class session.</p></div></StatusBanner><p>Offline use requires valid authorization. A PIN alone cannot renew an expired lease.</p></div></aside>}
+    </div>
+    <a className="preparation-recovery" href="/profiles">Device profiles and safe recovery</a>
   </section>
 }

@@ -1,5 +1,12 @@
 # Development Changelog
 
+## 2026-10-14 — stakeholder-approved UX-06 guided device preparation
+
+Pack 03 desktop/tablet/mobile and all additional failure/recovery states are accepted. Three stages, accessible masked PIN validation, truthful progress/Ready and actual lease expiry preserve approved access, encryption, profile isolation, interrupted recovery, synchronization and navigation. All visual findings are closed; qualified technical/security evidence is retained.
+
+Task identity: `feat: finalize guided device preparation UX-06`, parent approved UX-05 `fbec05bbba9062f8a67409a6a642430c8a986358`, on `feat/mvp-foundation`. Exact commit SHA and successful normal push resolve through Git history and `.git/msprout-ux06-finalization-20261014/finalization.json`. GREEN is assigned only after successful commit/push, a clean working tree, matching local/upstream/live feature HEAD, ahead/behind 0/0 and unchanged local/origin/live main. [Accepted UX-06 review](../docs/qa/ux-06-device-preparation-visual-review.md). Protected stash/nine originals/ten backups and completed tasks remain intact. STOP after verified UX-06 delivery; no UX-07/UX-08, merge or deployment.
+
+
 ## 2026-10-13 — stakeholder-approved UX-05 encrypted device profiles
 
 Pack02 profile picker/PIN/preparation/locked/retry/recovery/guarded-removal presentation is approved. Generic identities stay private before unlock, PIN is masked with existing digit/retry policy, expired leases require real reauthentication, and guarded removal preserves uncertain work. The accepted desktop device rail remains four items; redundant public profile footer is removed; one accessible browser-connectivity label and unchanged MSprout branding fit a compact single-row mobile header. Existing authorization/encryption/storage/synchronization engines remain intact.

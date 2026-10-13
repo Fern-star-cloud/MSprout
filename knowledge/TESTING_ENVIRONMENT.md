@@ -1,5 +1,32 @@
 # Testing Environment
 
+## UX-06 approved finalization and qualification reuse — 2026-10-14
+
+Final stakeholder acceptance closes the visual YELLOW condition; no visual finding remains. Current four application/CSS/test file hashes match the qualified receipts exactly. Frontend733/79 and latest focused110/5, native36/36 plus mobile8/density4/focus8, UX-05 navigation4/native capture1, targeted visual3/state capture2, production build/TypeScript/lint and actual contracts/structure remain valid. Scoped OWASP76 rules and latest complete affected-file scans have no findings/errors/timeouts; original taint coverage warning is closed. Backend306/3626, Pint, dependency audits and unchanged comprehensive security/CI inputs retain their valid predecessor evidence. No aggregate/backend/browser/build/security-policy rerun is represented as fresh.
+
+Only report/knowledge approval records change during finalization. Fresh complete tracked/new-source secret scanning, document link/whitespace, staged exact-scope, protected-work and Git checks are required; actual results are recorded in `.git/msprout-ux06-finalization-20261014/qualification.json` and `finalization.json`. Source hashes and scanner snapshots establish evidence retention. Process-scoped tools/TLS remain unchanged; no host configuration or private/live resource operation.
+
+Exact commit SHA and successful normal push resolve through Git history and `.git/msprout-ux06-finalization-20261014/finalization.json`. GREEN is assigned only after successful commit/push, a clean working tree, matching local/upstream/live feature HEAD, ahead/behind 0/0 and unchanged local/origin/live main. [Accepted review](../docs/qa/ux-06-device-preparation-visual-review.md). Earlier pending statements are historical. No UX-07/UX-08, merge or deployment.
+
+
+## UX-06 targeted visual evidence continuation - 2026-10-14
+
+Current qualification input hashes match the YELLOW receipt. Existing frozen production dist-keyboard is reused without rebuilding. Three targeted Chrome cases PASS(16.1s), then two specific state-capture closures PASS(10.9s) add selected-recovery/native-navigation paint evidence; workers 1/retries 0, no skip/flaky result. Future preview text fits1548/1440/1280/1024; headings 18px/body 14px/support12-13px, minimum body/notice contrast 4.89:1. Both future panels have 0 controls/0 success notices. Alternate validated synthetic expiry 2031-08-19T10:22:33Z matches persisted and displayed values; waiting data is not Ready. Correct PIN under the disposable expired clock requires online sign-in. Same-key/device interrupted recovery creates no attendance.
+
+[Current report](../docs/qa/ux-06-device-preparation-visual-review.md) links direct native invalid/mismatch/no-assignment/expired/interruption/selected-recovery captures and approved compact-brand/More evidence. Existing 733 aggregate/110 focused, four-target 36 plus closures, build/type/lint/contracts/backend/audits/OWASP/source-secret evidence remains valid by exact application/test/security inputs; no broad GREEN gate was rerun. Documentation-only additions receive focused secret/link/whitespace/preservation checks. Synthetic contexts use a run-owned loopback server with no backend proxy; private/live profiles/PostgreSQL are untouched. Final cleanup/Git/protected-work results resolve in `.git/msprout-ux06-visual-qa-20261014/receipt.json`. Remain YELLOW, unstaged/uncommitted/unpushed, no UX-07.
+
+
+## UX-06 qualification and evidence retention (2026-10-14)
+
+Initial TDD3 FAIL/21 PASS; final screen24 PASS. Initial aggregate frontend733 tests/79 files PASS. Latest directly affected preparation/access/store/navigation/profiles110 tests/5 files PASS after the scoped focus correction. TypeScript, lint and final production build PASS;14 precache entries. Actual api:check PASS after documented temporary CRLF normalization with original generated-client bytes restored; structure and whitespace PASS.
+
+Native preparation36/36 PASS across Chrome desktop/mobile and native WebKit phone/tablet. Mobile8, density4 and latest keyboard8 closures replace affected guarantees; UX-05 header regression4 and exact-native capture1 PASS. Short320x420 focus-position assertion exposed2 WebKit failures before correction; latest8 closure includes the corrected pre-screenshot position proof. Keyboard/error focus/masking,200% text,320px reflow,long-name disclosure,forced colors,reduced motion and Axe serious/critical checks pass. No physical-device/real-keyboard/human-AT claim.
+
+Scoped OWASP76/13 had no findings/errors and one screen taint fixpoint warning; latest complete screen/test and CSS/test76/3 closures have no findings/errors/timeouts and approximately100% parsing, closing that coverage warning with current source. Complete tracked/new-source Gitleaks and final preservation/cleanup/synchronization resolve in `.git/msprout-ux06-20261013/final-preservation.json`. Backend306/3626, Pint, Composer strict/audit,pnpm audit and comprehensive security/CI guarantees are retained predecessor evidence by exact unchanged inputs; no new backend or root verify execution is claimed. Frontend aggregate remains valid by effect after isolated presentation changes; affected focused/type/build/browser/security checks were rerun.
+
+Process-scoped Node24/pnpm10, installed WebKit2336 and existing trusted CA Docker mounts preserve TLS verification without host/runtime changes. Frozen loopback production fixtures have no backend proxy; only isolated synthetic contexts were used. YELLOW/unfinalized pending stakeholder visual approval; UX-07/UX-08 untouched.
+
+
 ## UX-05 finalization qualification and evidence reuse — 2026-10-13
 
 Final stakeholder visual approval closes the prior YELLOW visual condition. Current application/test bytes match the latest reviewed/qualified receipts. Frontend 719/79, focused 121/6 plus 43/2 route/profile and 25-test copy closure; original 77 browser ledger retained only for unaffected guarantees; four-target footer 8/header 8, picker 4 and duplicate final screenshot 1 closures supersede affected evidence. Latest build/TypeScript/lint pass; native 320/360/390/768/1024/1440, keyboard/axe/live-region/200%/forced-colors/reduced-motion and encrypted preservation qualify the approved UI. No new combined aggregate is claimed.

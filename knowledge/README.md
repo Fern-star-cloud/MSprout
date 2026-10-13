@@ -1,5 +1,17 @@
 # MinistrySprout Knowledge Index
 
+## UX-06 accepted visual review and final delivery — 2026-10-14
+
+Explicit final stakeholder approval closes all UX-06 visual findings. Read [the accepted preparation review](../docs/qa/ux-06-device-preparation-visual-review.md) for Pack 03 desktop/tablet/mobile/state acceptance, exact ten final paths, measured previews, actual lease provenance, safe recovery, qualified evidence and preservation. Earlier pending entries below are historical.
+
+Authorized task identity: `feat: finalize guided device preparation UX-06`, parent approved UX-05 `fbec05bbba9062f8a67409a6a642430c8a986358`, on `feat/mvp-foundation`. Exact commit SHA and successful normal push resolve through Git history and `.git/msprout-ux06-finalization-20261014/finalization.json`. GREEN is assigned only after successful commit/push, a clean working tree, matching local/upstream/live feature HEAD, ahead/behind 0/0 and unchanged local/origin/live main. Preserve UX-03/UX-04/UX-05 and all protected work. STOP after UX-06; UX-07/UX-08, merge and deployment remain untouched.
+
+
+## Current UX-06 review (2026-10-14)
+
+UX-06 / Pack 03 is implemented and technically qualified at approved UX-05 HEAD `fbec05bbba9062f8a67409a6a642430c8a986358`. **YELLOW - stakeholder visual approval pending; unstaged/uncommitted/unpushed.** Read [the current preparation review](../docs/qa/ux-06-device-preparation-visual-review.md) for exact nine paths, original/actual captures, measurements, qualified evidence and preservation. Earlier stop entries are historical. UX-07/UX-08, merge and deployment remain untouched; stop for explicit visual approval.
+
+
 ## UX-05 accepted visual review and final delivery
 
 UX-05 has explicit final stakeholder visual approval; all visual findings are closed. Read [the accepted review](../docs/qa/ux-05-device-profiles-visual-review.md) for final Pack02 desktop/mobile captures, exact 23 paths, private workflows, focused/retained evidence and preservation. The authorized task commit is `feat: finalize encrypted device profiles UX-05`, parent `d7c7236a7b23cc392ba6373f51004e474f8067ec`; actual SHA and delivery/GREEN synchronization resolve through Git and `.git/msprout-ux05-finalization-20261013/finalization.json`, only after successful commit/push. Preserve UX-03/UX-04 and all protected work. Earlier YELLOW entries are historical. Stop after UX-05; UX-06/07/08, merge and deployment remain unauthorized.

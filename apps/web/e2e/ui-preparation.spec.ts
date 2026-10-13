@@ -40,6 +40,119 @@ async function rows(page: Page) {
   })
 }
 
+async function capturePreparation(page: Page, name: string) {
+  await page.screenshot({ path: test.info().outputPath(`${name}.png`), fullPage: true, scale: 'css' })
+  const css = await page.evaluate(() => ({ viewport: [innerWidth, innerHeight], scrollWidth: document.documentElement.scrollWidth, items: [...document.querySelectorAll('.device-preparation,.preparation-heading h1,.preparation-steps,.preparation-panel,.preparation-panel-body,.preparation-context,.preparation-actions,.preparation-active h2,.preparation-active input,.preparation-active .ui-button')].filter(el => el.getClientRects().length).map(el => {
+    const b = el.getBoundingClientRect(), s = getComputedStyle(el)
+    return { selector: el.className || el.tagName, x: b.x, y: b.y, width: b.width, height: b.height, font: s.fontFamily, size: s.fontSize, lineHeight: s.lineHeight, weight: s.fontWeight, color: s.color, background: s.backgroundColor, gradient: s.backgroundImage, padding: s.padding, radius: s.borderRadius, gap: s.gap }
+  }) }))
+  await test.info().attach(`${name}-css`, { body: JSON.stringify(css, null, 2), contentType: 'application/json' })
+  expect(css.scrollWidth).toBeLessThanOrEqual(css.viewport[0])
+}
+
+test('Pack03 production stages, keyboard PIN controls and native responsive composition', async ({ page }) => {
+  await page.goto('/account/prepare')
+  await expect(page.getByRole('button', { name: 'Continue to local PIN' })).toBeVisible()
+  await expect(page.locator('.preparation-steps > li')).toHaveCount(3)
+  for (const width of [1548, 1440, 1024, 768, 390, 360, 320]) {
+    await page.setViewportSize({ width, height: width === 1548 ? 1016 : 900 })
+    const nameBounds = await page.locator('.preparation-active .church-name-details .compact-text').evaluate(el => ({ width: el.clientWidth, textWidth: el.scrollWidth }))
+    expect(nameBounds.textWidth).toBeLessThanOrEqual(nameBounds.width)
+    await capturePreparation(page, `pack03-access-${width}`)
+    await expectNoSeriousAccessibilityIssues(page)
+    await expect(page.getByRole('button', { name: 'Open Attendance' })).toHaveCount(0)
+  }
+  await page.getByRole('button', { name: 'Continue to local PIN' }).focus(); await page.keyboard.press('Enter')
+  await expect(page.getByRole('heading', { name: '2. Protect this device profile' })).toBeFocused()
+  const pin = page.getByLabel('Choose a 6–12 digit local PIN'), confirmation = page.getByLabel('Confirm local PIN')
+  await pin.fill('000123'); await confirmation.fill('000123')
+  await page.getByRole('button', { name: 'Show local PIN', exact: true }).focus(); await page.keyboard.press('Enter')
+  await expect(pin).toHaveAttribute('type', 'text'); await expect(confirmation).toHaveAttribute('type', 'password')
+  await page.getByRole('button', { name: 'Hide local PIN', exact: true }).click()
+  for (const width of [1548, 1440, 1024, 768, 390, 360, 320]) {
+    await page.setViewportSize({ width, height: width === 1548 ? 1016 : 900 })
+    expect(await pin.evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16)
+    await capturePreparation(page, `pack03-pin-${width}`)
+    await expectNoSeriousAccessibilityIssues(page)
+  }
+  await page.getByRole('button', { name: 'Prepare encrypted profile' }).click()
+  await expect(page.getByRole('heading', { name: 'Ready for offline attendance' })).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.preparation-ready-scope time')).toHaveAttribute('datetime', '2099-10-14T00:00:00Z')
+  const data = await rows(page)
+  expect(data.find(item => item.table === 'attendanceDrafts')!.rows).toHaveLength(0)
+  expect(data.find(item => item.table === 'outboxEvents')!.rows).toHaveLength(0)
+  expect(data.find(item => item.table === 'encryptedBlobs')!.rows).toHaveLength(3)
+  for (const width of [1548, 1440, 1024, 768, 390, 360, 320]) {
+    await page.setViewportSize({ width, height: width === 1548 ? 1016 : 900 })
+    await capturePreparation(page, `pack03-ready-${width}`)
+    await expectNoSeriousAccessibilityIssues(page)
+  }
+  await page.getByRole('button', { name: 'Open Attendance' }).click()
+  await expect(page.getByRole('heading', { name: 'Take attendance' })).toBeVisible()
+  expect((await rows(page)).find(item => item.table === 'attendanceDrafts')!.rows).toHaveLength(0)
+})
+
+test('Pack03 long names, enlarged text, short keyboard viewport, offline and validation presentations', async ({ page, context }) => {
+  const name = 'Synthetic church with a very long name '.repeat(4), ministryName = 'Authorized ministry with a very long name '.repeat(5)
+  await context.route('**/auth/session', route => json(route, { id: actor, email_verified: true, mfa_confirmed: false, workspaces: [{ church_id: churchId, name, role }] }))
+  await context.route('**/api/ministries', route => json(route, { data: [{ id: ministryId, name: ministryName, status: 'active', version: 1 }] }))
+  await page.goto('/account/prepare'); await page.setViewportSize({ width: 320, height: 900 })
+  await page.locator('.preparation-context .church-name-details > summary').click()
+  await expect(page.locator('.preparation-context .church-name-expanded')).toHaveText(name)
+  await capturePreparation(page, 'pack03-full-name-320')
+  await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await capturePreparation(page, 'pack03-access-200-percent-320'); await expectNoSeriousAccessibilityIssues(page)
+  await page.getByRole('button', { name: 'Continue to local PIN' }).click()
+  await capturePreparation(page, 'pack03-pin-200-percent-320'); await expectNoSeriousAccessibilityIssues(page)
+  await page.emulateMedia({ forcedColors: 'active' }); await capturePreparation(page, 'pack03-pin-forced-colors-320')
+  await page.emulateMedia({ forcedColors: 'none' }); await page.evaluate(() => { document.documentElement.style.fontSize = '' })
+  await page.setViewportSize({ width: 320, height: 420 })
+  await page.getByLabel('Choose a 6–12 digit local PIN').fill('abc123'); await page.getByLabel('Confirm local PIN').fill('abc123')
+  await page.getByRole('button', { name: 'Prepare encrypted profile' }).click()
+  await expect(page.getByLabel('Choose a 6–12 digit local PIN')).toHaveAttribute('aria-invalid', 'true')
+  await capturePreparation(page, 'pack03-pin-invalid-320')
+  await page.getByLabel('Choose a 6–12 digit local PIN').fill('000123'); await page.getByLabel('Confirm local PIN').fill('000124')
+  await page.getByRole('button', { name: 'Prepare encrypted profile' }).click()
+  await page.getByRole('link', { name: 'The PINs must match. Enter them again.' }).click()
+  await expect(page.getByLabel('Confirm local PIN')).toBeFocused()
+  const focusedPin = await page.getByLabel('Confirm local PIN').boundingBox(), phoneBar = await page.locator('.phone-navigation').boundingBox()
+  expect(focusedPin!.y).toBeGreaterThanOrEqual(0)
+  expect(focusedPin!.y + focusedPin!.height).toBeLessThanOrEqual(phoneBar!.y)
+  await capturePreparation(page, 'pack03-pin-mismatch-keyboard-320')
+  expect((await rows(page)).find(item => item.table === 'profiles')!.rows).toHaveLength(0)
+  await context.setOffline(true); await page.evaluate(() => globalThis.dispatchEvent(new Event('offline')))
+  expect(await page.locator('body').ariaSnapshot()).not.toContain(ministryName)
+  await capturePreparation(page, 'pack03-offline-320'); await expectNoSeriousAccessibilityIssues(page)
+})
+
+test('Pack03 checking and saving announce real operations without premature readiness', async ({ page, context }) => {
+  let allowMinistries!: () => void, allowBootstrap!: () => void
+  await context.route('**/api/ministries', async route => {
+    await new Promise<void>(resolve => { allowMinistries = resolve })
+    return json(route, { data: [{ id: ministryId, name: 'Authorized ministry', status: 'active', version: 1 }] })
+  })
+  await page.goto('/account/prepare')
+  await expect(page.getByRole('status').filter({ hasText: 'Checking verified access' })).toBeVisible()
+  await capturePreparation(page, 'pack03-checking-access')
+  await expect(page.getByText('No ministry assigned', { exact: true })).toHaveCount(0)
+  allowMinistries()
+  // Later authorization checks use the same allowed synthetic ministry response.
+  await context.unroute('**/api/ministries')
+  await context.route('**/api/ministries', route => json(route, { data: [{ id: ministryId, name: 'Authorized ministry', status: 'active', version: 1 }] }))
+  await context.route('**/api/offline/bootstrap**', async route => {
+    await new Promise<void>(resolve => { allowBootstrap = resolve })
+    return json(route, bootstrap('11', undefined, new URL(route.request().url()).searchParams.get('device_id')!))
+  })
+  await page.getByRole('button', { name: 'Continue to local PIN' }).click(); await submit(page)
+  await expect(page.getByRole('status').filter({ hasText: 'Downloading the authorized roster' })).toBeVisible()
+  await capturePreparation(page, 'pack03-saving-encrypted-roster')
+  await expect(page.getByRole('button', { name: 'Open Attendance' })).toHaveCount(0)
+  await expect(page.locator('.preparation-active')).not.toContainText(/\d+%/)
+  allowBootstrap()
+  await expect(page.getByRole('heading', { name: 'Ready for offline attendance' })).toBeVisible({ timeout: 30_000 })
+})
+
 test('three accessible stages save encrypted data with no attendance; leading-zero PIN survives locking', async ({ page }) => {
   await page.goto('/account/prepare'); await expect(page.getByText('Authorized ministry', { exact: true })).toBeVisible()
   await expect(page.getByText('Other ministry', { exact: true })).toHaveCount(0)
@@ -55,7 +168,7 @@ test('three accessible stages save encrypted data with no attendance; leading-ze
   await page.getByLabel('Choose a 6–12 digit local PIN').fill('000123'); await page.getByLabel('Confirm local PIN').fill('000124')
   await page.getByRole('button', { name: 'Prepare encrypted profile' }).click()
   await expect(page.getByRole('alert')).toContainText('Check the local PIN')
-  await expect(page.getByLabel('Choose a 6–12 digit local PIN')).toHaveAttribute('aria-invalid', 'true')
+  await expect(page.getByLabel('Confirm local PIN')).toHaveAttribute('aria-invalid', 'true')
   await expectNoSeriousAccessibilityIssues(page)
   // Real PIN-key derivation and durable IndexedDB checks have no five-second product deadline.
   await submit(page); await expect(page.getByRole('heading', { name: 'Ready for offline attendance' })).toBeVisible({ timeout: 30_000 })
@@ -82,6 +195,7 @@ test('Owner requires current-session MFA and then receives authorized church sco
   role = 'owner'; assigned = []
   await page.goto('/account/prepare'); await expect(page.getByRole('alert')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Continue to local PIN' })).toHaveCount(0)
+  await capturePreparation(page, 'pack03-owner-mfa-required')
   currentMfa = true; await page.getByRole('button', { name: 'Verify access again' }).click()
   await expect(page.getByText('Other ministry', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Continue to local PIN' }).click(); await submit(page)
@@ -92,10 +206,13 @@ test('no assignments, unverified church and expired session never create a profi
   assigned = []; await page.goto('/account/prepare')
   await expect(page.getByText(/No authorized active ministries/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Continue to local PIN' })).toBeDisabled()
+  await capturePreparation(page, 'pack03-no-assignment')
   expect((await rows(page)).find(item => item.table === 'profiles')!.rows).toHaveLength(0)
   await page.goto(`/account/prepare?church=${otherChurchId}`); await expect(page.getByRole('alert')).toBeVisible()
+  await capturePreparation(page, 'pack03-unauthorized-church')
   expect(await page.locator('body').ariaSnapshot()).not.toMatch(/Authorized ministry|Pilot Student/)
   expired = true; await page.goto('/account/prepare'); await expect(page.getByRole('alert')).toBeVisible()
+  await capturePreparation(page, 'pack03-expired-session')
   expect((await rows(page)).find(item => item.table === 'profiles')!.rows).toHaveLength(0)
 })
 
@@ -109,6 +226,7 @@ test('durable-write failure retains the original partial key and resumes after r
     }
   })
   await submit(page); await expect(page.getByRole('alert')).toContainText('Keep this profile and its existing PIN')
+  await capturePreparation(page, 'pack03-interrupted-save')
   const before = (await rows(page)).find(item => item.table === 'profiles')!.rows[0]
   await page.reload()
   await page.getByRole('radio', { name: 'Continue Profile 1' }).check()

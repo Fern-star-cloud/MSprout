@@ -1,5 +1,17 @@
 # Roadmap Status
 
+## UX-06 — stakeholder-approved / qualified final task checkpoint (2026-10-14)
+
+Final stakeholder visual approval accepts verified access, interrupted continuation, invalid/mismatched PIN, no authorized assignment, expired authorization/synchronization recovery, safe recovery and truthful Ready on desktop/tablet/mobile. All visual findings are closed. [Accepted report](../docs/qa/ux-06-device-preparation-visual-review.md). Earlier YELLOW/pending entries below are historical.
+
+Authorized task identity: `feat: finalize guided device preparation UX-06`, parent approved UX-05 `fbec05bbba9062f8a67409a6a642430c8a986358`, on `feat/mvp-foundation`. Exact commit SHA and successful normal push resolve through Git history and `.git/msprout-ux06-finalization-20261014/finalization.json`. GREEN is assigned only after successful commit/push, a clean working tree, matching local/upstream/live feature HEAD, ahead/behind 0/0 and unchanged local/origin/live main. Qualified technical/security evidence is retained by exact source/effect proof; fresh finalization checks cover documentation, preservation and Git. No new application change, unresolved finding or later task. Protected stash/nine originals/ten backups and completed tasks remain intact. STOP after UX-06; UX-07/UX-08, merge and deployment remain untouched.
+
+
+## UX-06 - implemented / technically qualified / visual approval pending (2026-10-14)
+
+**YELLOW.** Current user authorization selects guided preparation Pack 03 refinement only. Entry/current approved UX-05 HEAD `fbec05bbba9062f8a67409a6a642430c8a986358`; UX-03/04/05 remain approved, committed and pushed. [Review and exact evidence](../docs/qa/ux-06-device-preparation-visual-review.md); additive current knowledge and ignored final receipt identify all nine candidate paths. No UX-06 commit exists; all work remains unstaged/uncommitted/unpushed pending explicit stakeholder visual approval. UX-07/UX-08 and merge/deployment remain untouched. Earlier UX-05-only stop statements below are historical.
+
+
 ## UX-05 — stakeholder-approved / qualified final task checkpoint (2026-10-13)
 
 Explicit final approval closes all Pack02 visual findings, including desktop/mobile profile/preparation/state/removal presentation, compact mobile header, single status and profile-only footer removal. [Accepted report](../docs/qa/ux-05-device-profiles-visual-review.md). The authorized final task commit is `feat: finalize encrypted device profiles UX-05`, parent approved UX-04 `d7c7236a7b23cc392ba6373f51004e474f8067ec`, on `feat/mvp-foundation`. Resolve its actual SHA and verified push via Git history and `.git/msprout-ux05-finalization-20261013/finalization.json`; GREEN is assigned only after successful commit/push, clean worktree, matching local/upstream/live HEAD, 0/0 and unchanged main.
