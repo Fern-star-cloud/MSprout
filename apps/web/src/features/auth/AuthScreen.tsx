@@ -79,7 +79,7 @@ export function AuthScreen({ initialPage, fragment = '' }: { initialPage: AuthPa
     {checking && <LoadingState label="Checking signed-in session…" />}
     {accountError && <ErrorSummary message={accountError} />}
     {page === 'login' && <>
-      <p>Sign in to your MinistrySprout account.</p>
+      <p>Sign in to your MSprout account.</p>
       <AuthForm fields={[emailField, passwordField]} disabled={uncertainLogin || checking} submitLabel="Sign in" onSubmit={async (values) => {
         const run = generation.current
         try {

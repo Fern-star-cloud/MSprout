@@ -15,7 +15,7 @@ export default defineConfig({
       registerType: 'prompt',
       manifest: false,
       injectManifest: {
-        globPatterns: ['index.html', 'assets/*.{js,css}', 'manifest.webmanifest', 'icons/sprout-*.svg'],
+        globPatterns: ['index.html', 'assets/*.{js,css}', 'manifest.webmanifest', 'icons/sprout-*.svg', 'icons/msprout-*.png', 'brand/*.{svg,png}'],
       },
       devOptions: {
         enabled: true,

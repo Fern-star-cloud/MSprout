@@ -26,7 +26,7 @@ describe('installable application metadata', () => {
     }
 
     expect(manifest).toMatchObject({
-      name: 'MinistrySprout',
+      name: 'MSprout',
       short_name: 'MSprout',
       start_url: '/',
       display: 'standalone',

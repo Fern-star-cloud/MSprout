@@ -73,7 +73,7 @@ test('Owner list/detail, student Add/Edit, enrollment and named lifecycle confir
  await page.getByRole('button',{name:'View Synthetic Example'}).click();await page.getByRole('button',{name:'Edit enrollments'}).click();await page.getByLabel('Primary ministry with a long authorized name',{exact:true}).uncheck();await page.getByRole('button',{name:'Save enrollments'}).click()
  await page.getByRole('button',{name:'View Synthetic Example'}).click();await page.getByRole('button',{name:'Archive student',exact:true}).click();await page.getByRole('button',{name:'Confirm archive'}).click()
  await page.getByLabel('Status filter').selectOption('archived');await page.getByRole('button',{name:'View Synthetic Example'}).click();await page.getByRole('button',{name:'Restore student',exact:true}).click();await page.getByRole('button',{name:'Confirm restore'}).click()
- expect(proof.mutations.map(item=>item.path)).toEqual(['/api/students',`/api/students/${studentId}`,`/api/students/${studentId}/enrollments`,`/api/students/${studentId}/archive`,`/api/students/${studentId}/restore`])
+ await expect.poll(()=>proof.mutations.map(item=>item.path)).toEqual(['/api/students',`/api/students/${studentId}`,`/api/students/${studentId}/enrollments`,`/api/students/${studentId}/archive`,`/api/students/${studentId}/restore`])
  await expectNoSeriousAccessibilityIssues(page)
 })
 test('Owner Ministries and Teachers have distinct edits, invitation pages and separate protected transfer',async({page,context})=>{

@@ -30,25 +30,25 @@ async function announce(page: Page) {
   await expect.poll(() => page.evaluate(async () => (await navigator.serviceWorker.ready).waiting?.state)).toBe('installed')
   return revision
 }
-test('production manifest, favicon and retained SVG icons decode and remain available offline', async ({ page, context, browserName }) => {
+test('production approved raster branding and icons decode and remain available offline', async ({ page, context, browserName }) => {
   await page.goto('/'); await controlled(page)
   await expect(page.getByRole('heading', { name: 'Choose a device profile' })).toBeVisible()
   const manifest = await page.evaluate(async () => (await fetch('/manifest.webmanifest')).json())
-  expect(manifest).toMatchObject({ name: 'MinistrySprout', short_name: 'MSprout', start_url: '/', scope: '/', display: 'standalone', theme_color: '#102c46', background_color: '#f1f6fc' })
+  expect(manifest).toMatchObject({ name: 'MSprout', short_name: 'MSprout', start_url: '/', scope: '/', display: 'standalone', theme_color: '#102c46', background_color: '#f1f6fc' })
   expect(manifest.icons.every((icon: { purpose: string }) => icon.purpose === 'any')).toBe(true)
   expect(await page.locator('meta[name=theme-color]').getAttribute('content')).toBe(manifest.theme_color)
   expect(new URL(page.url()).pathname).toBe(manifest.start_url)
   const favicon = await page.locator('link[rel=icon]').getAttribute('href')
-  expect(favicon).toBe('/icons/sprout-192.svg')
+  expect(favicon).toBe('/icons/msprout-32.png')
   for (const link of await page.locator('footer a').all()) expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44)
   for (const icon of manifest.icons) {
     expect(await page.evaluate(async (src: string) => {
-      const response = await fetch(src); if (!response.ok || !response.headers.get('content-type')?.includes('image/svg+xml')) return false
+      const response = await fetch(src); if (!response.ok || !response.headers.get('content-type')?.includes('image/png')) return false
       const image = new Image(); image.src = src; await image.decode(); return image.naturalWidth > 0 && image.naturalHeight > 0
     }, icon.src)).toBe(true)
   }
   const mask = await page.evaluate(async () => {
-    const image = new Image(); image.src = '/icons/sprout-512.svg'; await image.decode()
+    const image = new Image(); image.src = '/icons/msprout-512.png'; await image.decode()
     const canvas = document.createElement('canvas'); canvas.width = canvas.height = 512
     const draw = canvas.getContext('2d')!; draw.drawImage(image, 0, 0, 512, 512)
     const pixels = draw.getImageData(0, 0, 512, 512).data; let whiteOutsideSafeCircle = 0
@@ -56,16 +56,16 @@ test('production manifest, favicon and retained SVG icons decode and remain avai
       const index = (y * 512 + x) * 4
       if (Math.hypot(x - 256, y - 256) > 204.8 && pixels[index] > 240 && pixels[index + 1] > 240 && pixels[index + 2] > 240 && pixels[index + 3] > 240) whiteOutsideSafeCircle++
     }
-    return { whiteOutsideSafeCircle, productionA2AssetQualification: 'conditional' }
+    return { whiteOutsideSafeCircle, productionRasterApproval: 'approved', maskableQualification: 'not claimed' }
   })
-  await test.info().attach('retained-icon-mask-diagnostic', { body: JSON.stringify(mask), contentType: 'application/json' })
+  await test.info().attach('approved-raster-padding-diagnostic', { body: JSON.stringify(mask), contentType: 'application/json' })
   // An unreachable origin proves that real cached responses need no network.
   // WebKit's setOffline flag itself rejects worker responses (upstream42775).
   await page.request.post('/__qa/network-down')
   try {
   expect(await page.evaluate(async () => { try { await fetch('/api/__qa-uncached'); return true } catch { return false } })).toBe(false)
   if (browserName !== 'webkit') await context.setOffline(true)
-  for (const src of ['/manifest.webmanifest', ...manifest.icons.map((icon: { src: string }) => icon.src)]) {
+  for (const src of ['/manifest.webmanifest', favicon!, '/brand/msprout-symbol.svg', ...manifest.icons.map((icon: { src: string }) => icon.src)]) {
     const result = await page.evaluate(async url => {
       try { return { ok: (await fetch(url)).ok } } catch {
         const entries = (await Promise.all((await caches.keys()).map(async name => (await (await caches.open(name)).keys()).map(request => request.url)))).flat()

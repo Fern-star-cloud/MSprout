@@ -1,5 +1,5 @@
 {
-  "name": "MinistrySprout",
+  "name": "MSprout",
   "short_name": "MSprout",
   "description": "Children's ministry, ready anywhere.",
   "id": "/",
@@ -10,15 +10,15 @@
   "theme_color": "#102c46",
   "icons": [
     {
-      "src": "/icons/sprout-192.svg",
+      "src": "/icons/msprout-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/sprout-512.svg",
+      "src": "/icons/msprout-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     }
   ]

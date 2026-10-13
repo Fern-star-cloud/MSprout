@@ -1,3 +1,4 @@
+import { compactLabel } from '../components/ui/compact-label'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { components } from '../api/generated'
 import { authRequest } from '../features/auth/transport'
@@ -127,10 +128,10 @@ export function ChurchWorkspaceBoundary({ children, allowOffline = false, indepe
     {state.mfa && <a href="/account/mfa">Check MFA</a>}
     <button onClick={() => { setState({ kind: 'loading' }); setRevision(value => value + 1) }}>Retry workspace</button>
   </section>
-  const selector = (state.kind === 'ready' || state.kind === 'select') && state.workspaces.length > 1 && <label>Church workspace
-    <select value={state.kind === 'ready' ? state.workspace.church_id : ''} onChange={event => selectChurch(event.target.value)}>
+  const selector = (state.kind === 'ready' || state.kind === 'select') && state.workspaces.length > 1 && <label className="workspace-selector">Church workspace
+    <select title={state.kind === 'ready' ? state.workspace.name : undefined} value={state.kind === 'ready' ? state.workspace.church_id : ''} onChange={event => selectChurch(event.target.value)}>
       <option value="">Choose a church</option>
-      {state.workspaces.map(item => <option key={item.church_id} value={item.church_id}>{item.name}</option>)}
+      {state.workspaces.map(item => <option key={item.church_id} value={item.church_id} title={item.name} aria-label={item.name}>{compactLabel(item.name)}</option>)}
     </select>
   </label>
   const onlineReady = state.kind === 'ready' && state.source === 'online' && navigator.onLine && compatible

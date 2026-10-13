@@ -51,8 +51,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(self.registration.showNotification('Birthday reminder', {
     body: countOnlyBody,
     tag: 'birthday-reminder',
-    icon: '/icons/sprout-192.svg',
-    badge: '/icons/sprout-192.svg',
+    icon: '/icons/msprout-192.png',
+    badge: '/icons/msprout-192.png',
     data: { url: '/account/birthdays' },
   }))
 })

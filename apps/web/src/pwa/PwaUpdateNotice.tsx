@@ -20,7 +20,7 @@ export function PwaUpdateNotice() {
         ? 'Checking local work before updating…'
         : update.updateBlocked
           ? 'Safe updating is not available yet. Keep this version open and try again after checking your authorized device workspace.'
-          : 'A new version of MinistrySprout is available. Local work will be checked before updating.'
+          : 'A new version of MSprout is available. Local work will be checked before updating.'
   return <section className="update-notice" aria-label="Application update">
     <div role={update.error ? 'alert' : 'status'}><strong>Update available</strong><span>{message}</span></div>
     <Button ref={action} busy={update.updating} onClick={() => {

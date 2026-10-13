@@ -1,5 +1,10 @@
 # MinistrySprout Knowledge Index
 
+
+## Current stakeholder visual governance
+
+For current authorized UX work, read the [2026-10-13 visual/branding clarification](../docs/superpowers/specs/2026-10-13-stakeholder-visual-clarification.md): original artwork authority, approved MSprout identity and field-appropriate text safety. It supersedes conflicting earlier display/source directions without authorizing future tasks. [UX-03 review candidate](../docs/qa/ux-03-branding-text-review.md) has final stakeholder visual approval; UX-03-only commit/push finalization is authorized. The original approved artwork governs fidelity across all12 packs for subsequently authorized tasks, subject to actual functionality, accessibility, security and truthful representation.
+
 MT-00…MT-22 are optional risk-based QA references; sequential completion of 211 cases is not required for development, merging, deployment or release. Preserve results and blockers without promoting deferred coverage to PASS. Applicable automated/security/authorization/CI/deployment gates and unresolved release-critical defects remain release criteria; see [AGENTS.md](../AGENTS.md) section 16.
 
 Always begin with [CURRENT_STATE.md](CURRENT_STATE.md). Then read only what the task needs:

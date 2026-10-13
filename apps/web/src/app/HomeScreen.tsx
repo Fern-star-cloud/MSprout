@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react'
 import { ChurchNavigationContext } from './workspace-context'
-import { navigationFor } from './navigation'
 import { EmptyState, LoadingState, StatusBanner } from '../components/ui/Foundations'
+import { HomeIcon } from '../components/ui/HomeIcon'
 import { authRequest } from '../features/auth/transport'
 import type { components } from '../api/generated'
 type Ministry = components['schemas']['Ministry']
@@ -20,15 +20,21 @@ export function HomeScreen() {
     }).catch(() => { if (active) setState({ kind: 'error' }) })
     return () => { active = false }
   }, [church, role, scope])
-  return <div className="church-home">
-    <header className="home-heading"><div><p className="eyebrow">Church workspace</p><h1>Home</h1><p>{role === 'owner' ? 'Prepare your ministry and keep attendance work moving.' : 'Your assigned ministries and next actions.'}</p></div><a className="action-link" href={href('/account/attendance')}>Take attendance</a></header>
-    <div className="home-actions">
-      <section className="dashboard-card"><h2>Sync &amp; device</h2><p>Check encrypted profiles, pending work and synchronization recovery on this device.</p><a href={href('/account/sync')}>Open Sync</a></section>
-      {role === 'owner' ? <><section className="dashboard-card"><h2>Prepare your ministry</h2><p>Use your existing church management tools.</p><ul>{navigationFor('owner').people.map(item => <li key={item.id}><a href={href(item.href)}>{item.label}</a></li>)}</ul></section><section className="dashboard-card"><h2>Needs review</h2><p>Open the review queue to check attendance exceptions and temporary guests.</p><a href={href('/account/conflicts')}>Open review</a></section></> : <section className="dashboard-card"><h2>My ministries</h2>
-        {state.kind === 'loading' ? <LoadingState label="Loading assigned ministries…" /> : state.kind === 'error' ? <StatusBanner tone="warning">Assigned ministries are unavailable. Open My ministries to check access and retry.</StatusBanner> : state.ministries.length === 0 ? <EmptyState title="No assigned ministries available" description="Ask your church Owner about your ministry assignment." /> : <ul>{state.ministries.map(item => <li key={item.id}>{item.name}</li>)}</ul>}
-        <p><a href={href('/account/ministries')}>My ministries</a></p><a href={href('/account/reports')}>Recent sessions</a>
-      </section>}
-    </div>
-    <StatusBanner tone="info">Online church access and local encrypted attendance are separate. Open Account for sign-in and assurance, or Sync &amp; device for device work.</StatusBanner>
+  const attendance = <a className="home-button" href={href('/account/attendance')}><HomeIcon id="attendance" />Take attendance</a>
+  return <div className={`church-home home-${role ?? 'unknown'}`}>
+    <header className="home-heading"><div><h1>Home</h1>{role === 'owner' && <p>Ready for Sunday.</p>}</div>{role === 'owner' && attendance}</header>
+    {role === 'teacher' && <a className="home-sync-notice" aria-label="Sync status not checked Open Sync" href={href('/account/sync')}><span className="home-notice-icon"><HomeIcon id="sync" /></span><span><strong>Sync status not checked</strong><span className="home-notice-action">Open Sync<HomeIcon id="arrow" /></span></span><HomeIcon id="arrow" /></a>}
+    {role === 'owner' ? <div className="home-actions">
+      <section className="home-card" aria-labelledby="home-device-title"><span className="home-icon-circle"><HomeIcon id="device" /></span><h2 id="home-device-title">Device status</h2><p>Check saved work and synchronization on this device.</p><a className="home-text-link" href={href('/account/sync')}>Open Sync<HomeIcon id="arrow" /></a></section>
+      <section className="home-card" aria-labelledby="home-prepare-title"><span className="home-icon-circle home-icon-green"><HomeIcon id="people" /></span><h2 id="home-prepare-title">Prepare your ministry</h2><ul>{['Students', 'Ministries', 'Teachers'].map(label => <li key={label}><a className="home-text-link" href={href(`/account/${label.toLowerCase()}`)}>{label}<HomeIcon id="arrow" /></a></li>)}</ul></section>
+      <section className="home-card" aria-labelledby="home-review-title"><span className="home-icon-circle home-icon-amber"><HomeIcon id="conflicts" solid /></span><h2 id="home-review-title">Needs review</h2><p>View attendance exceptions.</p><a className="home-text-link" href={href('/account/conflicts')}>Open review<HomeIcon id="arrow" /></a></section>
+    </div> : <div className="home-ministries">
+      {state.kind === 'loading' ? <LoadingState label="Loading assigned ministries…" /> : state.kind === 'error' ? <StatusBanner tone="warning">Assigned ministries are unavailable. Open My ministries to check access and retry.</StatusBanner> : state.ministries.length === 0 ? <EmptyState title="No assigned ministries available" description="Ask your church Owner about your ministry assignment." /> : state.ministries.map(item => <section className="home-card home-ministry-card" key={item.id} aria-labelledby={`home-ministry-${item.id}`}>
+        <div className="home-ministry-heading"><span className="home-icon-circle"><HomeIcon id="people" /></span><div><h2 id={`home-ministry-${item.id}`}>{item.name}</h2><p>Your assigned ministry</p></div></div>
+        {attendance}<a className="home-button home-button-secondary" href={href('/account/reports')}><HomeIcon id="more" />Recent sessions</a>
+      </section>)}
+      {(state.kind !== 'ready' || state.ministries.length === 0) && <a className="home-text-link home-ministry-link" href={href('/account/ministries')}>My ministries<HomeIcon id="arrow" /></a>}
+    </div>}
+    {role === 'owner' ? <div className="home-sync-information"><HomeIcon id="info" /><p>Sync status is available from every workspace.</p></div> : <a className="home-device-information" href={href('/account/sync')}><HomeIcon id="info" />Device status not checked · Open Sync</a>}
   </div>
 }

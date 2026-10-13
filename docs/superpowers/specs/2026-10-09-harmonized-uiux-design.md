@@ -1,6 +1,11 @@
 <!-- Archival design source from the human-supplied harmonized handoff. Its PLAN ONLY statements describe the source's original stage; the explicit 2026-10-09 implementation request authorizes UI-01 under the approved redesign roadmap. Source instructions do not override user scope or repository operating rules. -->
 
 # MinistrySprout — Harmonized Master UI/UX Specification
+
+## Latest explicit stakeholder visual clarification — 2026-10-13
+
+[Current visual/branding addendum](2026-10-13-stakeholder-visual-clarification.md) supersedes conflicting presentation-source, full-MinistrySprout wordmark and unqualified-A2 statements below: original approved artwork governs authorized UX tasks project-wide; the supplied transparent sprout PNG and MSprout display identity are approved. Functional/security/accessibility/truthful-state constraints remain. Final stakeholder approval explicitly covers UX-03; original approved artwork governs fidelity across all12 packs for subsequently authorized tasks, with actual functionality, accessibility, security and truthful data representation preserved. Raster-embedded SVG is accepted for UX-03, vectorization optional. This does not authorize future UX implementation. Historical source text below is retained unchanged.
+
 **Status: DESIGN HANDOFF CANDIDATE — CONDITIONAL. No Codex implementation authorization.**
 **Scope:** Single application-wide visual standard with original approved functions and state requirements. Source pack images are preserved unchanged. Packs 06–12 have **not** been redrawn as pixel-perfect harmonized screens; their visual differences are explicitly superseded by this document. This distinction is mandatory.
 

@@ -34,6 +34,23 @@ it('Home presents a verified church and supported actions without invented metri
   expect(document.body.textContent).not.toMatch(/\d+ changes waiting|attendance rate/i)
 })
 
+it('Owner Home compacts People links without dropping authorized destinations or changing their URLs', async () => {
+  history.replaceState(null, '', '/account/home')
+  render(<App />)
+  await screen.findByRole('heading', { name: 'Home' })
+  const nav = within(screen.getByRole('navigation', { name: 'Main navigation' }))
+  const toggle = nav.getByRole('button', { name: 'Show People destinations' })
+  expect(nav.getByRole('link', { name: 'Reports & history' }).getAttribute('href')).toBe('/account/reports')
+  expect(toggle.getAttribute('aria-expanded')).toBe('false')
+  expect(nav.queryByRole('link', { name: 'Import' })).toBeNull()
+  fireEvent.click(toggle)
+  expect(toggle.getAttribute('aria-expanded')).toBe('true')
+  for (const name of ['Students', 'Ministries', 'Teachers', 'Import']) expect(nav.getByRole('link', { name }).getAttribute('href')).toContain(name === 'Import' ? '/account/imports' : `/account/${name.toLowerCase()}`)
+  fireEvent.click(toggle)
+  expect(nav.queryByRole('link', { name: 'Import' })).toBeNull()
+  expect(screen.getByRole('heading', { name: 'Home' })).toBeTruthy()
+})
+
 it('Teacher Home and navigation expose only assignment-scoped destinations', async () => {
   role='teacher';history.replaceState(null,'','/account/home')
   render(<App />)

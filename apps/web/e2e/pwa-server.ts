@@ -39,7 +39,7 @@ export async function startPwaServer() {
     if (file !== root && !file.startsWith(root + sep)) return json(response, 404, {})
     const target = existsSync(file) && statSync(file).isFile() ? file : !extname(route) ? resolve(root, 'index.html') : null
     if (!target) return json(response, 404, {})
-    const mime: Record<string, string> = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' }
+    const mime: Record<string, string> = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' }
     response.writeHead(200, { 'Content-Type': mime[extname(target)] ?? 'application/octet-stream', 'Cache-Control': 'no-cache' })
     const bytes = readFileSync(target)
     // Observe actual worker activation; do not replace its routing/cache logic.

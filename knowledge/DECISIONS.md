@@ -1,5 +1,25 @@
 # Technical Decisions
 
+
+## Final stakeholder design decisions for all12 packs — 2026-10-13
+
+Explicitly approved: official displayed brand **MSprout**; supplied green-and-blue sprout logo; Pack01 blue/navy UX-03 styling/layout/navigation; raster-embedded SVG accepted for UX-03 with optional future vectorization. Preserve50-character compact church-name presentation, responsive text/focus safety and full stored values.
+
+Original approved mockup artwork governs visual fidelity across **all12 packs** for subsequently authorized UX tasks. Actual functionality, accessibility, security and truthful data representation remain controlling constraints. [Persistent design governance](../docs/superpowers/specs/2026-10-13-stakeholder-visual-clarification.md). This is not implementation authorization for UX-04–UX-08. The user separately grants UX-03-only commit/push finalization; no merge/deployment.
+
+
+## MSprout branding and project-wide artwork authority — explicit stakeholder clarification, 2026-10-13
+
+Official displayed name MSprout, navy MS/green prout. The user approved the supplied transparent1254px sprout PNG; faithful raster-backed framing/padded exports reuse its actual pixels and never claim vector/maskable qualification. Internal identifiers, crypto labels, data structures, routes/packages remain unchanged. Compact church names target50 displayed code points with width ellipsis/full accessible and expanded access; complete stored values/backend limits preserved. Other fields use their existing constraints and bounded presentation, not a universal50-character data limit.
+
+The original approved master mockup artwork now governs authorized UX tasks project-wide, superseding conflicting earlier visual/harmonization source directions while retaining security/accessibility/truthful-state constraints. It does not authorize future implementation. [Persistent design addendum](../docs/superpowers/specs/2026-10-13-stakeholder-visual-clarification.md) and [current candidate](../docs/qa/ux-03-branding-text-review.md). This expands the earlier Home-only source clarification as explicitly requested, without silently restyling future screens. UX-03 remains YELLOW/uncommitted pending review; no finalization.
+
+## UX-03 visual source clarification — explicit stakeholder direction, 2026-10-13
+
+Stakeholder withdrew prior UX-03 visual acceptance and explicitly selected master PDF page4 Pack01 artwork for Home styling/composition. It shows blue primary actions/navigation, navy headings and blue-white surfaces, consistent with page2's blue palette, conflicting with pages31–32/56–62's written green #1F5B43 / warm #F3F6F1 contract. For **UX-03 Home only**, the latest explicit direction resolves that visual conflict in favor of the artwork. It does not silently amend global tokens, unrelated screen specifications, functionality/security/accessibility/truthful-state requirements, or authorize UX-04–UX-08/finalization.
+
+Preserve existing official production logo SVGs until approved multicolor artwork is available. Raster font/source CSS/vector identity is unknown; measure real CSS and document approximations rather than asserting exact source values. Unknown synchronization/device state cannot become a count or unlocked claim. [Audit and review candidate](../docs/qa/ux-03-home-visual-review.md). Implementation is technically validated but uncommitted and YELLOW pending renewed stakeholder review; history and previous evidence retained.
+
 Manual QA governance decision — 2026-10-07, explicit user direction: retain MT-00…MT-22/211 cases as optional risk-based references for exploration and bug reproduction/correction/validation. Sequential completion is not a development, merge, deployment or release prerequisite; incomplete/BLOCKED/NOT_RUN coverage alone is non-blocking and never relabeled PASS. Preserve historical evidence and known blockers. Confirmed bugs require severity triage, authorized correction and focused regression proof; applicable automated/security/authorization/CI/deployment requirements and unresolved release-critical defects remain release criteria. This changes QA governance, not MVP product scope or security protections. See [AGENTS.md](../AGENTS.md) section 16 and [manual roadmap](../docs/qa/MANUAL_TESTING_ROADMAP.md).
 
 Only decisions established by the approved design, roadmap, committed implementation, or a validated current worktree belong here.

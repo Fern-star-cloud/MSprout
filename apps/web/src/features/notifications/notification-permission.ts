@@ -12,7 +12,7 @@ export async function prepareBirthdayNotifications(churchId:string):Promise<Prep
 }
 const denialKey='msprout:birthday-notifications-denied',deviceKey='msprout:push-device-id'
 export function notificationCapability():NotificationCapability {
-  if(!('Notification' in globalThis)||!globalThis.navigator?.serviceWorker||!('PushManager' in globalThis))return /iPad|iPhone|iPod/i.test(navigator.userAgent)?{state:'ios-install-required',message:'On iPhone or iPad, add MinistrySprout to your Home Screen before enabling notifications.'}:{state:'unsupported',message:'Birthday notifications are not supported in this browser.'}
+  if(!('Notification' in globalThis)||!globalThis.navigator?.serviceWorker||!('PushManager' in globalThis))return /iPad|iPhone|iPod/i.test(navigator.userAgent)?{state:'ios-install-required',message:'On iPhone or iPad, add MSprout to your Home Screen before enabling notifications.'}:{state:'unsupported',message:'Birthday notifications are not supported in this browser.'}
   let declined=false;try{declined=localStorage.getItem(denialKey)==='true'}catch{/* Storage may be unavailable. Browser permission remains authoritative. */}
   if(Notification.permission==='denied'||Notification.permission==='default'&&declined)return {state:'denied',message:'Notifications are blocked. You can change this in your browser settings.'}
   return {state:'available',message:'Opt in to a count-only birthday reminder. The server schedules eligible reminders at 8:00 AM in the church timezone; delivery is not guaranteed.'}
@@ -46,7 +46,7 @@ export async function enableBirthdayNotifications(churchId:string,current=()=>tr
     if(!config.configured||!config.vapid_public_key)return {state:'error',message:'Notifications are not configured yet.'}
     const permission=consent?await consent.permission:Notification.permission==='granted'?'granted':await Notification.requestPermission()
     if(!current())throw Error('Changed context')
-    if(permission!=='granted'){try{localStorage.setItem(denialKey,'true')}catch{/* No storage write is required to enforce browser denial. */}return {state:'denied',message:'Notifications were not enabled. MinistrySprout will not ask again.'}}
+    if(permission!=='granted'){try{localStorage.setItem(denialKey,'true')}catch{/* No storage write is required to enforce browser denial. */}return {state:'denied',message:'Notifications were not enabled. MSprout will not ask again.'}}
     const registration=await pushRegistration();if(!current())throw Error('Changed context')
     let subscription=await registration.pushManager.getSubscription();if(!current())throw Error('Changed context')
     if(!subscription){subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:applicationServerKey(config.vapid_public_key)});if(!current())throw Error('Changed context')}

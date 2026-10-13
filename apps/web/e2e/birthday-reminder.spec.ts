@@ -24,7 +24,7 @@ test('authorized birthday fallback shows names only in-app and notification perm
   await expect(page.getByText('Push reminders contain a count only.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Enable Birthday Notifications' })).toBeVisible()
   await page.getByRole('button', { name: 'Enable Birthday Notifications' }).click()
-  await expect(page.getByText('Notifications were not enabled. MinistrySprout will not ask again.')).toBeVisible()
+  await expect(page.getByText('Notifications were not enabled. MSprout will not ask again.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Enable Birthday Notifications' })).toHaveCount(0)
   await expectNoSeriousAccessibilityIssues(page)
 })

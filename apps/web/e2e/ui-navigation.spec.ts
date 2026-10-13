@@ -30,7 +30,8 @@ for (const role of ['owner','teacher'] as const) {
         await expect(phone).toBeVisible()
         expect(await phone.getByRole('link').allTextContents()).toEqual(role==='owner'?['Home','Attendance','Review','People','More']:['Home','Attendance','Sync','More'])
         expect(await phone.evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true)
-        for(const caption of await phone.locator('a > span').all()) expect(await caption.evaluate(element=>element.getBoundingClientRect().height<=parseFloat(getComputedStyle(element).lineHeight)+1)).toBe(true)
+        // 14px supporting text may wrap at 320px; preserve complete, readable labels.
+        for(const caption of await phone.locator('a > span').all()) expect(await caption.evaluate(element=>element.getBoundingClientRect().height<=2*parseFloat(getComputedStyle(element).lineHeight)+1&&element.scrollWidth<=element.clientWidth)).toBe(true)
       } else if(width<1024) {await expect(desktop).toBeHidden();await expect(page.getByRole('button',{name:'Menu',exact:true})).toBeVisible()}
       else {await expect(desktop).toBeVisible();await expect(phone).toBeHidden()}
       expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)

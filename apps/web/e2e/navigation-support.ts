@@ -2,9 +2,14 @@ import { expect, type Page } from '@playwright/test'
 
 export async function openChurchDestination(page: Page, label: string, role: 'owner' | 'teacher') {
   const teacherLabels: Record<string, string> = { Ministries: 'My ministries', Students: 'Assigned roster', Reports: 'Recent sessions' }
-  const target = role === 'teacher' ? teacherLabels[label] ?? label : label
+  const homeOwner = role === 'owner' && await page.locator('.home-shell').isVisible()
+  const target = role === 'teacher' ? teacherLabels[label] ?? label : homeOwner && label === 'Reports' ? 'Reports & history' : homeOwner && label === 'Church activity' ? 'Activity' : label
   const desktop = page.getByRole('navigation', { name: 'Main navigation', exact: true })
-  if (await desktop.isVisible()) { await desktop.getByRole('link', { name: target, exact: true }).click(); return }
+  if (await desktop.isVisible()) {
+    const destination = desktop.getByRole('link', { name: target, exact: true })
+    if (!await destination.isVisible() && await desktop.getByRole('button', { name: 'Show People destinations' }).isVisible()) await desktop.getByRole('button', { name: 'Show People destinations' }).click()
+    await destination.click(); return
+  }
   const menu = page.getByRole('button', { name: 'Menu', exact: true })
   if (await menu.isVisible()) {
     await menu.click()

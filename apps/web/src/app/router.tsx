@@ -1,3 +1,4 @@
+import { Brand } from '../components/ui/Brand'
 import { useContext, useEffect, useRef, useState, type MouseEvent } from 'react'
 import { ApplicationScreen } from '../features/applications/ApplicationScreen'
 import { AuditScreen } from '../features/audit/AuditScreen'
@@ -105,9 +106,9 @@ export function AppRouter() {
   const platform = route?.kind === 'platform'
   const platformPage = route?.id === 'platform-applications' ? <ApplicationReviewScreen /> : route?.id === 'platform-system-health' ? <SystemHealthScreen /> : route?.id === 'platform-audit' ? <AuditScreen platform /> : null
   return <div onClick={followInternalLink}>{platform ? route.id === 'platform-setup' ? <PlatformPublicShell><PlatformAuthScreen key={route.id + entry.fragment} setup fragment={entry.fragment} onAuthenticated={() => navigate('/account/platform-applications')} /></PlatformPublicShell> : <PlatformSessionBoundary route={route} routeKey={routeKey} anonymous={route.id === 'platform-login' ? <PlatformAuthScreen onAuthenticated={() => navigate('/account/platform-applications')} /> : undefined}>{platformPage}</PlatformSessionBoundary> : churchShell ? <ChurchWorkspaceBoundary routeKey={routeKey} independent={route.kind === 'device'} allowOffline={route.id === 'birthdays'} renderShell={content => <ChurchShell route={route} routeKey={routeKey}>{content}</ChurchShell>}><ChurchPage key={route.id} route={route} navigate={navigate} /></ChurchWorkspaceBoundary> : <div className="public-layout">
-    <header className="brand"><h1>MinistrySprout</h1><p>Children&apos;s ministry, ready anywhere.</p></header>
+    <header className="brand"><h1><Brand /></h1><p>Children&apos;s ministry, ready anywhere.</p></header>
     <PwaUpdateNotice />
-    <main id="main-content" tabIndex={-1}>{route ? <PublicPage key={route.id} route={route} fragment={entry.fragment} navigate={navigate} /> : <section className="auth-card"><h2>Page not found</h2><p>Choose a supported MinistrySprout destination.</p><a href="/account/home">Open Home</a></section>}</main>
+    <main id="main-content" tabIndex={-1}>{route ? <PublicPage key={route.id} route={route} fragment={entry.fragment} navigate={navigate} /> : <section className="auth-card"><h2>Page not found</h2><p>Choose a supported MSprout destination.</p><a href="/account/home">Open Home</a></section>}</main>
     <footer><ConnectivityStatus /><a href="/account">Account</a><a href="/profiles">Device profiles</a><a href="/account/attendance">Attendance</a><a href="/account/sync">Sync &amp; device</a><a href="/account/platform-login">Platform administration</a></footer>
   </div>}</div>
 }

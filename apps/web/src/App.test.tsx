@@ -6,11 +6,12 @@ vi.mock('./assets/react.svg', () => ({ default: 'react.svg' }))
 
 import App from './App'
 
-it('renders the MinistrySprout product name and tagline', () => {
+it('renders the approved MSprout product name and tagline', () => {
   const markup = renderToStaticMarkup(<App />)
 
-  const renderedText = markup.replaceAll('&#x27;', "'")
+  const renderedText = markup.replace(/<[^>]*>/g, '').replaceAll('&#x27;', "'")
 
-  expect(renderedText).toContain('MinistrySprout')
+  expect(renderedText).toContain('MSprout')
+  expect(renderedText).not.toContain('MinistrySprout')
   expect(renderedText).toContain("Children's ministry, ready anywhere.")
 })
