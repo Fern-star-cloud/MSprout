@@ -15,7 +15,7 @@ async function openSession(existing = true) {
   await userEvent.setup().click(await screen.findByRole('button', { name: existing ? 'Resume attendance' : 'Start attendance' }))
 }
 async function openGuest() {
-  await userEvent.setup().click(screen.getByRole('button', { name: 'Add temporary guest' }))
+  await userEvent.setup().click(screen.getByRole('button', { name: 'Add guest — Add temporary guest' }))
 }
 
 it('distinguishes acknowledged uploads from an incomplete pull, including after reopening attendance', async () => {
@@ -41,7 +41,7 @@ it('distinguishes acknowledged uploads from an incomplete pull, including after 
   expect(await screen.findByText(/Uploaded changes may already be accepted/)).toBeTruthy()
   syncNeedsPull = false
   act(() => window.dispatchEvent(new Event('ministrysprout:sync-complete')))
-  expect(await screen.findByText(/No pending changes/)).toBeTruthy()
+  expect(await screen.findByText(/0 pending uploads.*Download completion not checked here/)).toBeTruthy()
   expect(screen.queryByText(/Sync incomplete/)).toBeNull()
   syncNeedsPull = true
   repository.countPending.mockResolvedValue(3)
@@ -97,7 +97,8 @@ it('supports search, individual and bulk marking, counts, and safe finalization'
   expect(screen.getByText(/Offline.*saving on this device/i)).toBeTruthy()
   Object.defineProperty(navigator, 'onLine', { configurable: true, value: true })
   window.dispatchEvent(new Event('online'))
-  expect(await screen.findByText(/Online.*1 pending/i)).toBeTruthy()
+  expect(await screen.findByText(/1 pending uploads/i)).toBeTruthy()
+  expect(screen.queryByText(/Offline.*saving on this device/i)).toBeNull()
   expect((screen.getByRole('button', { name: 'Finalize attendance' }) as HTMLButtonElement).disabled).toBe(true)
 
   await openGuest()
@@ -146,6 +147,9 @@ it('keeps the responsive controls usable with text labels and student avatars', 
   expect(await screen.findByRole('img', { name: 'Ana Sprout avatar' })).toBeTruthy()
   expect(screen.getByRole('button', { name: 'Mark Ana Sprout present' }).textContent).toContain('Present')
   expect(screen.getByRole('button', { name: 'Mark Ana Sprout absent' }).textContent).toContain('Absent')
+  expect(screen.getByRole('button', { name: 'Add guest — Add temporary guest' }).textContent).toBe('Add guest')
+  expect(screen.getByRole('button', { name: 'Add guest — Add temporary guest' }).getAttribute('aria-label')).toContain('Add guest')
+  expect(screen.getByRole('button', { name: 'Finalize attendance' }).textContent).toBe('Finalize')
   expect(screen.getByLabelText('Ministry')).toBeTruthy()
   expect(screen.getByLabelText('Attendance date')).toBeTruthy()
 })

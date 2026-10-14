@@ -1,5 +1,57 @@
 # Current State
 
+## UX-08 stakeholder-approved final delivery checkpoint — 2026-10-14
+
+Explicit stakeholder authorization states: **“Stakeholder visual approval for UX-08 — Attendance & Temporary Guests is GRANTED.”** All UX-08 visual findings are closed. The accepted candidate includes 1440/1024 desktop, 768 tablet, 390/320 phone, approved MSprout branding/light surfaces/navy headings/blue primary actions, emerald #087754 Present, pale-amber Absent, softly rounded unified filters/actions, wider paired controls, divider-only rows, readable names and two-row controls at narrow widths, compact Add guest/Finalize with full accessible names, roster-first phones and all documented accessibility/security/responsive adaptations. Safe Start/Resume, guest and finalization workflows remain accepted. No further visual redesign is authorized without a newly established blocking issue.
+
+[Accepted visual review](../docs/qa/ux-08-attendance-guests-visual-review.md). Task identity: `feat: finalize attendance and temporary guests UX-08`, parent approved UX-07 `85795a004d7b30a142e70734662540ca0dd7b40c`, on `feat/mvp-foundation`. The exact commit SHA and normal feature-branch push resolve through Git history and `.git/msprout-ux08-finalization-20261014/finalization.json`. UX-08 is GREEN only after successful commit/push verification: clean worktree/staging, matching local/upstream/live remote HEAD, ahead/behind 0/0, unchanged local/origin/live main and intact protected work. Earlier YELLOW/pending statements are historical. STOP after verified UX-08 delivery; no UX-09, Packs 06–12 implementation, merge or deployment.
+
+Qualified production/test inputs match `.git/msprout-ux08-geometry-20261014/final-preservation.json` exactly. Reuse valid 740/79 frontend, refreshed 80/6 focused attendance/profile, final 17 affected browser cases, native five-width accessibility/response/state evidence, 36 approved-screen comparisons, build/TypeScript/lint and relevant OWASP/security evidence. Backend 306/3626, contracts, Pint, structure and dependency checks retain valid guarantees by unchanged inputs/effect. Documentation-only approval records do not invalidate those application gates. Fresh finalization proof covers source equality, complete diff review, source-secret coverage, whitespace/links, exact staging/commit scope, original bodies, protected stash/backups/private data and Git synchronization; no diagnostic failure is relabeled as a pass.
+
+The only production changes in the task are AttendanceScreen presentation/status wording and its scoped CSS; five test paths provide regression/evidence updates. All domain/save/guest/finalization/authentication handlers remain identical to the approved parent; backend/API/schema/contracts/dependencies/navigation/tokens/offline engines remain intact. Protected stash `1e104f06fbe3091b54e3916f612668b93f0107b4`, nine original QA/environment blobs, ten backups, private environment/SQLite, encrypted profile/attendance/sync work and approved UX-03–UX-07 are preserved. Screenshots, traces, temporary scripts/evidence, backups and credentials remain ignored and excluded from the task commit. Final review has 0 BLOCKING / 0 SHOULD FIX findings.
+
+
+
+## UX-08 component geometry/fidelity correction — 2026-10-14
+
+**YELLOW — visual approval explicitly withheld; stakeholder review pending.** The prior radius-only treatment is superseded. Attendance now has wider paired states (130×44px at 1440; 80×44px at 390), compact softer filters, divider-only rows and concise Add guest/Finalize actions with full accessible names. At 320, names grow from 72 to 226px and 127×44px controls sit below the name; a static footer prevents overlap. Page/panel horizontal geometry, emerald Present/amber Absent/blue/navy/white/light identity and all handlers/engines/data semantics remain intact. [Current review](../docs/qa/ux-08-attendance-guests-visual-review.md) provides native five-width before/corrected comparisons, measured Pack 05 adaptations and state/action/dialog evidence.
+
+Latest focused 80/6, build/TypeScript/lint and 17 unique affected browser cases PASS, including actual save/disabled/read-only, guest quota/restart, dialog focus, long names, forced colors and bottom-navigation clearance. Prior full frontend/backend/contracts/audits/OWASP and 36 approved-screen comparisons retain valid guarantees by exact inputs/effect; failed diagnostics remain preserved. Evidence is ignored under `.git/msprout-ux08-geometry-20261014/`.
+
+Eight correction paths fit within the existing twelve-path uncommitted candidate. Shared navigation/tokens/router, approved UX-03–UX-07, protected stash/nine originals/ten backups/private data and earlier report/knowledge bodies are preserved. HEAD remains `85795a004d7b30a142e70734662540ca0dd7b40c`, feature 0/0, main unchanged, staging empty. STOP for visual approval; no stage/commit/push/merge/deploy or UX-09.
+
+
+
+## UX-08 attendance button shape correction — 2026-10-14
+
+**YELLOW — stakeholder visual approval pending.** Attendance filters, per-student states and related action/dialog buttons now use the existing 8px small-radius token (entry 6px actions/filters, 5px states), retaining compact rounded rectangles, all validated geometry/44px targets, emerald Present, pale-amber Absent and blue actions. Only two attendance-scoped CSS radius values change production. [Updated visual review](../docs/qa/ux-08-attendance-guests-visual-review.md) contains five refreshed viewport captures, state/dialog evidence and actual measurements; prior color/shape screenshots below are historical.
+
+12 affected browser cases across Chrome desktop/phone and WebKit phone/tablet plus production build/TypeScript PASS. Native geometry/state, text fit at 320/390, hover/keyboard focus, saving/disabled/finalized, dialogs, enlarged text and forced-colors/accessibility proof passed. Prior frontend/backend/contracts/lint/audits/OWASP and 36 approved-screen comparisons retain valid guarantees by exact inputs/effect. Current evidence is ignored under `.git/msprout-ux08-shape-20261014/`.
+
+All behavior, storage/encryption/sync/counts/guest/finalization inputs, UX-03–UX-07, protected stash/nine originals/ten backups/private data and prior report bodies remain intact. Overall twelve-path candidate stays unstaged/uncommitted/unpushed at `85795a004d7b30a142e70734662540ca0dd7b40c`, feature 0/0, main unchanged. STOP for stakeholder visual approval; no stage/commit/push/merge/deploy or UX-09.
+
+
+
+## UX-08 final color consistency review — 2026-10-14
+
+**YELLOW — stakeholder visual approval pending.** Overall attendance presentation is accepted; current selected Present now reuses #087754/white (5.56:1), retaining blue primary/navigation and pale-amber Absent. A verified hover cascade correction preserves 3px/3px keyboard focus even when hovered. [Updated visual review](../docs/qa/ux-08-attendance-guests-visual-review.md) provides current native desktop/tablet/390/320, disabled/saving/forced-color captures, actual colors/contrast and exact evidence retention. Prior teal descriptions/screenshots below are historical.
+
+Only scoped CSS changes production; attendance TypeScript/tests/behavior/crypto/persistence/sync/counts/guest/finalized logic remain entry-exact. 8 affected four-project browser cases and latest production build/TypeScript PASS; five-width roster/context/filter rectangles remain exact. Prior 740/79 frontend, 80/6 focused, 84 unique browser, 36 approved-screen pairs, backend/contracts/lint/audits/OWASP retain valid guarantees. Current correction/hash/secret/preservation receipt is ignored under `.git/msprout-ux08-color-20261014/`.
+
+Protected stash/nine originals/ten backups/private data, approved UX-03–UX-07 and prior document bodies remain intact. Overall twelve-path candidate stays unstaged/uncommitted/unpushed at `85795a004d7b30a142e70734662540ca0dd7b40c`, feature 0/0 and main unchanged. No new feature, human browser/database work or UX-09. STOP for stakeholder approval; no finalization, merge or deployment.
+
+
+## UX-08 attendance and temporary guests — visual review checkpoint (2026-10-14)
+
+**YELLOW — stakeholder visual approval pending.** Authorized UX-08/Pack05 only, implemented and technically qualified at approved UX-07 `85795a004d7b30a142e70734662540ca0dd7b40c` on `feat/mvp-foundation`. [Current review](../docs/qa/ux-08-attendance-guests-visual-review.md) contains exact twelve paths, native original/before/current and cross-screen comparisons, all seven viewport measurements, state/dialog/error/expiry evidence and adaptations. Prior UX-07-only stops are historical; later UX tasks remain untouched.
+
+Desktop1152px device-workflow bound with200–248px context and wide roster starts at1024; active tablet/phone presents roster/actions before complete session context. Compact gender-avatar rows, teal Present/amber Absent,44px controls, scoped dialogs, full regular/guest totals and explicit upload/download qualifiers retain original Start/Resume, marking/bulk, durable guest, confirmation, unknown status, read-only/Pending Sync and all save/auth/crypto/profile/receipt/cursor safeguards. Only screen/scoped CSS change production; no shared navigation/API/engine/backend/contract/dependency change. Attendance happy-path fixed-lease fixture uses an explicit valid synthetic clock; no expiry rule changes.
+
+Full frontend740/79 PASS retained by effect; latest focused80/6, build/TypeScript/lint and20 final four-target attendance/lease cases plus12 final CSS/reflow/dialog closure PASS.84 unique browser cases qualify after current closures. Refreshed native lifecycle1 and retained unknown/actual expiry1 PASS;36 approved-screen pairs pixel-identical. Relevant OWASP76/23, complete screen/engine76/1 closures and final CSS proof have0 findings/errors/timeouts in the final applicable scans. Prior backend306/3626/contracts/Pint/audits/CI security are retained by exact inputs/effect. Final source/secret/structure/link/whitespace/preservation/Git receipt is ignored under `.git/msprout-ux08-20261014/`; failed diagnostic logs remain preserved.
+
+Protected stash `1e104f06fbe3091b54e3916f612668b93f0107b4`, nine originals, ten backups, private environment/SQLite, completed UX-03–UX-07 and all earlier document bodies are intact. Staging empty, feature0/0, main unchanged; twelve paths remain uncommitted/unpushed. No human/live browser/PostgreSQL operation. STOP for explicit stakeholder approval; no stage/commit/push/merge/deploy or further UX task.
+
+
 ## UX-07 explicit stakeholder approval and final delivery checkpoint — 2026-10-14
 
 The user explicitly grants **“Stakeholder visual approval for UX-07 — Synchronization & Recovery is GRANTED.”** The corrected wider desktop composition, typography, buttons, cards, spacing, colors, MSprout branding, existing mobile/tablet layouts, approved church-workspace header with right-aligned connectivity, Pack 04 status/recovery presentation and documented security/accessibility/truthful-state adaptations are accepted. All UX-07 visual findings are closed; 0 BLOCKING / 0 SHOULD FIX remain. [Accepted UX-07 report](../docs/qa/ux-07-sync-recovery-visual-review.md) is the primary review/evidence handoff. Earlier YELLOW/pending and task-only stop entries below are historical.

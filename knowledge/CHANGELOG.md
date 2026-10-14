@@ -1,5 +1,15 @@
 # Development Changelog
 
+## 2026-10-14 — stakeholder-approved UX-08 attendance and temporary guests
+
+Pack 05 is accepted across 1440/1024 desktop, 768 tablet and 390/320 phone. Wider emerald Present/pale-amber Absent choices, unified rounded filters/actions, simple dividers, readable narrow-width names/two-row controls and compact accessible Add guest/Finalize preserve the approved light MSprout identity and compact density. Roster-first phones and safe explicit Start/Resume, durable encrypted guest saves, truthful local/server qualification and confirmation/read-only finalization remain intact. All visual findings are closed; qualified technical/security evidence is retained.
+
+Task identity: `feat: finalize attendance and temporary guests UX-08`, parent approved UX-07 `85795a004d7b30a142e70734662540ca0dd7b40c`, on `feat/mvp-foundation`. The exact commit SHA and normal feature-branch push resolve through Git history and `.git/msprout-ux08-finalization-20261014/finalization.json`. UX-08 is GREEN only after successful commit/push verification: clean worktree/staging, matching local/upstream/live remote HEAD, ahead/behind 0/0, unchanged local/origin/live main and intact protected work. Earlier YELLOW/pending statements are historical. STOP after verified UX-08 delivery; no UX-09, Packs 06–12 implementation, merge or deployment.
+
+[Accepted review](../docs/qa/ux-08-attendance-guests-visual-review.md). Protected stash/nine originals/ten backups/private work and completed UX-03–UX-07 remain preserved.
+
+
+
 ## 2026-10-14 — stakeholder-approved UX-07 synchronization and recovery
 
 Pack 04 synchronization/status/recovery, corrected desktop width and coherent controls/branding are accepted. Mobile/tablet layouts and the church-workspace connectivity header are approved. Compact paired transfers and truthful local/server/download/review states retain safe original-profile recovery, encryption, authorization, receipts/cursors and role boundaries. All visual findings are closed; qualified technical/security evidence remains valid.

@@ -3,6 +3,12 @@ import { bootstrap, deviceRecords, expectNoSeriousAccessibilityIssues, json, moc
 
 // Fresh isolated contexts, synthetic identities and intercepted API only.
 test.use({ serviceWorkers: 'block' })
+async function capture(page: import('@playwright/test').Page, state: string) {
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.screenshot({ path: test.info().outputPath(`${state}-${width}.png`), fullPage: true, scale: 'css' })
+  }
+}
 test.beforeEach(async ({ context }) => {
   await mockCsrf(context)
   await context.route('**/api/**', route => json(route, {}, 503))
@@ -132,6 +138,7 @@ test('guest cancellation writes nothing; quota recovery preserves input and encr
   await expect(page.getByLabel('Display name')).toHaveValue('Synthetic UI08 guest')
   await expect(page.getByLabel('Gender (optional)')).toHaveValue('female')
   expect(await deviceRecords(page)).toEqual(before)
+  await capture(page, 'guest-write-failure')
   await page.getByRole('button', { name: 'Add guest as present' }).click()
   await expect(page.getByText('Synthetic UI08 guest', { exact: true })).toBeVisible()
   await expect.poll(() => outboxCount(page)).toBe(2)
@@ -155,4 +162,44 @@ test('guest cancellation writes nothing; quota recovery preserves input and encr
   await reopened.getByRole('button', { name: 'Resume attendance' }).click()
   await expect(reopened.getByText('Synthetic UI08 guest', { exact: true })).toBeVisible()
   expect(await deviceRecords(reopened)).toEqual(unlocked)
+})
+
+test('full long names, compact marking and keyboard dialogs reflow without changing saved work', async ({ page, context }) => {
+  const student = 'SyntheticLongStudentName'.repeat(4), ministry = 'Synthetic ministry with a long name '.repeat(3).trim()
+  await context.route('**/api/offline/bootstrap**', route => {
+    const value = bootstrap('11', undefined, new URL(route.request().url()).searchParams.get('device_id')!)
+    value.roster[0].display_name = student; value.ministries[0].name = ministry
+    return json(route, value)
+  })
+  await addProfile(page)
+  for (const width of [320, 360, 390, 768, 1024, 1440, 1548]) {
+    await page.setViewportSize({ width, height: width === 1548 ? 1016 : 900 })
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `long names at ${width}`).toBe(true)
+    await expect(page.getByRole('button', { name: `Mark ${student} present` })).toBeVisible()
+    expect(await page.locator('.attendance-state-controls button').evaluateAll(buttons => buttons.every(button => button.getBoundingClientRect().height >= 44))).toBe(true)
+    if (width >= 1024) {
+      const geometry = await page.locator('.attendance-screen').evaluate(element => {
+        const page = element.getBoundingClientRect(), context = element.querySelector('.attendance-session-panel')!.getBoundingClientRect(), roster = element.querySelector('.attendance-roster-panel')!.getBoundingClientRect()
+        return { width: page.width, x: page.x, contextWidth: context.width, rosterWidth: roster.width, sameTop: context.y === roster.y, sideBySide: roster.x > context.right }
+      })
+      expect(geometry.sameTop && geometry.sideBySide).toBe(true)
+      expect(geometry.rosterWidth).toBeGreaterThan(geometry.contextWidth * 2)
+    }
+  }
+  const before = await deviceRecords(page)
+  await page.getByLabel('Search roster').fill('Pilot Student B')
+  await page.getByRole('button', { name: 'Unmarked', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Finalize attendance' })).toBeDisabled()
+  expect(await deviceRecords(page)).toEqual(before)
+  await page.setViewportSize({ width: 320, height: 640 })
+  await page.addStyleTag({ content: ':root {font-size:200%}' })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.getByRole('button', { name: 'Add temporary guest' }).click()
+  await expect(page.getByLabel('Display name')).toBeFocused()
+  await page.getByLabel('Display name').fill('Synthetic keyboard guest')
+  await expectNoSeriousAccessibilityIssues(page)
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('button', { name: 'Add temporary guest' })).toBeFocused()
+  expect(await deviceRecords(page)).toEqual(before)
+  await page.screenshot({ path: test.info().outputPath('long-names-enlarged.png'), fullPage: true, scale: 'css' })
 })

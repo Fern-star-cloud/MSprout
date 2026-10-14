@@ -8,6 +8,8 @@ const ministryId = '00000000-0000-4000-8000-000000000020'
 const studentIds = ['00000000-0000-4000-8000-000000000031', '00000000-0000-4000-8000-000000000032']
 
 test('offline attendance converges once after a lost response, reconnect, and restart', async ({ page, context }) => {
+  // Keep this happy-path fixture inside its fixed authorization lease window.
+  await page.clock.install({ time: new Date('2026-10-01T08:00:00Z') })
   const received = new Set<string>()
   let committedResponseLost = false
   await context.addCookies([{ name: 'XSRF-TOKEN', value: 'test-token', url: 'http://127.0.0.1:4173' }])

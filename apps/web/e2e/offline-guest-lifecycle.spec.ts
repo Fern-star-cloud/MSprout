@@ -59,7 +59,7 @@ test('network offline, focus loss and mobile emulation retain encrypted guest wr
   await expect.poll(() => outboxCount(page)).toBe(0)
   expect([...received.values()].sort()).toEqual(['attendance.draft_created', 'attendance.guest_added'])
   await page.evaluate(() => window.dispatchEvent(new Event('online')))
-  await expect(page.getByText(/No pending changes/)).toBeVisible()
+  await expect(page.getByText(/0 pending uploads.*Download completion not checked here/)).toBeVisible()
   expect(received.size).toBe(2)
 })
 

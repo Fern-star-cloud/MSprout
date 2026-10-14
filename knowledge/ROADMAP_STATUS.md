@@ -1,5 +1,26 @@
 # Roadmap Status
 
+## UX-08 — stakeholder-approved / qualified final task checkpoint (2026-10-14)
+
+All stakeholder visual findings are closed; the final component geometry, five responsive widths, colors, roster-first presentation and safe workflows are approved. [Accepted review](../docs/qa/ux-08-attendance-guests-visual-review.md). Earlier pending status below is historical.
+
+Task identity: `feat: finalize attendance and temporary guests UX-08`, parent approved UX-07 `85795a004d7b30a142e70734662540ca0dd7b40c`, on `feat/mvp-foundation`. The exact commit SHA and normal feature-branch push resolve through Git history and `.git/msprout-ux08-finalization-20261014/finalization.json`. UX-08 is GREEN only after successful commit/push verification: clean worktree/staging, matching local/upstream/live remote HEAD, ahead/behind 0/0, unchanged local/origin/live main and intact protected work. Earlier YELLOW/pending statements are historical. STOP after verified UX-08 delivery; no UX-09, Packs 06–12 implementation, merge or deployment.
+
+Final scope is 13 reviewed paths: two production presentation files, five tests, the review report and five knowledge files. Qualified source/test inputs and valid technical/security evidence remain exact. Finalization updates only approval documentation and performs fresh staging/source/secret/preservation/Git checks. Protected stash/nine originals/ten backups/private work and completed UX-03–UX-07 remain intact.
+
+
+
+## UX-08 attendance and temporary guests — visual review checkpoint (2026-10-14)
+
+**YELLOW — stakeholder visual approval pending.** Authorized UX-08/Pack05 only, implemented and technically qualified at approved UX-07 `85795a004d7b30a142e70734662540ca0dd7b40c` on `feat/mvp-foundation`. [Current review](../docs/qa/ux-08-attendance-guests-visual-review.md) contains exact twelve paths, native original/before/current and cross-screen comparisons, all seven viewport measurements, state/dialog/error/expiry evidence and adaptations. Prior UX-07-only stops are historical; later UX tasks remain untouched.
+
+Desktop1152px device-workflow bound with200–248px context and wide roster starts at1024; active tablet/phone presents roster/actions before complete session context. Compact gender-avatar rows, teal Present/amber Absent,44px controls, scoped dialogs, full regular/guest totals and explicit upload/download qualifiers retain original Start/Resume, marking/bulk, durable guest, confirmation, unknown status, read-only/Pending Sync and all save/auth/crypto/profile/receipt/cursor safeguards. Only screen/scoped CSS change production; no shared navigation/API/engine/backend/contract/dependency change. Attendance happy-path fixed-lease fixture uses an explicit valid synthetic clock; no expiry rule changes.
+
+Full frontend740/79 PASS retained by effect; latest focused80/6, build/TypeScript/lint and20 final four-target attendance/lease cases plus12 final CSS/reflow/dialog closure PASS.84 unique browser cases qualify after current closures. Refreshed native lifecycle1 and retained unknown/actual expiry1 PASS;36 approved-screen pairs pixel-identical. Relevant OWASP76/23, complete screen/engine76/1 closures and final CSS proof have0 findings/errors/timeouts in the final applicable scans. Prior backend306/3626/contracts/Pint/audits/CI security are retained by exact inputs/effect. Final source/secret/structure/link/whitespace/preservation/Git receipt is ignored under `.git/msprout-ux08-20261014/`; failed diagnostic logs remain preserved.
+
+Protected stash `1e104f06fbe3091b54e3916f612668b93f0107b4`, nine originals, ten backups, private environment/SQLite, completed UX-03–UX-07 and all earlier document bodies are intact. Staging empty, feature0/0, main unchanged; twelve paths remain uncommitted/unpushed. No human/live browser/PostgreSQL operation. STOP for explicit stakeholder approval; no stage/commit/push/merge/deploy or further UX task.
+
+
 ## UX-07 — stakeholder-approved / qualified final task checkpoint (2026-10-14)
 
 Explicit stakeholder visual approval accepts the corrected desktop composition and design-system consistency, existing mobile/tablet layouts, church-workspace header/connectivity, Pack 04 synchronization/recovery and all documented truthful-state/security/accessibility adaptations. All visual findings are closed. [Accepted report](../docs/qa/ux-07-sync-recovery-visual-review.md). Earlier YELLOW/pending statements below are historical.

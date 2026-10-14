@@ -39,6 +39,27 @@ async function open(f: ReturnType<typeof fixture>, existing = false) {
   await screen.findByText('Synthetic Ana')
 }
 
+it('separates upload and download qualification from shared browser connectivity', async () => {
+  const f = fixture(); await open(f)
+  const status = document.querySelector('.attendance-connection')!
+  expect(status.textContent).toContain('pending uploads')
+  expect(status.textContent).toContain('Sync incomplete — downloads remain')
+  expect(status.textContent).not.toMatch(/\bOnline\b/)
+  expect(status.textContent).not.toContain('synchronized')
+})
+
+it('reports the full regular roster independently from present guests and filtered rows', async () => {
+  const f = fixture(); await open(f)
+  await f.user.click(screen.getByRole('button', { name: 'Add guest — Add temporary guest' }))
+  await f.user.type(screen.getByLabelText('Display name'), 'Synthetic Guest')
+  await f.user.click(screen.getByRole('button', { name: 'Add guest as present' }))
+  await f.user.click(screen.getByRole('button', { name: 'Present' }))
+  expect(screen.getByText('2 regular students · 1 temporary guest')).toBeTruthy()
+  expect(screen.getByText('1 present · 0 absent · 2 unmarked')).toBeTruthy()
+  expect((screen.getByRole('button', { name: 'Finalize attendance' }) as HTMLButtonElement).disabled).toBe(true)
+  expect(screen.queryByText('Synthetic Ana')).toBeNull()
+})
+
 it('viewing and changing ministry/date performs no creation or mutation', async () => {
   const f = fixture(); f.mount()
   await screen.findByRole('button', { name: 'Start attendance' })
@@ -108,7 +129,7 @@ it('finalization requires confirmation, supports cancellation and locks only aft
 
 it('guest failure retains approved input and committed success never invites resubmission on count failure', async () => {
   const f = fixture(); await open(f)
-  await f.user.click(screen.getByRole('button', { name: 'Add temporary guest' }))
+  await f.user.click(screen.getByRole('button', { name: 'Add guest — Add temporary guest' }))
   await f.user.type(screen.getByLabelText('Display name'), '  Synthetic Guest  ')
   await f.user.selectOptions(screen.getByLabelText('Gender (optional)'), 'female')
   f.repository.addGuest.mockRejectedValueOnce(new DOMException('Full', 'QuotaExceededError'))
@@ -157,7 +178,7 @@ it('authorization interruption clears plaintext immediately and suppresses an ea
   const f = fixture(true); await open(f, true)
   let finish!: (value: AttendanceDraft) => void
   f.repository.addGuest.mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
-  await f.user.click(screen.getByRole('button', { name: 'Add temporary guest' }))
+  await f.user.click(screen.getByRole('button', { name: 'Add guest — Add temporary guest' }))
   await f.user.type(screen.getByLabelText('Display name'), 'Synthetic interrupted guest')
   await f.user.click(screen.getByRole('button', { name: 'Add guest as present' }))
   f.store.readEncryptedRoster.mockImplementationOnce(() => new Promise(() => {}))
@@ -190,7 +211,7 @@ it('coalesces guest submission and waits for a concurrent Sync refresh before sh
   const f = fixture(true); await open(f, true)
   let finish!: (value: AttendanceDraft) => void
   f.repository.addGuest.mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
-  await f.user.click(screen.getByRole('button', { name: 'Add temporary guest' }))
+  await f.user.click(screen.getByRole('button', { name: 'Add guest — Add temporary guest' }))
   await f.user.type(screen.getByLabelText('Display name'), 'Synthetic single guest')
   const form = screen.getByLabelText('Display name').closest('form')!
   act(() => { fireEvent.submit(form); fireEvent.submit(form); window.dispatchEvent(new Event('ministrysprout:sync-complete')) })
@@ -228,7 +249,7 @@ it.each(['finalized_pending', 'finalized', 'needs_review', 'revised'] as const)(
   const f = fixture(true); f.set({ ...f.get(), status })
   await open(f, true)
   expect((screen.getByRole('button', { name: 'Mark Synthetic Ana present' }) as HTMLButtonElement).disabled).toBe(true)
-  expect((screen.getByRole('button', { name: 'Add temporary guest' }) as HTMLButtonElement).disabled).toBe(true)
+  expect((screen.getByRole('button', { name: 'Add guest — Add temporary guest' }) as HTMLButtonElement).disabled).toBe(true)
   expect(f.repository.createDraft).not.toHaveBeenCalled()
   if (status === 'needs_review') expect(screen.getByText(/attendance needs review/)).toBeTruthy()
 })

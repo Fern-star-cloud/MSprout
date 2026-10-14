@@ -4,6 +4,7 @@ import { profileStore, type ProfileLockReason } from '../../offline/profile-stor
 import { attendanceRepository, type AttendanceRepository } from './attendance-repository'
 import type { AttendanceDraft, AttendanceState } from './domain'
 import { Button, Dialog, ErrorSummary, StatusBadge } from '../../components/ui/Foundations'
+import { HomeIcon } from '../../components/ui/HomeIcon'
 import '../../styles/attendance-lifecycle.css'
 
 interface OfflineMinistry {
@@ -56,8 +57,8 @@ function ConnectionState({ pending, needsPull }: { pending: number | null; needs
 
   return (
     <div className="attendance-connection" role="status" aria-live="polite">
-      <svg aria-hidden="true" viewBox="0 0 24 24"><path d={online ? 'M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01' : 'm4 4 16 16M5 12.5a10 10 0 0 1 5-2.6M14 9.8a10 10 0 0 1 5 2.7'} /></svg>
-      <span>{online ? 'Online' : 'Offline — saving on this device'}{pending === null ? ' · Upload count unavailable' : pending > 0 ? ` · ${pending} pending` : needsPull ? ' · No pending uploads' : ' · No pending changes'}{needsPull ? ' · Sync incomplete' : ''}</span>
+      <HomeIcon id="sync" />
+      <span>{pending === null ? 'Upload count unavailable' : `${pending} pending uploads`} · {needsPull ? 'Sync incomplete — downloads remain' : 'Download completion not checked here'}{!online && ' · Offline — saving on this device'}</span>
     </div>
   )
 }
@@ -367,43 +368,49 @@ export function AttendanceScreen({
   if (loading && !profile) return <section className="attendance-empty"><h1>Take attendance</h1><p>Loading the protected roster…</p></section>
   if (!profile) return <section className="attendance-empty" data-profile-lock-reason={lockReason}><p className="eyebrow">Offline attendance</p><h1>Take attendance</h1><p>{error || 'Unlock a device profile to open its assigned roster.'}</p><a href="/profiles">Unlock an existing device profile</a></section>
 
+  const sessionPanel = <aside className="attendance-session-panel" aria-label="Attendance session">
+        <h2><HomeIcon id="attendance" />Session</h2>
+        <div className="attendance-session-fields"><div><label htmlFor="attendance-ministry">Ministry</label><select id="attendance-ministry" value={ministryId} disabled={busy || guestOpen || confirmOpen} onChange={event => choose(event.target.value, date)}>{ministries.map(ministry => <option key={ministry.id} value={ministry.id}>{ministry.name}</option>)}</select></div>
+        <div><label htmlFor="attendance-date">Attendance date</label><input id="attendance-date" type="date" value={date} disabled={busy || guestOpen || confirmOpen} onChange={event => choose(ministryId, event.target.value)} aria-describedby="attendance-date-context" /></div></div>
+        <p id="attendance-date-context">Dates use this device’s local calendar and are saved as selected.</p>
+        {!draft && <p>Choose a ministry and date, then Start or Resume attendance.</p>}
+        <ConnectionState pending={pending} needsPull={needsPull} />
+        {draft && <><p className="attendance-counts">{marked} marked · {unmarked} unmarked</p><p>{draft.entries.length} regular students · {guests.length} temporary {guests.length === 1 ? 'guest' : 'guests'}</p><div className="attendance-bulk-actions"><Button variant="secondary" disabled={busy || !editable} onClick={() => void save(() => repository.bulkMark(profile.id, draft.id, 'present', 'unmarked'))}>Mark all unmarked present</Button><Button variant="secondary" disabled={busy || !editable} onClick={() => void save(() => repository.bulkMark(profile.id, draft.id, 'absent', 'unmarked'))}>Mark all unmarked absent</Button></div></>}
+      </aside>
+
   return <section className="attendance-screen" aria-labelledby="attendance-heading" onFocusCapture={keepFocusedControlVisible}
     onPointerDownCapture={() => { pointerFocus.current = true }} onPointerUpCapture={() => { pointerFocus.current = false }}
     onPointerCancelCapture={() => { pointerFocus.current = false }} onKeyDownCapture={() => { pointerFocus.current = false }}>
-    <header className="attendance-heading"><div><p className="eyebrow">Offline-ready attendance</p><h1 id="attendance-heading">Take attendance</h1></div><ConnectionState pending={pending} needsPull={needsPull} /></header>
-    {needsPull && <p role="status">Server updates have not finished downloading. Uploaded changes may already be accepted. Use Sync &amp; device to verify the same account and finish synchronization.</p>}
+    <header className="attendance-heading"><div><h1 id="attendance-heading">Take attendance</h1><p>Explicit start · Mark students · Save on this device</p></div></header>
+    {needsPull && <p className="attendance-download-note" role="status">Server updates have not finished downloading. Uploaded changes may already be accepted. Use <a href="/account/sync">Sync &amp; device</a> to verify the same account and finish synchronization.</p>}
     <div className="attendance-layout">
-      <aside className="attendance-session-panel" aria-label="Attendance session">
-        <label htmlFor="attendance-ministry">Ministry</label><select id="attendance-ministry" value={ministryId} disabled={busy || guestOpen || confirmOpen} onChange={event => choose(event.target.value, date)}>{ministries.map(ministry => <option key={ministry.id} value={ministry.id}>{ministry.name}</option>)}</select>
-        <label htmlFor="attendance-date">Attendance date</label><input id="attendance-date" type="date" value={date} disabled={busy || guestOpen || confirmOpen} onChange={event => choose(ministryId, event.target.value)} aria-describedby="attendance-date-context" />
-        <p id="attendance-date-context">Dates use this device’s local calendar and are saved as selected.</p>
-        <p>Choose a ministry and date, then Start or Resume attendance.</p>
-        {draft && <><p className="attendance-counts">{marked} marked · {unmarked} unmarked</p><p>{present} present · {absent} absent · {guests.length} temporary {guests.length === 1 ? 'guest' : 'guests'}</p><div className="attendance-bulk-actions"><Button variant="secondary" disabled={busy || !editable} onClick={() => void save(() => repository.bulkMark(profile.id, draft.id, 'present', 'unmarked'))}>Mark all unmarked present</Button><Button variant="secondary" disabled={busy || !editable} onClick={() => void save(() => repository.bulkMark(profile.id, draft.id, 'absent', 'unmarked'))}>Mark all unmarked absent</Button></div></>}
-      </aside>
+      {!draft && sessionPanel}
       <div className="attendance-roster-panel">
         {error && !guestOpen && !confirmOpen && <ErrorSummary message={error} />}
-        {!draft ? <div className="attendance-lifecycle-choice">
+        {!draft ? <div className="attendance-lifecycle-choice"><span className="attendance-choice-icon"><HomeIcon id="attendance" /></span>
           {busy && <p role="status">{available ? 'Opening saved attendance…' : 'Starting attendance on this device…'}</p>}
           {selectedState === 'checking' ? <p role="status">Checking saved attendance…</p> : selectedState === 'unknown' ? <><h2>Saved attendance status unknown</h2><Button variant="secondary" disabled={busy || !ministryId || !date} onClick={reloadSaved}>Check saved attendance</Button></> : <><h2>{available ? available.status === 'draft' ? 'Saved draft found' : 'Saved attendance found — read-only' : 'No draft for this date'}</h2><p>{available ? 'Open the existing saved session without creating another event.' : 'Start deliberately to mark students and add temporary guests.'}</p><Button busy={busy} onClick={() => void begin()}>{available ? 'Resume attendance' : 'Start attendance'}</Button></>}
+          <p className="attendance-view-note"><HomeIcon id="info" />Viewing or changing the date creates nothing.</p>
         </div> : <>
-          <h2 ref={rosterHeading} tabIndex={-1}>{draft.ministryName} · {draft.attendanceDate}</h2>
+          <div className="attendance-roster-heading"><h2 className="attendance-session-title" ref={rosterHeading} tabIndex={-1}><span>{draft.ministryName}</span><small>{draft.attendanceDate} · Device-local calendar</small></h2>
           {busy && <p role="status">Saving on this device…</p>}
-          {saved && editable && <p className="attendance-save-state" role="status">✓ Saved on this device</p>}
-          {draft.status === 'finalized_pending' ? <div role="status"><h3>Finalized on this device</h3><p>Saved on this device — Pending Sync</p><p>Waiting to synchronize. This session is read-only; local finalization is not server acceptance.</p><a href="/account/sync">Open Sync &amp; device</a></div> : !editable ? <p role="status">Saved {draft.status === 'needs_review' ? 'attendance needs review' : 'attendance is read-only'}. Transfer and unresolved review remain separate. <a href="/account/sync">Open Sync &amp; device</a></p> : <p>Local attendance is separate from server synchronization. <a href="/account/sync">Check Sync &amp; device</a></p>}
-          <label htmlFor="attendance-search">Search roster</label><input id="attendance-search" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search by display name" />
-          <div className="attendance-filters" role="group" aria-label="Attendance status filters">{(['all', 'present', 'absent', 'unmarked'] as const).map(value => <Button key={value} variant="secondary" aria-pressed={filter === value} onClick={() => setFilter(value)}>{value[0].toUpperCase() + value.slice(1)}</Button>)}</div>
+          {saved && editable && <p className="attendance-save-state" role="status">✓ Saved on this device</p>}</div>
+          {draft.status === 'finalized_pending' ? <div className="attendance-readonly" role="status"><h3>Finalized on this device</h3><p>Saved on this device — Pending Sync</p><p>Waiting to synchronize. This session is read-only; local finalization is not server acceptance.</p><a href="/account/sync">Open Sync &amp; device</a></div> : !editable ? <p className="attendance-readonly" role="status">Saved {draft.status === 'needs_review' ? 'attendance needs review' : 'attendance is read-only'}. Transfer and unresolved review remain separate. <a href="/account/sync">Open Sync &amp; device</a></p> : <p className="attendance-sync-note">Local attendance is separate from server synchronization. <a href="/account/sync">Check Sync &amp; device</a></p>}
+          <div className="attendance-roster-tools"><div className="attendance-search"><label className="sr-only" htmlFor="attendance-search">Search roster</label><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="10" cy="10" r="6" /><path d="m15 15 6 6" /></svg><input id="attendance-search" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search by display name" /></div>
+          <div className="attendance-filters" role="group" aria-label="Attendance status filters">{(['all', 'present', 'absent', 'unmarked'] as const).map(value => <Button key={value} variant="secondary" aria-pressed={filter === value} onClick={() => setFilter(value)}>{value[0].toUpperCase() + value.slice(1)}</Button>)}</div></div>
           <ul className="attendance-roster" aria-label="Attendance entries">
             {visibleEntries.map(entry => <li key={entry.studentId}><img src={avatarForGender(entry.gender)} alt={`${entry.displayName} avatar`} /><div className="attendance-entry-name"><strong>{entry.displayName}</strong><StatusBadge tone={entry.state === 'unmarked' ? 'warning' : 'neutral'}>{entry.state[0].toUpperCase() + entry.state.slice(1)}</StatusBadge></div><div className="attendance-state-controls" role="group" aria-label={`Attendance for ${entry.displayName}`}>
-              <button type="button" className={entry.state === 'present' ? 'is-selected' : 'secondary'} aria-pressed={entry.state === 'present'} aria-label={`Mark ${entry.displayName} present`} disabled={busy || !editable} onClick={() => void save(() => repository.markStudent(profile.id, draft.id, entry.studentId, 'present'))}>{entry.state === 'present' && <span aria-hidden="true">✓ </span>}Present</button>
-              <button type="button" className={entry.state === 'absent' ? 'is-selected is-absent' : 'secondary'} aria-pressed={entry.state === 'absent'} aria-label={`Mark ${entry.displayName} absent`} disabled={busy || !editable} onClick={() => void save(() => repository.markStudent(profile.id, draft.id, entry.studentId, 'absent'))}>{entry.state === 'absent' && <span aria-hidden="true">✓ </span>}Absent</button>
+              <button type="button" className={entry.state === 'present' ? 'is-selected' : 'secondary'} aria-pressed={entry.state === 'present'} aria-label={`Mark ${entry.displayName} present`} disabled={busy || !editable} onClick={() => void save(() => repository.markStudent(profile.id, draft.id, entry.studentId, 'present'))}><span aria-hidden="true">✓ </span>Present</button>
+              <button type="button" className={entry.state === 'absent' ? 'is-selected is-absent' : 'secondary'} aria-pressed={entry.state === 'absent'} aria-label={`Mark ${entry.displayName} absent`} disabled={busy || !editable} onClick={() => void save(() => repository.markStudent(profile.id, draft.id, entry.studentId, 'absent'))}><span aria-hidden="true">× </span>Absent</button>
             </div></li>)}
             {(filter === 'all' || filter === 'present') && guests.filter(guest => guest.displayName.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())).map(guest => <li key={guest.id}><img src={avatarForGender(guest.gender)} alt={`${guest.displayName} avatar`} /><strong>{guest.displayName}</strong><span className="guest-badge">Temporary guest · Present</span></li>)}
           </ul>{visibleEntries.length === 0 && ((filter !== 'all' && filter !== 'present') || !guests.some(guest => guest.displayName.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()))) && <p>No entries match this filter.</p>}
           {error && <Button variant="secondary" disabled={busy} onClick={() => { opened.current = true; reloadSaved() }}>Reload saved attendance</Button>}
+    {draft && <div ref={actionArea} className={`attendance-finalize-bar${compactActions ? ' is-compact' : ''}`}><Button ref={guestTrigger} variant="secondary" aria-label="Add guest — Add temporary guest" disabled={busy || !editable} onClick={() => setGuestOpen(true)}><HomeIcon id="people" />Add guest</Button><div className="attendance-action-counts"><p>{present} present · {absent} absent · {unmarked} unmarked</p><span>{unmarked ? `Mark ${unmarked} remaining student${unmarked === 1 ? '' : 's'} first` : 'Every regular roster entry is marked'}</span></div><Button ref={finalizeTrigger} aria-label="Finalize attendance" disabled={busy || !editable || unmarked > 0} onClick={() => setConfirmOpen(true)}>Finalize</Button></div>}
         </>}
       </div>
+      {draft && sessionPanel}
     </div>
-    {draft && <div ref={actionArea} className={`attendance-finalize-bar${compactActions ? ' is-compact' : ''}`}><Button ref={guestTrigger} variant="secondary" disabled={busy || !editable} onClick={() => setGuestOpen(true)}>Add temporary guest</Button><span>{unmarked ? `Mark ${unmarked} remaining student${unmarked === 1 ? '' : 's'} first` : 'Every regular roster entry is marked'}</span><Button ref={finalizeTrigger} disabled={busy || !editable || unmarked > 0} onClick={() => setConfirmOpen(true)}>Finalize attendance</Button></div>}
     {guestOpen && <Dialog open title="Add temporary guest" description="This attendance session only. Display name and optional gender; no guardian or contact details." onClose={() => { if (!operating.current) setGuestOpen(false) }} initialFocus={guestInput} returnFocus={guestTrigger}>
       <form className="attendance-guest-form" onSubmit={event => void addGuest(event)}>
         <label htmlFor="attendance-guest-name">Display name</label><input ref={guestInput} id="attendance-guest-name" maxLength={120} value={guestName} onChange={event => setGuestName(event.target.value)} disabled={busy} required />
