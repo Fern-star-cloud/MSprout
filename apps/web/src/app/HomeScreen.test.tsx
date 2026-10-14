@@ -57,13 +57,12 @@ it('Teacher renders every actual assigned ministry without selecting or starting
   expect(vi.mocked(authRequest).mock.calls).toEqual([['/api/ministries', 'GET', undefined, church]])
 })
 
-it('Teacher places truthful unchecked Sync above the ministry and device recovery below it', async () => {
+it('Teacher keeps one truthful contextual Sync recovery above assigned ministries', async () => {
   vi.mocked(authRequest).mockResolvedValue({ data: [{ id: 'assigned', name: 'Assigned synthetic ministry', status: 'active' }] })
   home('teacher')
   const ministry = await screen.findByRole('region', { name: 'Assigned synthetic ministry' })
   const sync = screen.getByRole('link', { name: 'Sync status not checked Open Sync' })
   expect(sync.compareDocumentPosition(ministry) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-  const device = screen.getByRole('link', { name: 'Device status not checked · Open Sync' })
-  expect(ministry.compareDocumentPosition(device) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(screen.getAllByRole('link').filter(link => link.getAttribute('href') === '/account/sync')).toHaveLength(1)
   expect(document.body.textContent).not.toMatch(/\d+ changes|unlocked|synchronization complete/i)
 })

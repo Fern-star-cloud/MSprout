@@ -321,7 +321,7 @@ export function DeviceProfilesScreen({ store = profileStore, synchronizer = sync
           <Field id="profile-pin" label="Local PIN" disabled={busy || remaining > 0} type="password" inputMode="numeric" autoComplete="off" pattern="[0-9]{6,12}" minLength={6} maxLength={12} value={pin} onChange={event => setPin(event.target.value)} required hint="6–12 digits. Your PIN unlocks encrypted data on this device." error={pinError || undefined} aria-describedby={remaining ? 'profile-retry' : undefined} />
           {pinError && <div className="profile-pin-announcement" role="alert">{pinError}</div>}
           {remaining > 0 && <p className="profile-retry" id="profile-retry" role="status" aria-live="polite">Try again in {remaining} seconds. The delay also applies after reloading.</p>}
-          <Button type="submit" disabled={!selected || busy || remaining > 0} aria-label={`Use profile ${Math.max(1, profiles.findIndex(candidate => candidate.id === selected) + 1)}`}>Unlock</Button>
+          <Button type="submit" disabled={!selected || busy || remaining > 0} aria-label={`Unlock ${label}`}>Unlock</Button>
           <a className="profile-online-link" href="/account/login" onClick={event => { if (busy) event.preventDefault() }}>Need online sign-in?</a>
           <div className="profile-info"><HomeIcon id="info" /><p>Your local PIN is not your church account password.</p></div>
         </form>

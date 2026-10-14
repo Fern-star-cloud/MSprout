@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 type Turnstile = {
-  render: (element: HTMLElement, options: { sitekey: string, action: string, callback: (token: string) => void, 'expired-callback': () => void, 'error-callback': () => void }) => string
+  render: (element: HTMLElement, options: { sitekey: string, action: string, size: 'compact', callback: (token: string) => void, 'expired-callback': () => void, 'error-callback': () => void }) => string
   remove: (id: string) => void
 }
 declare global { interface Window { turnstile?: Turnstile } }
@@ -32,7 +32,7 @@ export function CaptchaChallenge({ onToken }: { onToken: (token: string) => void
       if (!active || !element.current) return
       api = turnstile
       widget = api.render(element.current, {
-        sitekey, action: 'church_application', callback: (token) => { if (active) { onToken(token); setFailed(false) } },
+        sitekey, action: 'church_application', size: 'compact', callback: (token) => { if (active) { onToken(token); setFailed(false) } },
         'expired-callback': () => { if (active) onToken('') },
         'error-callback': () => { if (active) { onToken(''); setFailed(true) } },
       })

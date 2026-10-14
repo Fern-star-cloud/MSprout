@@ -1,5 +1,25 @@
 # Current State
 
+## UX-F2 accepted implementation and finalization milestone — 2026-10-15
+
+The stakeholder explicitly accepts all shown UX-F2 visuals and authorizes controlled finalization of the reviewed **22 paths (19 modified, three new)**. Task identity: **feat: unify entry home navigation and profiles UX-F2**, parent accepted UX-F1 `c0e4a8f967b92e4028b9ea475760b06fdff1a3c0`, branch `feat/mvp-foundation`. Actual SHA, commit/normal push, clean worktree, local/tracking/live0:0 synchronization, unchanged main and exact-SHA Web/API/Security outcomes resolve through Git and ignored `.git/msprout-uxf2-20261015/finalization/final.json`. Pending/failed hosted checks never establish GREEN delivery. [Accepted review and exact inventory](../docs/qa/ux-f2-entry-shell-profiles-review.md).
+
+Qualified application/test/style inputs and 138 equivalent screenshot pairs are preserved. Reuse valid frontend744/79, API306/3,626 assertions, focused52 and 89 distinct browser cases including PWA8/8, plus existing types/lint/build/contracts(LF mirror)/Pint/audits/structure/security evidence. Raw Windows CRLF limitation and unchanged type-only scanner warning remain documented. Fresh finalization checks cover four documentation-only approval entries, links/anchors/whitespace/secret coverage and exact source/screenshot/Git/protected-data preservation. No unapproved visual or functional correction is introduced.
+
+Preserve encrypted profiles/pending work, development databases/keys, private files, 11 stashes, nine originals, ten backups, 30 local QA files and prior diagnostic evidence. The earlier review hold below is historical and satisfied by this explicit approval. STOP after UX-F2; no UX-F3, compatibility, Late, packs, merge or deployment.
+
+
+## UX-F2 — technically qualified visual-review candidate, 2026-10-15
+
+**YELLOW — stakeholder visual acceptance pending; finalization explicitly held.** UX-F2 entry/shell/Home/navigation/profiles is the selected task. Approved predecessor remains UX-F1 `c0e4a8f967b92e4028b9ea475760b06fdff1a3c0`, branch `feat/mvp-foundation`; no stage/commit/push. [Current review and exact 22-path inventory](../docs/qa/ux-f2-entry-shell-profiles-review.md) presents actual desktop/tablet/390/320 comparisons, shared-consumer review, preservation and qualifications. Earlier stop/task statements below are dated history.
+
+Canonical UX-F1 styling now drives church entry, compact role-specific Home, shared light church chrome and profile cards. Sign in is primary; deliberate existing-session continuation is secondary. Owner retains three groups; Teacher retains actual assignments and existing attendance/report destinations with one unchecked-Sync context. Long-name disclosure, People/More/role/context/history/focus and the compact private profile header remain. Visible Unlock has a matching accessible name. Vendor compact CAPTCHA resolves the reproduced 320px overflow; only live widget layout is qualified, not human verification or real token/server acceptance.
+
+Fresh qualification: frontend 744/79; isolated serial API 306/3,626 assertions; focused 52; types/lint/build/contracts (LF mirror), Pint/strict Composer/audits/structure, source secrets and risk-scoped OWASP. Browser evidence/closure details and exact distinct counts are in the review and ignored `.git/msprout-uxf2-20261015/qualification.json`; PWA 8/8 passes on Chrome/WebKit with actual activation/controller/notice and pending-work/cache assertions intact. Raw Windows CRLF contract limitation and unchanged type-only scanner parser warning are recorded accurately. Initial failed harness/resource-contention runs remain preserved.
+
+All unrelated source, protected private/QA/backup/stash/original data and read-only development table/role fingerprints remain entry-exact. Existing human browser profiles were not opened. Candidate is unstaged/uncommitted/unpushed; no hosted pass is claimed for unpublished UX-F2. STOP for stakeholder visual review and separate finalization. UX-F3, compatibility, Late and later tasks remain untouched; no merge/deployment.
+
+
 ## UX-F1 accepted implementation and finalization milestone — 2026-10-14
 
 Selected/completed implementation scope: UX-F1 only. The stakeholder accepts the shared-foundation visual direction and explicitly authorizes finalization of the reviewed 24 paths after final verification. Commit identity: **feat: establish shared UI foundations UX-F1**, parent CI-01 `a91cdec5f9873eca99c24cde68d5486fea205935`, expected branch `feat/mvp-foundation` and existing origin tracking branch. Actual commit SHA, normal push, clean worktree/0:0 synchronization, unchanged main and exact-SHA web/API/Security outcomes resolve through Git and ignored `.git/msprout-uxf1-20261014/finalization/final.json`. Pending/failed hosted results do not establish GREEN delivery. [Review, exact inventory and evidence](../docs/qa/ux-f1-shared-foundations-review.md).

@@ -27,8 +27,8 @@ for (const role of ['owner', 'teacher'] as const) {
         expect(Math.max(...boxes.map(box => box.height)) - Math.min(...boxes.map(box => box.height))).toBeLessThan(1)
         expect(Math.max(...boxes.map(box => box.height))).toBeLessThan(330)
       }
-      // Latest stakeholder clarification selects the actual blue Pack 01 artwork for Home only.
-      expect(await page.locator('.application-content').evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(255, 255, 255)')
+      // UX-F2 uses the canonical light canvas; cards remain white and the sidebar stays light.
+      expect(await page.locator('body').evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(241, 246, 252)')
       if (width >= 1024) expect(await page.locator('.wide-layout').evaluate(el => getComputedStyle(el).backgroundImage)).toContain('linear-gradient')
       for (const region of await regions.all()) {
         expect(await region.evaluate(el => getComputedStyle(el).borderRadius)).toBe('12px')
@@ -41,9 +41,9 @@ for (const role of ['owner', 'teacher'] as const) {
         expect(rect?.height).toBeGreaterThanOrEqual(44)
         if (!await button.evaluate(el => el.classList.contains('home-button-secondary'))) {
           expect(rect?.height).toBeGreaterThanOrEqual(48)
-          expect(await button.evaluate(el => getComputedStyle(el).backgroundImage)).toContain('rgb(21, 101, 216)')
+          expect(await button.evaluate(el => getComputedStyle(el).backgroundImage)).toContain('rgb(7, 104, 237)')
         } else expect(await button.evaluate(el => getComputedStyle(el).color)).toBe('rgb(21, 101, 216)')
-        expect(await button.evaluate(el => getComputedStyle(el).borderRadius)).toBe('8px')
+        expect(await button.evaluate(el => getComputedStyle(el).borderRadius)).toBe('12px')
         if (role === 'teacher') expect(rect?.width).toBeGreaterThan(width < 768 ? width - 75 : 550)
         await button.focus()
         expect(await button.evaluate(el => getComputedStyle(el).outlineStyle)).toBe('solid')

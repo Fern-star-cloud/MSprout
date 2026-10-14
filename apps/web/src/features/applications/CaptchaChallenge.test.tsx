@@ -11,6 +11,7 @@ it('uses the real widget action and revokes expired and failed proof',async()=>{
  expect(screen.getByRole('group',{name:'Application verification'})).toBeTruthy()
  await act(async()=>{})
  expect(options.action).toBe('church_application')
+ expect(options).toHaveProperty('size', 'compact')
  await act(async()=>options.callback('synthetic-proof'));expect(token).toHaveBeenLastCalledWith('synthetic-proof')
  await act(async()=>options['expired-callback']());expect(token).toHaveBeenLastCalledWith('')
  await act(async()=>options['error-callback']());expect(token).toHaveBeenLastCalledWith('')

@@ -1,5 +1,15 @@
 # Roadmap Status
 
+## UX-F2 accepted finalization milestone — 2026-10-15
+
+**Implementation, technical qualification and stakeholder visual approval complete; exact 22-path finalization explicitly authorized.** Task commit identity: **feat: unify entry home navigation and profiles UX-F2**, parent UX-F1 `c0e4a8f967b92e4028b9ea475760b06fdff1a3c0`, existing feature branch/tracking remote. Actual publication and exact-SHA hosted qualification resolve through CURRENT_STATE, Git and the finalization receipt; GREEN delivery is conditional on verified synchronization and passed required hosted checks. [Accepted review/inventory](../docs/qa/ux-f2-entry-shell-profiles-review.md). Earlier pending/hold entries are historical. UX-F3 and every later task remain NOT AUTHORIZED / NOT STARTED; stop after UX-F2.
+
+
+## UX-F2 selected — visual-review hold, 2026-10-15
+
+**IMPLEMENTED / technically qualified / NOT FINALIZED.** User explicitly selected UX-F2 only after UX-F1 GREEN `c0e4a8f967b92e4028b9ea475760b06fdff1a3c0`. [Review](../docs/qa/ux-f2-entry-shell-profiles-review.md) records canonical entry/shell/Home/profiles, the narrow CAPTCHA layout correction, exact 22 paths and browser/security/preservation evidence. Stakeholder review of the actual new visual candidate is required; no staging, commit or push is authorized. UX-F3 and every later modernization task remain NOT AUTHORIZED / NOT STARTED. Predecessor hosted passes do not qualify unpublished UX-F2. Preserve all historical milestone/approval bodies below.
+
+
 ## Current modernization milestone — 2026-10-14
 
 | Task | Verified status |

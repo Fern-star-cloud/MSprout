@@ -36,6 +36,6 @@ export function HomeScreen() {
       </section>)}
       {(state.kind !== 'ready' || state.ministries.length === 0) && <a className="home-text-link home-ministry-link" href={href('/account/ministries')}>My ministries<HomeIcon id="arrow" /></a>}
     </div>}
-    {role === 'owner' ? <div className="home-sync-information"><HomeIcon id="info" /><p>Sync status is available from every workspace.</p></div> : <a className="home-device-information" href={href('/account/sync')}><HomeIcon id="info" />Device status not checked · Open Sync</a>}
+    {role === 'owner' && <div className="home-sync-information"><HomeIcon id="info" /><p>Sync status is available from every workspace.</p></div>}
   </div>
 }

@@ -7,6 +7,7 @@ import { safeAuthMessage } from './transport'
 import { accountEntry, accountReturnDestination, isUncertainSubmission, readAccountSession, type AccountSession } from './account-session'
 import { Button, ErrorSummary, LoadingState, StatusBanner } from '../../components/ui/Foundations'
 import { ApiError } from '../../api/client'
+import '../../styles/auth-entry.css'
 
 export type AuthPage = 'login' | 'challenge' | 'verify-email' | 'forgot-password' | 'reset-password' | 'mfa' | 'account'
 
@@ -72,7 +73,7 @@ export function AuthScreen({ initialPage, fragment = '' }: { initialPage: AuthPa
     }
   }, [loadAccount])
   const reset = new URLSearchParams(fragment)
-  return <section className="auth-card" aria-labelledby="auth-heading">
+  return <section className="auth-card church-auth" aria-labelledby="auth-heading">
     <p className="eyebrow">Church account</p>
     <h2 id="auth-heading">{{ login: 'Welcome back', challenge: 'Verify your sign-in', 'verify-email': 'Verify your email', 'forgot-password': 'Reset your password', 'reset-password': 'Choose a new password', mfa: 'Protect your account', account: 'Your account' }[page]}</h2>
     {message && <StatusBanner live>{message}</StatusBanner>}
@@ -92,9 +93,8 @@ export function AuthScreen({ initialPage, fragment = '' }: { initialPage: AuthPa
         }
       }} />
       {uncertainLogin && <StatusBanner tone="warning">The sign-in outcome is uncertain. Check the signed-in session before submitting credentials again.</StatusBanner>}
-      <a href="/account/forgot-password">Forgot your password?</a>
-      <p><a href="/account/application">Church application</a></p>
-      <AuthForm fields={[]} disabled={checking} submitLabel="Continue signed-in session" onSubmit={async()=>{await loadAccount()}} />
+      <div className="auth-entry-links"><a href="/account/forgot-password">Forgot your password?</a><a href="/account/application">Church application</a></div>
+      <AuthForm fields={[]} variant="secondary" disabled={checking} submitLabel="Continue signed-in session" onSubmit={async()=>{await loadAccount()}} />
     </>}
     {page === 'challenge' && <>
       <AuthForm fields={[recovery ? { name: 'recovery_code', label: 'Recovery code', autoComplete: 'off' } : codeField]} disabled={uncertainLogin || checking} submitLabel="Verify sign-in" onSubmit={async (values) => {

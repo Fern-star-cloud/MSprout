@@ -4,11 +4,12 @@ import { ApiError } from '../../api/client'
 import { safeAuthMessage } from './transport'
 import type { AuthField } from './fields'
 
-export function AuthForm({ fields, submitLabel, onSubmit, disabled = false }: {
+export function AuthForm({ fields, submitLabel, onSubmit, disabled = false, variant = 'primary' }: {
   fields: AuthField[]
   submitLabel: string
   onSubmit: (values: Record<string, string>) => Promise<void>
   disabled?: boolean
+  variant?: 'primary' | 'secondary'
 }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -37,6 +38,6 @@ export function AuthForm({ fields, submitLabel, onSubmit, disabled = false }: {
     {fields.map((field) => <Field key={field.name} label={field.label} id={`${id}-${field.name}`} name={field.name} type={field.type ?? 'text'} autoComplete={field.autoComplete}
         inputMode={field.inputMode} minLength={field.minLength} required disabled={busy || disabled}
         error={invalidFields.includes(field.name) ? 'Check this field.' : undefined} />)}
-    <Button busy={busy} disabled={disabled} type="submit">{busy ? 'Please wait…' : submitLabel}</Button>
+    <Button variant={variant} busy={busy} disabled={disabled} type="submit">{busy ? 'Please wait…' : submitLabel}</Button>
   </form>
 }

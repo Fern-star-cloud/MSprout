@@ -16,12 +16,12 @@
 .device-entry-header .device-entry-connection { padding: 0; color: var(--color-muted); background: transparent; border-radius: 0; }
 .device-entry-content > .device-profiles { border: 0; box-shadow: none; background: transparent; }
 .device-profiles { max-width: 760px; margin-inline: auto; padding: 24px; }
-.profile-page-heading h2 { color: var(--color-navy); font-size: 1.75rem; margin: 0 0 4px; }
+.profile-page-heading h2 { color: var(--color-navy); font-size: var(--font-page-title); margin: 0 0 4px; }
 .profile-page-heading p { color: var(--color-muted); margin: 0 0 16px; }
 .profile-picker { border: 0; padding: 0; margin: 0; }
 .profile-picker legend { font-size: .875rem; color: var(--color-muted); margin-bottom: 8px; }
-.profile-picker-row { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 16px; border: 1px solid var(--color-border); border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; min-width: 0; }
-.profile-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; color: #086557; background: #e4f4ed; flex: 0 0 auto; }
+.profile-picker-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-medium); padding: var(--space-3); margin-bottom: 12px; min-width: 0; }
+.profile-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--radius-medium); color: var(--color-success); background: var(--color-success-soft); flex: 0 0 auto; }
 .profile-icon svg { width: 26px; height: 26px; }
 .profile-icon-blue { color: var(--color-brand); background: var(--color-brand-soft); font-size: 2rem; }
 .profile-choice { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 0 8px; margin: 0; cursor: pointer; color: var(--color-navy); min-height: 48px; align-content: center; }
@@ -30,9 +30,10 @@
 .profile-picker-row .ui-button { min-width: 148px; text-align: center; }
 .profile-prepare-row h3 { font-size: 1rem; margin: 0; color: var(--color-navy); }
 .profile-prepare-row p { font-size: .875rem; margin: 2px 0 0; color: var(--color-muted); }
-.device-profiles a.ui-button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 16px; border: 1px solid var(--color-brand); border-radius: 8px; color: white; background: var(--color-brand); text-decoration: none; }
+.device-profiles a.ui-button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 16px; border: 1px solid var(--color-brand); border-radius: var(--radius-button); font-size: var(--font-supporting); font-weight: var(--weight-control); color: white; background: var(--gradient-primary); text-decoration: none; }
 .device-profiles a.ui-button-secondary { color: var(--color-brand); background: white; }
 .device-profiles a.ui-button:hover { background: var(--color-brand-strong); color: white; }
+.device-profiles a.ui-button-secondary:hover { color: var(--color-brand-strong); background: var(--color-brand-soft); }
 .profile-info { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; background: var(--color-brand-soft); color: var(--color-muted); }
 .profile-info svg { width: 24px; height: 24px; flex: 0 0 auto; color: var(--color-navy); }
 .profile-info p, .profile-switch-note { font-size: .875rem; margin: 0; }

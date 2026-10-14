@@ -9,6 +9,18 @@ import { ApiError } from '../../api/client'
 vi.mock('./transport', async (original) => ({ ...await original<typeof import('./transport')>(), authRequest: vi.fn() }))
 afterEach(() => { cleanup(); vi.resetAllMocks() })
 
+it('keeps Sign in primary and explicit session discovery secondary without probing on entry', async () => {
+  render(<AuthScreen initialPage="login" />)
+  expect(screen.getByRole('button', { name: /^Sign in$/ }).classList.contains('ui-button-primary')).toBe(true)
+  const continuation = screen.getByRole('button', { name: 'Continue signed-in session' })
+  expect(continuation.classList.contains('ui-button-secondary')).toBe(true)
+  expect(authRequest).not.toHaveBeenCalled()
+  vi.mocked(authRequest).mockResolvedValue({ id: 11, email_verified: true, mfa_confirmed: true, workspaces: [] })
+  await userEvent.click(continuation)
+  await screen.findByRole('heading', { name: 'Your account' })
+  expect(authRequest).toHaveBeenCalledWith('/auth/session')
+})
+
 it('submits a labelled login form and continues to the MFA challenge', async () => {
   vi.mocked(authRequest).mockResolvedValue({ two_factor: true })
   render(<AuthScreen initialPage="login" />)

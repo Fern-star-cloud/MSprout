@@ -9,8 +9,7 @@
 .brand h1 .brand-symbol { width: 52px; height: 42px; }
 .brand h1 .brand-wordmark { font-size: 32px; }
 /* Preserve navy shells; a white identity plaque keeps the approved wordmark legible. */
-.platform-sidebar .msprout-brand, .platform-header .msprout-brand,
-.church-shell:not(.home-shell) .wide-layout .msprout-brand { padding: 6px 8px; border-radius: 8px; background: white; }
+.platform-sidebar .msprout-brand, .platform-header .msprout-brand { padding: 6px 8px; border-radius: 8px; background: white; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .compact-text { position: relative; display: block; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .church-name-details { position: relative; min-width: 0; flex: 1; max-width: 100%; }
@@ -38,22 +37,7 @@
 .ui-table-region table { table-layout: fixed; }
 .ui-table-region th, .ui-table-region td { overflow-wrap: anywhere; }
 .wide-navigation a > span, .tablet-drawer a > span { min-width: 0; }
-.home-shell .compact-brand .brand-link { min-width: 44px; min-height: 44px; width: auto; }
-@media (max-width: 767px) {
-  .church-shell .workspace-header { gap: 4px 8px; }
-  .home-shell .workspace-header { display: grid; grid-template-columns: 44px minmax(0,1fr) auto; padding: 8px 12px; }
-  .home-shell .compact-brand { grid-column: 1; width: auto; }
-  .home-shell .workspace-identity { grid-column: 2; flex-wrap: nowrap; gap: 6px; }
-  .home-shell .workspace-name { flex: 1 1 0; }
-  .home-shell .workspace-name > svg { display: none; }
-  .home-shell .workspace-tools { grid-column: 3; margin-left: 0; }
-  .home-shell .workspace-selector { grid-column: 1/-1; }
-  .home-shell .compact-brand .brand-wordmark { display: none; }
-  .home-shell .compact-brand .msprout-brand { gap: 0; }
-  .home-shell .protected-sync-link { grid-column: 1/-1; }
-  .home-shell.home-shell .workspace-identity > .workspace-name { min-width: 0; }
-  .home-shell .church-name-expanded { left: -40px; width: calc(100vw - 24px); }
-}
+
 @media (forced-colors: active) {
   .brand-ms,.brand-prout { color: CanvasText; }
   .msprout-brand { background: Canvas; }
