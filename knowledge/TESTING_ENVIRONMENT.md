@@ -1,5 +1,32 @@
 # Testing Environment
 
+## UX-07 approved finalization and evidence retention — 2026-10-14
+
+Explicit stakeholder acceptance closes the visual YELLOW condition. Four qualified application/test/CSS paths remain byte-exact to `.git/msprout-ux07-consistency-20261014/final-preservation.json`. Retained qualification: initial frontend 736 tests/79 files; isolated backend 306 tests/3,626 assertions; final focused 84/5 and copy closure 22; 44 unique initial qualified browser cases and 16 affected consistency cases (final 8 replace their earlier results); native production comparisons at 1024/1440/768/390/320 plus 1548, 24 pixel-identical approved-screen pairs and 6 identical mobile/tablet geometry pairs. Types/lint/build, contract drift, Pint, strict Composer validation, structure, dependency audits and zero-finding OWASP scans remain valid by exact inputs/effects. Final affected OWASP proof is 76 rules/2 inputs, zero findings/errors/timeouts. These are retained executions, not newly rerun suites.
+
+Only approval records in the report and knowledge change during finalization. Fresh complete tracked/new-source Gitleaks (including a lockfile source alias), added-document link/whitespace, exact staged/committed scope, protected-work and live Git checks are recorded in `.git/msprout-ux07-finalization-20261014/qualification.json` and `finalization.json`. Ignored credentials/dependencies/runtime/build output are excluded; no relevant new source is excluded. Existing process-scoped tools and verified TLS remain unchanged; no private/live resource operation or global host change.
+
+The exact commit SHA and normal feature-branch push resolve through Git history and `.git/msprout-ux07-finalization-20261014/finalization.json`. UX-07 is GREEN only after successful commit and push, a clean working tree, matching local/upstream/live remote HEAD, ahead/behind 0/0 and unchanged local/origin/live main. [Accepted review](../docs/qa/ux-07-sync-recovery-visual-review.md). Earlier pending entries are historical. STOP after UX-07; no UX-08, merge or deployment.
+
+
+
+## UX-07 cross-screen visual-consistency correction — 2026-10-14
+
+**YELLOW — stakeholder visual approval pending.** [Updated current review](../docs/qa/ux-07-sync-recovery-visual-review.md) supersedes the earlier720px desktop composition with native original/current/corrected1024/1440/1548 comparisons and cross-screen measurements. Desktop Sync now shares Preparation's1152px main bound; existing24px heading,44px controls, gradients/radii/padding/icons remain coherent. Matching600 button weight is the justified phone/tablet glyph correction; six phone/tablet layout comparisons remain exact. Message/guidance group into one desktop white support surface; direction-neutral transfer wording preserves required information/live semantics.24 approved-screen pairs are pixel-identical; no UX-03–UX-06 source/presentation change.
+
+Current84/5 focused and final22 screen copy proof PASS; final build/TypeScript/lint PASS.16 targeted native cases plus8 final font/copy/reflow/keyboard closure PASS (16 unique affected cases). Corrected native six-viewport complete/incomplete audit/Axe PASS; scoped OWASP76/2 has zero findings/errors/timeouts; final source secrets/whitespace/preservation PASS. Prior736/79 frontend,306/3626 backend, unchanged contracts/engine/authorization/crypto/cursor/receipts/dependencies/audits are retained by exact inputs/effect. Scope: six correction paths within the inherited nine-path candidate; tests and ROADMAP_STATUS remain entry-exact. Detailed final receipts live under ignored `.git/msprout-ux07-consistency-20261014/`.
+
+HEAD `19e07ee4814ceb11d8cad3a6cc4abf6cb238aea0`, staging empty, feature0/0 and main unchanged. Protected stash/nine originals/ten backups/private data and prior knowledge bodies are preserved. No human browser/profile/development PostgreSQL work. STOP for explicit visual approval; no stage/commit/push/merge/deploy or UX-08.
+
+
+## UX-07 synchronization and recovery visual review — 2026-10-14
+
+UX-07 / Pack04 alone is implemented and technically qualified at approved UX-06 HEAD `19e07ee4814ceb11d8cad3a6cc4abf6cb238aea0`. **YELLOW — stakeholder visual approval pending; nine exact paths remain unstaged/uncommitted/unpushed.** [Current review](../docs/qa/ux-07-sync-recovery-visual-review.md) records original/native actual desktop/mobile/tablet/state screenshots, measured geometry, remaining artwork adaptations, final review and preservation. Earlier UX-06-only stops are historical; UX-08 remains untouched.
+
+One compact summary, paired transfers, existing account/PIN/explicit Continue recovery and distinct review evidence preserve truthful unknown/locked/offline/interrupted outcomes. Read-only encrypted-store observation fixes stale acknowledged-upload counts during held downloads; original events/cursors/leases/crypto/authorization/engines/backend/contracts/dependencies remain intact. Final84/5 focused PASS; initial736/79 frontend retained after isolated corrections; serial backend306/3626 PASS. Types/lint/build/contracts/Pint/strict Composer/audits/structure/whitespace PASS. Initial40 plus affected20 and keyboard4 native outcomes qualify44 unique cases; final76-rule screen/test/style OWASP closures and source Gitleaks are clear. See ignored `.git/msprout-ux07-20261014/` receipts for exact current inputs and effect-based evidence retention.
+
+Protected stash `1e104f06fbe3091b54e3916f612668b93f0107b4`, nine originals, ten backups, private environment/SQLite and all unrelated tracked inputs are preserved. No human browser/PostgreSQL development work, commit/push/merge/deploy or UX-08. Stop for explicit stakeholder visual approval.
+
 ## UX-06 approved finalization and qualification reuse — 2026-10-14
 
 Final stakeholder acceptance closes the visual YELLOW condition; no visual finding remains. Current four application/CSS/test file hashes match the qualified receipts exactly. Frontend733/79 and latest focused110/5, native36/36 plus mobile8/density4/focus8, UX-05 navigation4/native capture1, targeted visual3/state capture2, production build/TypeScript/lint and actual contracts/structure remain valid. Scoped OWASP76 rules and latest complete affected-file scans have no findings/errors/timeouts; original taint coverage warning is closed. Backend306/3626, Pint, dependency audits and unchanged comprehensive security/CI inputs retain their valid predecessor evidence. No aggregate/backend/browser/build/security-policy rerun is represented as fresh.

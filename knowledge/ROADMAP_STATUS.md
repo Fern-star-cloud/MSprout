@@ -1,5 +1,21 @@
 # Roadmap Status
 
+## UX-07 — stakeholder-approved / qualified final task checkpoint (2026-10-14)
+
+Explicit stakeholder visual approval accepts the corrected desktop composition and design-system consistency, existing mobile/tablet layouts, church-workspace header/connectivity, Pack 04 synchronization/recovery and all documented truthful-state/security/accessibility adaptations. All visual findings are closed. [Accepted report](../docs/qa/ux-07-sync-recovery-visual-review.md). Earlier YELLOW/pending statements below are historical.
+
+Authorized task identity: `feat: finalize synchronization and recovery UX-07`, parent approved UX-06 `19e07ee4814ceb11d8cad3a6cc4abf6cb238aea0`, on `feat/mvp-foundation`. The exact commit SHA and normal feature-branch push resolve through Git history and `.git/msprout-ux07-finalization-20261014/finalization.json`. UX-07 is GREEN only after successful commit and push, a clean working tree, matching local/upstream/live remote HEAD, ahead/behind 0/0 and unchanged local/origin/live main. Exact qualified application inputs retain GREEN technical/security evidence; fresh finalization checks cover documentation, staging, preservation and Git. No new production correction or later-task work. Protected stash/nine originals/ten backups, private data and completed UX-03–UX-06 remain intact. STOP after UX-07; no UX-08, merge or deployment.
+
+
+
+## UX-07 synchronization and recovery visual review — 2026-10-14
+
+UX-07 / Pack04 alone is implemented and technically qualified at approved UX-06 HEAD `19e07ee4814ceb11d8cad3a6cc4abf6cb238aea0`. **YELLOW — stakeholder visual approval pending; nine exact paths remain unstaged/uncommitted/unpushed.** [Current review](../docs/qa/ux-07-sync-recovery-visual-review.md) records original/native actual desktop/mobile/tablet/state screenshots, measured geometry, remaining artwork adaptations, final review and preservation. Earlier UX-06-only stops are historical; UX-08 remains untouched.
+
+One compact summary, paired transfers, existing account/PIN/explicit Continue recovery and distinct review evidence preserve truthful unknown/locked/offline/interrupted outcomes. Read-only encrypted-store observation fixes stale acknowledged-upload counts during held downloads; original events/cursors/leases/crypto/authorization/engines/backend/contracts/dependencies remain intact. Final84/5 focused PASS; initial736/79 frontend retained after isolated corrections; serial backend306/3626 PASS. Types/lint/build/contracts/Pint/strict Composer/audits/structure/whitespace PASS. Initial40 plus affected20 and keyboard4 native outcomes qualify44 unique cases; final76-rule screen/test/style OWASP closures and source Gitleaks are clear. See ignored `.git/msprout-ux07-20261014/` receipts for exact current inputs and effect-based evidence retention.
+
+Protected stash `1e104f06fbe3091b54e3916f612668b93f0107b4`, nine originals, ten backups, private environment/SQLite and all unrelated tracked inputs are preserved. No human browser/PostgreSQL development work, commit/push/merge/deploy or UX-08. Stop for explicit stakeholder visual approval.
+
 ## UX-06 — stakeholder-approved / qualified final task checkpoint (2026-10-14)
 
 Final stakeholder visual approval accepts verified access, interrupted continuation, invalid/mismatched PIN, no authorized assignment, expired authorization/synchronization recovery, safe recovery and truthful Ready on desktop/tablet/mobile. All visual findings are closed. [Accepted report](../docs/qa/ux-06-device-preparation-visual-review.md). Earlier YELLOW/pending entries below are historical.

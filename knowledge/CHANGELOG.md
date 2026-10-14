@@ -1,5 +1,12 @@
 # Development Changelog
 
+## 2026-10-14 — stakeholder-approved UX-07 synchronization and recovery
+
+Pack 04 synchronization/status/recovery, corrected desktop width and coherent controls/branding are accepted. Mobile/tablet layouts and the church-workspace connectivity header are approved. Compact paired transfers and truthful local/server/download/review states retain safe original-profile recovery, encryption, authorization, receipts/cursors and role boundaries. All visual findings are closed; qualified technical/security evidence remains valid.
+
+Task identity: `feat: finalize synchronization and recovery UX-07`, parent approved UX-06 `19e07ee4814ceb11d8cad3a6cc4abf6cb238aea0`, on `feat/mvp-foundation`. The exact commit SHA and normal feature-branch push resolve through Git history and `.git/msprout-ux07-finalization-20261014/finalization.json`. UX-07 is GREEN only after successful commit and push, a clean working tree, matching local/upstream/live remote HEAD, ahead/behind 0/0 and unchanged local/origin/live main. [Accepted UX-07 report](../docs/qa/ux-07-sync-recovery-visual-review.md). Protected stash/nine originals/ten backups, private data and completed UX-03–UX-06 remain intact. STOP after UX-07; no UX-08, merge or deployment.
+
+
 ## 2026-10-14 — stakeholder-approved UX-06 guided device preparation
 
 Pack 03 desktop/tablet/mobile and all additional failure/recovery states are accepted. Three stages, accessible masked PIN validation, truthful progress/Ready and actual lease expiry preserve approved access, encryption, profile isolation, interrupted recovery, synchronization and navigation. All visual findings are closed; qualified technical/security evidence is retained.

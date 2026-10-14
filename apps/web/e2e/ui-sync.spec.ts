@@ -5,6 +5,24 @@ import { bootstrap, churchId, ministryId, json, mockCsrf, prepareProfile, addPro
 // bypass Playwright routes in WebKit. Offline/SW behavior has its own real-PWA tests.
 test.use({ serviceWorkers: 'block' })
 
+async function capture(page: Page, state: string, widths = [390, 768, 1440, 1548]) {
+  for (const width of widths) {
+    await page.setViewportSize({ width, height: width === 1548 ? 1016 : 900 })
+    await page.evaluate(() => scrollTo(0, 0))
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${state} at ${width}`).toBe(true)
+    await page.screenshot({ path: test.info().outputPath(`${state}-${width}.png`), fullPage: true })
+    await page.screenshot({ path: test.info().outputPath(`${state}-${width}-viewport.png`) })
+    const geometry = await page.locator('.sync-screen').evaluate(element => {
+      const selectors = ['.sync-panel', '.sync-summary', '.sync-stage', '.sync-actions .ui-button', '.sync-heading h1', '.sync-summary h2', '.sync-stage h3', '.sync-stage p', '.sync-guidance']
+      return Object.fromEntries(selectors.map(selector => [selector, [...element.querySelectorAll<HTMLElement>(selector)].map(node => {
+        const rect = node.getBoundingClientRect(), css = getComputedStyle(node)
+        return { width: rect.width, height: rect.height, x: rect.x, y: rect.y, font: css.fontFamily, size: css.fontSize, weight: css.fontWeight, lineHeight: css.lineHeight, padding: css.padding, gap: css.gap, color: css.color, background: css.background, radius: css.borderRadius }
+      })]))
+    })
+    await test.info().attach(`${state}-${width}-geometry`, { body: JSON.stringify(geometry), contentType: 'application/json' })
+  }
+}
+
 async function records(page: Page): Promise<Record<string, Record<string, unknown>[]>> {
   return page.evaluate(async () => {
     const request = indexedDB.open('ministry-sprout-offline')
@@ -58,13 +76,14 @@ test('approved Sync navigation and read-only status preserve every store at five
   await expect(page.getByText('0 pending uploads')).toBeVisible()
   await page.getByRole('button', { name: 'Check device status' }).click()
   await expect(page.getByText('Device status checked. No synchronization or attendance was started.')).toBeVisible()
-  for (const width of [320, 390, 768, 1024, 1440]) {
+  for (const width of [320, 360, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 })
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `width ${width}`).toBe(true)
   }
   expect(await records(page)).toEqual(before)
   expect(syncRequests).toBe(0); expect(logouts).toBe(0)
   await expectNoSeriousAccessibilityIssues(page)
+  await capture(page, 'unknown-downloads', [320, 360, 390, 768, 1024, 1440, 1548])
   await page.evaluate(() => scrollTo(0, 0))
   await page.screenshot({ path: test.info().outputPath('sync-desktop.png'), fullPage: true })
   await page.setViewportSize({ width: 320, height: 900 })
@@ -94,6 +113,7 @@ test('direct original PIN unlock never logs out, transfers or creates attendance
   await page.getByLabel('Existing local PIN').focus()
   await expect(page.getByLabel('Existing local PIN')).toBeFocused()
   await expectNoSeriousAccessibilityIssues(page)
+  await capture(page, 'locked', [390, 1440])
 })
 
 test('accepted uploads with interrupted pagination retain zero/incomplete and resume without reupload', async ({ page, context }) => {
@@ -125,10 +145,12 @@ test('accepted uploads with interrupted pagination retain zero/incomplete and re
   expect(interrupted.profiles[0].syncNeedsPull).toBe(true)
   expect(interrupted.profiles[0].wrappedDataKey).toEqual(before.profiles[0].wrappedDataKey)
   expect(interrupted.attendanceDrafts).toEqual(before.attendanceDrafts)
+  await capture(page, 'interrupted-incomplete')
   failed = false
   await page.reload(); await expect(page.getByText('Matching account verified')).toBeVisible()
   await page.getByLabel('Existing local PIN').fill('184629'); await page.getByRole('button', { name: 'Unlock existing profile' }).click()
   await expect(page.getByText('0 pending uploads')).toBeVisible()
+  await capture(page, 'incomplete-downloads')
   await page.getByRole('button', { name: 'Continue synchronization' }).click()
   await expect(page.getByRole('heading', { name: 'Synchronization complete', exact: true })).toBeVisible()
   const after = await records(page)
@@ -139,6 +161,7 @@ test('accepted uploads with interrupted pagination retain zero/incomplete and re
   expect(pulls).toEqual(['0', '2', '2', '2', '2'])
   await expect(page).toHaveURL(/\/account\/sync$/)
   await expectNoSeriousAccessibilityIssues(page)
+  await capture(page, 'complete')
 })
 
 test('lost server responses reconcile the original event IDs and never recreate accepted work', async ({ page, context }) => {
@@ -157,6 +180,7 @@ test('lost server responses reconcile the original event IDs and never recreate 
   await expect(page.getByText(/Synchronization incomplete\. Uploaded changes may already be accepted/)).toBeVisible()
   expect(await outboxCount(page)).toBe(1)
   expect(submissions).toHaveLength(3)
+  await capture(page, 'uncertain-response', [390, 1440])
   lost = false
   await page.getByRole('button', { name: 'Continue synchronization' }).click()
   await expect(page.getByRole('heading', { name: 'Synchronization complete', exact: true })).toBeVisible()
@@ -181,6 +205,7 @@ test('quarantined work remains visible after transfer and reload without reveali
   await expect(page.getByRole('heading', { name: 'Transfers complete — review remains' })).toBeVisible()
   await expect(page.getByText('1 quarantined item retained on this device')).toBeVisible()
   await expect(page.getByText('Server work needs Owner review')).toBeVisible()
+  await capture(page, 'review-remaining', [390, 768, 1440])
   const before = await records(page)
   expect(before.conflicts).toHaveLength(1)
   expect(await page.locator('body').ariaSnapshot()).not.toContain('Pilot Student')
@@ -227,6 +252,7 @@ test('expired account sessions require verification before original unlock and n
   await page.goto('/account/sync')
   await expect(page.getByText('Account verification required')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Unlock existing profile' })).toBeDisabled()
+  await capture(page, 'expired-account', [390, 1440])
   expect(await records(page)).toEqual(original)
   await context.unroute('**/auth/session', expired)
   await page.getByRole('button', { name: 'Verify account access' }).click()
@@ -285,4 +311,81 @@ test('checking status with pending work announces a read, never an upload or dow
   hold = false; release!()
   await expect(page.getByRole('heading', { name: 'Saved locally — pending upload' })).toBeVisible()
   await expectNoSeriousAccessibilityIssues(page)
+})
+
+test('Pack 04 presents pending, offline, upload and download waits with accessible safe actions', async ({ page, context }) => {
+  await setup(context)
+  let releasePush: (() => void) | undefined, releasePull: (() => void) | undefined
+  await context.route('**/api/sync/push', async route => {
+    await new Promise<void>(resolve => { releasePush = resolve })
+    const events = (route.request().postDataJSON() as { events: Array<{ client_event_id: string }> }).events
+    await json(route, { results: events.map(event => ({ ...event, status: 'accepted', version: 1 })) })
+  })
+  await context.route('**/api/sync/pull**', async route => {
+    await new Promise<void>(resolve => { releasePull = resolve })
+    await json(route, { changes: [], page: { next_cursor: '4', has_more: false }, lease: bootstrap('11', undefined, route.request().headers()['x-device-id']).lease })
+  })
+  await addSavedAttendance(page); await openAndUnlock(page)
+  const before = await records(page)
+  await capture(page, 'pending', [320, 360, 390, 768, 975, 1024, 1440, 1548])
+  await context.setOffline(true)
+  await expect(page.getByRole('heading', { name: 'Saved on this device', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Continue synchronization' })).toBeDisabled()
+  await capture(page, 'offline-pending', [390, 768, 1440])
+  expect(await records(page)).toEqual(before)
+  await context.setOffline(false)
+  await expect(page.getByText('Matching account verified')).toBeVisible()
+  await page.getByRole('button', { name: 'Continue synchronization' }).click()
+  await expect.poll(() => releasePush !== undefined).toBe(true)
+  await expect(page.getByRole('button', { name: 'Continue synchronization' })).toBeDisabled()
+  await capture(page, 'uploading', [390, 1440])
+  await expectNoSeriousAccessibilityIssues(page)
+  releasePush!()
+  await expect.poll(() => releasePull !== undefined).toBe(true)
+  await expect(page.getByText('0 pending uploads')).toBeVisible()
+  await capture(page, 'downloading', [390, 1440])
+  await expect(page.getByRole('heading', { name: 'Synchronization complete', exact: true })).toHaveCount(0)
+  releasePull!()
+  await expect(page.getByRole('heading', { name: 'Synchronization complete', exact: true })).toBeVisible()
+  await page.getByRole('combobox', { name: 'Existing device profile' }).focus()
+  for (const name of ['Continue synchronization', 'Lock profile', 'Verify account access', 'Check device status']) {
+    await page.keyboard.press('Tab')
+    await expect(page.getByRole('button', { name, exact: true })).toBeFocused()
+  }
+  await page.keyboard.press('Tab')
+  await expect(page.locator('.sync-guidance summary')).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(page.getByText(/Keep this profile and browser storage/)).toBeVisible()
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.setViewportSize({ width: 320, height: 900 })
+  await page.addStyleTag({ content: ':root {font-size:200%}' })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await expectNoSeriousAccessibilityIssues(page)
+})
+
+test('unavailable storage and server review stay unknown and retain synthetic work', async ({ page, context }) => {
+  await setup(context)
+  await context.route('**/api/sync/pull**', route => json(route, { changes: [], page: { next_cursor: '4', has_more: false }, lease: bootstrap('11', undefined, route.request().headers()['x-device-id']).lease }))
+  await prepareProfile(page); await openAndUnlock(page)
+  await context.route('**/api/sync-conflicts', route => json(route, {}, 503))
+  await page.getByRole('button', { name: 'Continue synchronization' }).click()
+  await expect(page.getByRole('heading', { name: 'Transfers complete — server review unknown' })).toBeVisible()
+  await capture(page, 'server-review-unknown', [390, 1440])
+  const before = await records(page)
+  // Inject only a read failure in this disposable browser; stored bytes stay intact.
+  await page.evaluate(() => {
+    const original = IDBObjectStore.prototype.get
+    Object.defineProperty(window, 'restoreSyntheticRead', { configurable: true, value: () => { IDBObjectStore.prototype.get = original } })
+    IDBObjectStore.prototype.get = function (key) {
+      if (this.name === 'profiles') throw new DOMException('Synthetic storage read unavailable', 'UnknownError')
+      return original.call(this, key)
+    }
+  })
+  await page.getByRole('button', { name: 'Check device status' }).click()
+  await expect(page.getByText('Upload count unavailable')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Synchronization complete', exact: true })).toHaveCount(0)
+  await capture(page, 'storage-unknown', [390, 768, 1440])
+  await expectNoSeriousAccessibilityIssues(page)
+  await page.evaluate(() => { (window as unknown as { restoreSyntheticRead(): void }).restoreSyntheticRead() })
+  expect(await records(page)).toEqual(before)
 })

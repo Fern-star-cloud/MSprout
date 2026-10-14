@@ -1,5 +1,30 @@
 # MinistrySprout Knowledge Index
 
+## UX-07 accepted review and final delivery — 2026-10-14
+
+Explicit stakeholder approval closes all UX-07 visual findings. Read [the accepted synchronization/recovery report](../docs/qa/ux-07-sync-recovery-visual-review.md) for the approved wider desktop composition, preserved mobile/tablet layouts, measured cross-screen consistency, truthful states, security/accessibility adaptations and qualified evidence. Earlier pending entries below are historical.
+
+Authorized task identity: `feat: finalize synchronization and recovery UX-07`, parent approved UX-06 `19e07ee4814ceb11d8cad3a6cc4abf6cb238aea0`, on `feat/mvp-foundation`. The exact commit SHA and normal feature-branch push resolve through Git history and `.git/msprout-ux07-finalization-20261014/finalization.json`. UX-07 is GREEN only after successful commit and push, a clean working tree, matching local/upstream/live remote HEAD, ahead/behind 0/0 and unchanged local/origin/live main. Final reviewed scope contains ten paths; source/test/CSS inputs remain exact. Protected stash/nine originals/ten backups, private data and UX-03–UX-06 remain preserved. STOP after UX-07; UX-08, merge and deployment remain untouched.
+
+
+
+## UX-07 cross-screen visual-consistency correction — 2026-10-14
+
+**YELLOW — stakeholder visual approval pending.** [Updated current review](../docs/qa/ux-07-sync-recovery-visual-review.md) supersedes the earlier720px desktop composition with native original/current/corrected1024/1440/1548 comparisons and cross-screen measurements. Desktop Sync now shares Preparation's1152px main bound; existing24px heading,44px controls, gradients/radii/padding/icons remain coherent. Matching600 button weight is the justified phone/tablet glyph correction; six phone/tablet layout comparisons remain exact. Message/guidance group into one desktop white support surface; direction-neutral transfer wording preserves required information/live semantics.24 approved-screen pairs are pixel-identical; no UX-03–UX-06 source/presentation change.
+
+Current84/5 focused and final22 screen copy proof PASS; final build/TypeScript/lint PASS.16 targeted native cases plus8 final font/copy/reflow/keyboard closure PASS (16 unique affected cases). Corrected native six-viewport complete/incomplete audit/Axe PASS; scoped OWASP76/2 has zero findings/errors/timeouts; final source secrets/whitespace/preservation PASS. Prior736/79 frontend,306/3626 backend, unchanged contracts/engine/authorization/crypto/cursor/receipts/dependencies/audits are retained by exact inputs/effect. Scope: six correction paths within the inherited nine-path candidate; tests and ROADMAP_STATUS remain entry-exact. Detailed final receipts live under ignored `.git/msprout-ux07-consistency-20261014/`.
+
+HEAD `19e07ee4814ceb11d8cad3a6cc4abf6cb238aea0`, staging empty, feature0/0 and main unchanged. Protected stash/nine originals/ten backups/private data and prior knowledge bodies are preserved. No human browser/profile/development PostgreSQL work. STOP for explicit visual approval; no stage/commit/push/merge/deploy or UX-08.
+
+
+## UX-07 synchronization and recovery visual review — 2026-10-14
+
+UX-07 / Pack04 alone is implemented and technically qualified at approved UX-06 HEAD `19e07ee4814ceb11d8cad3a6cc4abf6cb238aea0`. **YELLOW — stakeholder visual approval pending; nine exact paths remain unstaged/uncommitted/unpushed.** [Current review](../docs/qa/ux-07-sync-recovery-visual-review.md) records original/native actual desktop/mobile/tablet/state screenshots, measured geometry, remaining artwork adaptations, final review and preservation. Earlier UX-06-only stops are historical; UX-08 remains untouched.
+
+One compact summary, paired transfers, existing account/PIN/explicit Continue recovery and distinct review evidence preserve truthful unknown/locked/offline/interrupted outcomes. Read-only encrypted-store observation fixes stale acknowledged-upload counts during held downloads; original events/cursors/leases/crypto/authorization/engines/backend/contracts/dependencies remain intact. Final84/5 focused PASS; initial736/79 frontend retained after isolated corrections; serial backend306/3626 PASS. Types/lint/build/contracts/Pint/strict Composer/audits/structure/whitespace PASS. Initial40 plus affected20 and keyboard4 native outcomes qualify44 unique cases; final76-rule screen/test/style OWASP closures and source Gitleaks are clear. See ignored `.git/msprout-ux07-20261014/` receipts for exact current inputs and effect-based evidence retention.
+
+Protected stash `1e104f06fbe3091b54e3916f612668b93f0107b4`, nine originals, ten backups, private environment/SQLite and all unrelated tracked inputs are preserved. No human browser/PostgreSQL development work, commit/push/merge/deploy or UX-08. Stop for explicit stakeholder visual approval.
+
 ## UX-06 accepted visual review and final delivery — 2026-10-14
 
 Explicit final stakeholder approval closes all UX-06 visual findings. Read [the accepted preparation review](../docs/qa/ux-06-device-preparation-visual-review.md) for Pack 03 desktop/tablet/mobile/state acceptance, exact ten final paths, measured previews, actual lease provenance, safe recovery, qualified evidence and preservation. Earlier pending entries below are historical.

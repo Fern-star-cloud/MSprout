@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { liveQuery } from 'dexie'
-import { Button, ErrorSummary, Field, StatusBadge, StatusBanner } from '../../components/ui/Foundations'
+import { Button, ErrorSummary, Field, StatusBanner } from '../../components/ui/Foundations'
+import { HomeIcon } from '../../components/ui/HomeIcon'
 import { ProfilePinError, profileStore, type LocalProfileStore } from '../../offline/profile-store'
+import { offlineDatabase } from '../../offline/db'
 import type { ProfileRecord } from '../../offline/schema'
 import type { SyncSummary } from '../../sync/sync-client'
 import { accountEntry } from '../auth/account-session'
@@ -15,8 +17,20 @@ type SyncStore = Pick<LocalProfileStore, 'listProfiles' | 'isUnlocked' | 'unlock
 interface Recovery { continue(profile: ProfileRecord, verify: () => Promise<void>, check: () => void): Promise<SyncSummary> }
 type Subscription = (profileId: string, next: (value: SyncStatus) => void) => () => void
 const subscribeStatus: Subscription = (id, next) => {
-  const subscription = liveQuery(() => readSyncStatus(id)).subscribe({ next, error: () => next(unknownSyncStatus) })
-  return () => subscription.unsubscribe()
+  let active = true, generation = 0
+  // Track Dexie reads before lease-bound WebCrypto leaves its live-query zone.
+  // Every input of the projection is observed, including updated encrypted drafts.
+  const subscription = liveQuery(() => Promise.all([
+    offlineDatabase.profiles.get(id), offlineDatabase.serverCursors.get(id),
+    offlineDatabase.outboxEvents.where('profileId').equals(id).toArray(),
+    offlineDatabase.conflicts.where('profileId').equals(id).toArray(),
+    offlineDatabase.attendanceDrafts.where('profileId').equals(id).toArray(),
+  ])).subscribe({ next: () => {
+    const run = ++generation
+    void readSyncStatus(id).then(value => { if (active && run === generation) next(value) })
+      .catch(() => { if (active && run === generation) next(unknownSyncStatus) })
+  }, error: () => { generation++; if (active) next(unknownSyncStatus) } })
+  return () => { active = false; generation++; subscription.unsubscribe() }
 }
 type SessionState = 'checking' | 'verified' | 'unavailable' | 'offline'
 
@@ -171,7 +185,7 @@ export function SyncScreen({ store = profileStore, recovery = syncRecovery, stat
         check(); if (!store.isUnlocked(item.id)) throw new Error('Profile locked')
         const value = await statusReader(item.id); check()
         setStatus(value); setSummary(result); setInterrupted(false)
-        setMessage('Transfer attempt finished. Completion and review status are shown separately below.')
+        setMessage('Transfer attempt finished. Completion and review status are shown separately.')
         globalThis.dispatchEvent(new Event('ministrysprout:sync-complete'))
       } else setMessage('Matching church account verified. Unlock the existing local profile, then continue.')
       if (store.isUnlocked(item.id)) await review(item, current)
@@ -226,31 +240,58 @@ export function SyncScreen({ store = profileStore, recovery = syncRecovery, stat
   let headline = busy ? action === 'sync' ? 'Synchronization not complete yet' : action === 'unlock' ? 'Unlocking existing profile…' : action === 'verify' ? 'Checking account access…' : 'Checking device status…' : syncHeadline(visible)
   if (!busy && interrupted && visible.pending === 0 && visible.downloads === 'complete') headline = 'Synchronization interrupted — completion unconfirmed'
   if (!busy && headline === 'Synchronization complete' && visibleReview !== false) headline = visibleReview ? 'Transfers complete — review remains' : 'Transfers complete — server review unknown'
+  // Prerequisites describe the current action without exposing protected counts.
+  if (!busy && session === 'unavailable') headline = 'Online sign-in required'
+  else if (!busy && !unlocked) headline = 'Profile locked'
+  else if (!busy && !online && (visible.pending ?? 0) > 0) headline = 'Saved on this device'
   const complete = headline === 'Synchronization complete'
-  return <section className="sync-screen">
-    <p className="eyebrow">Saved locally is separate from synchronized</p><h1>Sync &amp; device</h1>
-    <p>Check and recover this device without opening Attendance. Viewing Sync does not upload, download or create attendance.</p>
-    {!loaded ? <StatusBanner live>Checking existing device profiles…</StatusBanner> : !profiles.length ? <div className="dashboard-card"><h2>No device profile available</h2><p>Prepare an encrypted profile after verifying your church access.</p><a href="/account/prepare">Prepare this device</a></div> : <>
-      <label className="sync-profile-choice">Existing device profile<select value={selected} disabled={busy} onChange={event => select(event.target.value)}>{profiles.map((item, index) => <option value={item.id} key={item.id}>Profile {index + 1}</option>)}</select></label>
-      <div className={`ui-status-banner tone-${complete ? 'success' : 'warning'}`} role="status" aria-live="polite" aria-atomic="true"><h2>{headline}</h2><p>{complete ? 'No pending uploads. All download pages applied at the last completed synchronization.' : 'Zero queued uploads alone does not confirm that all downloads were applied.'}</p></div>
-      <div className="sync-stages">
-        <section className="dashboard-card"><h3>Connection</h3><StatusBadge tone={online ? 'info' : 'neutral'}>{online ? 'Online — server access checked separately' : 'Offline'}</StatusBadge></section>
-        <section className="dashboard-card"><h3>Church-account session</h3><p>{session === 'verified' ? 'Matching account verified' : session === 'checking' ? 'Checking account access…' : session === 'offline' ? 'Account access not checked while offline' : 'Account verification required'}</p><a href={accountEntry('/account/login', '/account/sync')}>Check Account / sign in online</a></section>
-        <section className="dashboard-card"><h3>Profile unlock</h3><p>{unlocked ? 'Unlocked on this device — authorization checked separately' : 'Locked — encrypted work retained'}</p><p>Local PIN unlock does not renew church authorization.</p></section>
-        <section className="dashboard-card"><h3>Uploads</h3><p>{visible.pending === null ? 'Upload count unavailable' : `${visible.pending} pending uploads`}</p>{visible.pending !== null && visible.pending > 0 && <p>Saved locally; these changes are waiting to upload.</p>}{summary && <p>{summary.acknowledged} server accepted in this completed attempt</p>}{busy && action === 'sync' && <p>{visible.pending === null ? 'Upload progress unknown' : visible.pending > 0 ? 'Sending saved changes or awaiting authorization / receipts…' : 'No queued uploads; downloads still require confirmation.'}</p>}<p>When a response is lost, server acceptance is uncertain until the existing events are reconciled.</p></section>
-        <section className="dashboard-card"><h3>Downloads</h3><p>{busy && action === 'sync' ? 'In progress or awaiting authorization — not complete' : visible.downloads === 'incomplete' ? 'Incomplete — continue from the applied cursor' : visible.downloads === 'complete' ? 'All download pages applied at last completed sync' : 'Completion not verified'}</p><p>Interrupted downloads resume from the last applied page.</p></section>
-        <section className="dashboard-card"><h3>Unresolved review</h3><p>{visible.quarantined === null ? 'Local review count unavailable' : `${visible.quarantined} quarantined ${visible.quarantined === 1 ? 'item' : 'items'} retained on this device`}</p><p>{visible.reviews === null ? 'Downloaded review count unavailable' : `${visible.reviews} downloaded ${visible.reviews === 1 ? 'session needs' : 'sessions need'} review`}</p><p>{visibleReview === null ? 'Server review status unknown' : visibleReview ? 'Server work needs Owner review' : 'No open server conflict reported at last check'}</p><p>Transfer does not resolve review. Retained local items are not automatically cleared by a server decision.</p><a href={unlocked && session === 'verified' && profile?.churchId ? `/account/conflicts?church=${encodeURIComponent(profile.churchId)}` : '/account/conflicts'}>Open Review</a></section>
+  const transferring = busy && action === 'sync'
+  const needsReview = (visible.quarantined ?? 0) > 0 || (visible.reviews ?? 0) > 0 || visibleReview === true
+  const tone = complete ? 'success' : interrupted ? 'danger' : transferring || busy ? 'info' : 'warning'
+  const description = session === 'unavailable'
+    ? 'Sign in with the same church account, unlock this profile, then explicitly continue.'
+    : !unlocked ? 'Your encrypted saved work is retained. Use this profile’s original PIN to continue.'
+    : !online ? 'Connect to the internet to synchronize. Saved locally is separate from server accepted.'
+    : transferring ? 'Uploads and downloads are in progress or awaiting confirmation. Keep this profile open.'
+    : interrupted ? 'Saved work is retained. Retry with this profile; existing events and applied download pages are preserved.'
+    : complete ? 'No pending uploads. All download pages applied at the last completed synchronization.'
+    : needsReview ? 'Transfer does not resolve review. Saved work still needs attention.'
+    : visible.pending !== null && visible.pending > 0 ? 'Saved locally; these changes are waiting to upload. Locally finalized attendance is not yet server accepted.'
+    : visible.pending === 0 && visible.downloads === 'incomplete' ? 'Your uploads are finished. Continue downloading changes before synchronization is complete.'
+    : 'Zero queued uploads alone does not confirm that all downloads were applied.'
+  return <section className="sync-screen" aria-labelledby="sync-title">
+    <div className="sync-heading"><h1 id="sync-title">Sync &amp; device</h1><p>Saved locally is separate from synchronized.</p></div>
+    {!loaded ? <StatusBanner live>Checking existing device profiles…</StatusBanner> : !profiles.length ? <div className="sync-panel"><h2>No device profile available</h2><p>Prepare an encrypted profile after verifying your church access.</p><a href="/account/prepare">Prepare this device</a></div> : <div className="sync-panel">
+      <div className="sync-profile-row"><label className="sync-profile-choice"><span className="sr-only">Existing device profile</span><select value={selected} disabled={busy} onChange={event => select(event.target.value)}>{profiles.map((item, index) => <option value={item.id} key={item.id}>Profile {index + 1}</option>)}</select></label><section className="sync-unlock-state"><h3 className="sr-only">Profile unlock</h3><p>{unlocked ? 'Unlocked on this device — authorization checked separately' : 'Locked — encrypted work retained'}</p></section></div>
+      <div className={`sync-summary sync-tone-${tone}`} role="status" aria-live="polite" aria-atomic="true"><SyncIcon kind={complete ? 'check' : interrupted ? 'warning' : transferring ? 'sync' : !unlocked ? 'lock' : 'clock'} /><div><h2>{headline}</h2><p>{description}</p></div></div>
+      <div className="sync-stages" role="region" aria-label="Transfers">
+        <section className={`sync-stage sync-tone-${visible.pending === 0 ? 'success' : 'info'}`}><SyncIcon kind={visible.pending === 0 ? 'check' : transferring ? 'sync' : 'upload'} /><div><h3>Uploads</h3><p>{visible.pending === null ? 'Upload count unavailable' : `${visible.pending} pending uploads`}</p>{summary && <p>{summary.acknowledged} server accepted in this completed attempt</p>}{transferring && <p>{visible.pending === null ? 'Upload progress unknown' : visible.pending > 0 ? 'Sending saved changes or awaiting authorization / receipts…' : 'No queued uploads; downloads still require confirmation.'}</p>}</div></section>
+        <section className={`sync-stage sync-tone-${transferring ? 'info' : visible.downloads === 'complete' ? 'success' : visible.downloads === 'incomplete' ? 'warning' : 'info'}`}><SyncIcon kind={transferring ? 'sync' : visible.downloads === 'complete' ? 'check' : visible.downloads === 'incomplete' ? 'clock' : 'download'} /><div><h3>Downloads</h3><p>{transferring ? 'In progress or awaiting authorization — not complete' : visible.downloads === 'incomplete' ? 'Incomplete — continue from the applied cursor' : visible.downloads === 'complete' ? 'All download pages applied at last completed sync' : 'Completion not verified'}</p></div></section>
       </div>
-      <section className="dashboard-card" aria-labelledby="sync-recovery-title"><h2 id="sync-recovery-title">Continue safely with this profile</h2><ol className="sync-recovery-steps"><li>Verify the same church account.</li><li>Unlock the existing local profile.</li><li>Continue uploads and every download page.</li></ol>
-        {!unlocked && <form onSubmit={event => { event.preventDefault(); void act('unlock') }}><Field id="sync-existing-pin" label="Existing local PIN" type="password" inputMode="numeric" autoComplete="off" value={pin} onChange={event => setPin(event.target.value)} pattern="[0-9]{6,12}" minLength={6} maxLength={12} required disabled={busy} hint="Use this profile’s existing PIN; church sign-in cannot reset or replace it." error={pinError || undefined} /><Button type="submit" disabled={!online || busy || remaining > 0 || session !== 'verified'}>Unlock existing profile</Button></form>}
-        {remaining > 0 && <p role="status">Try the local PIN again in {remaining} seconds. Reloading does not remove the delay.</p>}
-        <div className="sync-actions"><Button variant="secondary" disabled={!online || busy || remaining > 0} onClick={() => void act('verify')}>Verify account access</Button><Button variant="secondary" disabled={!unlocked || busy || (session !== 'verified' && session !== 'offline')} onClick={() => void checkStatus()}>Check device status</Button><Button ref={continueButton} disabled={!online || !unlocked || busy || session !== 'verified'} onClick={() => void act('sync')}>Continue synchronization</Button>{unlocked && <Button variant="secondary" onClick={() => { if (profile) store.lockProfile(profile.id) }}>Lock profile</Button>}</div>
-        {!online && <p>Connect to the internet, verify the same account, then continue. Your encrypted saved work remains on this device.</p>}
-        {session === 'unavailable' && <p>Expired or denied sessions require Account verification, email and current-session MFA where required. If access was removed, ask your church Owner; a retry cannot override authorization.</p>}
+      <section className="sync-recovery" aria-labelledby="sync-recovery-title">
+        <h2 id="sync-recovery-title" className="sr-only">Continue safely with this profile</h2>
+        {(!unlocked || session === 'unavailable') && <div className="sync-recovery-prerequisites"><ol className="sync-recovery-steps"><li>Verify the same church account.</li><li>Unlock the existing local profile.</li><li>Continue uploads and every download page.</li></ol>
+          {!unlocked && <form onSubmit={event => { event.preventDefault(); void act('unlock') }}><Field id="sync-existing-pin" label="Existing local PIN" type="password" inputMode="numeric" autoComplete="off" value={pin} onChange={event => setPin(event.target.value)} pattern="[0-9]{6,12}" minLength={6} maxLength={12} required disabled={busy} hint="Use this profile’s existing PIN; church sign-in cannot reset or replace it." error={pinError || undefined} /><Button type="submit" disabled={!online || busy || remaining > 0 || session !== 'verified'}>Unlock existing profile</Button></form>}
+          {remaining > 0 && <p role="status">Try the local PIN again in {remaining} seconds. Reloading does not remove the delay.</p>}
+        </div>}
+        <div className="sync-actions"><Button ref={continueButton} disabled={!online || !unlocked || busy || session !== 'verified'} onClick={() => void act('sync')}><SyncIcon kind="sync" plain />Continue synchronization</Button>{unlocked && <Button variant="secondary" onClick={() => { if (profile) store.lockProfile(profile.id) }}><SyncIcon kind="lock" plain />Lock profile</Button>}</div>
+        {!online && <p className="sync-context-note">Connect to the internet, verify the same account, then continue. Your encrypted saved work remains on this device.</p>}
+        {session === 'unavailable' && <p className="sync-context-note">Expired or denied sessions require Account verification, email and current-session MFA where required. If access was removed, ask your church Owner; a retry cannot override authorization.</p>}
       </section>
-    </>}
-    {error && <ErrorSummary message={error} />}{message && <StatusBanner live>{message}</StatusBanner>}
-    <details className="dashboard-card"><summary>Recovery and preservation guidance</summary><p>Keep this profile and browser storage. Do not clear site data, remove and recreate this profile, or reset the PIN to recover synchronization. Interrupted retries retain existing events, receipts, applied cursors and quarantined work.</p><p>An expired local authorization requires verified online access and the existing PIN before continuing. No profile switch or logout is needed for direct unlock. Church sign-in cannot decrypt a forgotten PIN; ask the Owner for account-access help.</p></details>
-    <p><a href="/profiles">Manage device profiles</a></p>
+      <div className="sync-access-row"><section><h3 className="sr-only">Church-account session</h3><p>{session === 'verified' ? 'Matching account verified' : session === 'checking' ? 'Checking account access…' : session === 'offline' ? 'Account access not checked while offline' : 'Account verification required'}</p></section><section className="sr-only"><h3>Connection</h3><p>{online ? 'Online — server access checked separately' : 'Offline'}</p></section><div className="sync-tools"><Button variant="secondary" disabled={!online || busy || remaining > 0} onClick={() => void act('verify')}>Verify account access</Button><Button variant="secondary" disabled={!unlocked || busy || (session !== 'verified' && session !== 'offline')} onClick={() => void checkStatus()}>Check device status</Button></div></div>
+      <section className={`sync-review${needsReview ? ' sync-tone-warning' : ''}`} aria-labelledby="sync-review-title"><HomeIcon id="info" /><div><h3 id="sync-review-title">Unresolved review</h3><p>{visibleReview === null ? 'Server review status unknown' : visibleReview ? 'Server work needs Owner review' : 'No open server conflict reported at last check'}</p><p>{visible.quarantined === null ? 'Local review count unavailable' : `${visible.quarantined} quarantined ${visible.quarantined === 1 ? 'item' : 'items'} retained on this device`}</p><p>{visible.reviews === null ? 'Downloaded review count unavailable' : `${visible.reviews} downloaded ${visible.reviews === 1 ? 'session needs' : 'sessions need'} review`}</p>{needsReview && <p>Transfer does not resolve review. Retained local items are not automatically cleared by a server decision.</p>}{unlocked && session === 'verified' && needsReview && <a href={profile?.churchId ? `/account/conflicts?church=${encodeURIComponent(profile.churchId)}` : '/account/conflicts'}>Open Review</a>}</div></section>
+    </div>}
+    {error && <ErrorSummary message={error} />}<div className="sync-support">{message && <StatusBanner live>{message}</StatusBanner>}
+    <details className="sync-guidance"><summary><HomeIcon id="info" /><span>Recovery and preservation guidance</span></summary><div><p>Viewing Sync and checking device status do not upload, download or create attendance.</p><p>When a response is lost, server acceptance is uncertain until the existing events are reconciled. Interrupted downloads resume from the last applied page.</p><p>Keep this profile and browser storage. Do not clear site data, remove and recreate this profile, or reset the PIN to recover synchronization. Interrupted retries retain existing events, receipts, applied cursors and quarantined work.</p><p>An expired local authorization requires verified online access and the existing PIN before continuing. Local PIN unlock does not renew church authorization. No profile switch or logout is needed for direct unlock. Church sign-in cannot decrypt a forgotten PIN; ask the Owner for account-access help.</p><a href={accountEntry('/account/login', '/account/sync')}>Check Account / sign in online</a><a href="/profiles">Manage device profiles</a></div></details>
+    </div>
   </section>
+}
+
+function SyncIcon({ kind, plain = false }: { kind: 'check' | 'clock' | 'sync' | 'lock' | 'upload' | 'download' | 'warning'; plain?: boolean }) {
+  const paths = {
+    check: 'm6 12 4 4 8-9', clock: 'M12 7v5l3 2', sync: 'M20 7v5h-5M4 17v-5h5M5 8a8 8 0 0 1 14-2l1 3M4 15l1 3a8 8 0 0 0 14-2',
+    lock: 'M6 10h12v11H6ZM8 10V6a4 4 0 0 1 8 0v4M12 14v3',
+    upload: 'M12 16V3m-5 5 5-5 5 5M4 15v6h16v-6', download: 'M12 3v13m-5-5 5 5 5-5M4 15v6h16v-6', warning: 'M12 7v6m0 3h.01',
+  }
+  return <span className={plain ? 'sync-action-icon' : 'sync-status-icon'} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{['check', 'clock', 'warning'].includes(kind) && <circle cx="12" cy="12" r="9" />}<path d={paths[kind]} /></svg></span>
 }

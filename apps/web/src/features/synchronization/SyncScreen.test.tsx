@@ -33,6 +33,54 @@ beforeEach(() => {
 })
 afterEach(() => { cleanup(); vi.clearAllMocks() })
 
+it('prioritizes the existing locked profile and keeps unknown counts distinct from zero', async () => {
+  unlocked = false; const f = fixture(); render(<SyncScreen {...f} />)
+  await screen.findByRole('heading', { name: 'Profile locked' })
+  expect(screen.getByText('Upload count unavailable')).toBeTruthy()
+  expect(screen.queryByText('0 pending uploads')).toBeNull()
+  expect(f.recovery.continue).not.toHaveBeenCalled()
+})
+
+it('presents offline pending work as saved on this device with an explicit disabled transfer', async () => {
+  Object.defineProperty(navigator, 'onLine', { configurable: true, value: false })
+  const f = fixture(); f.statusReader.mockResolvedValue({ pending: 3, quarantined: 0, reviews: 0, downloads: 'unknown' })
+  render(<SyncScreen {...f} />)
+  await screen.findByRole('heading', { name: 'Saved on this device' })
+  expect(screen.getByText('3 pending uploads')).toBeTruthy()
+  expect((screen.getByRole('button', { name: 'Continue synchronization' }) as HTMLButtonElement).disabled).toBe(true)
+  expect(f.recovery.continue).not.toHaveBeenCalled()
+  expect(readPreparationAccess).not.toHaveBeenCalled()
+})
+
+it('places uploads and downloads together in a compact transfer summary', async () => {
+  const f = fixture(); render(<SyncScreen {...f} />)
+  await screen.findByText('0 pending uploads')
+  const summary = screen.getByRole('region', { name: 'Transfers' })
+  expect(summary.contains(screen.getByRole('heading', { name: 'Uploads' }))).toBe(true)
+  expect(summary.contains(screen.getByRole('heading', { name: 'Downloads' }))).toBe(true)
+  expect(screen.getByRole('button', { name: 'Continue synchronization' }).textContent).toBe('Continue synchronization')
+})
+
+it('does not claim uploads are finished when the upload count is unknown', async () => {
+  const f = fixture(); f.statusReader.mockResolvedValue({ pending: null, quarantined: 0, reviews: 0, downloads: 'incomplete' } as never)
+  render(<SyncScreen {...f} />)
+  await screen.findByText('Incomplete — continue from the applied cursor')
+  await screen.findByText('Upload count unavailable')
+  expect(screen.queryByText(/Your uploads are finished/)).toBeNull()
+})
+
+it('does not reuse completed download styling during a new transfer attempt', async () => {
+  const f = fixture(); f.statusReader.mockResolvedValue({ pending: 0, quarantined: 0, reviews: 0, downloads: 'complete' })
+  let finish!: () => void
+  f.recovery.continue.mockImplementation(() => new Promise(resolve => { finish = () => resolve({ pushed: 0, acknowledged: 0, conflicts: 0, rejected: 0, pulled: 0, nextCursor: '4' }) }))
+  render(<SyncScreen {...f} />)
+  await screen.findByRole('heading', { name: 'Synchronization complete' })
+  fireEvent.click(screen.getByRole('button', { name: 'Continue synchronization' }))
+  await waitFor(() => expect(f.recovery.continue).toHaveBeenCalledOnce())
+  expect(screen.getByRole('heading', { name: 'Downloads' }).closest('section')?.classList.contains('sync-tone-success')).toBe(false)
+  await act(async () => finish())
+})
+
 it('shows independent states and zero uploads with incomplete downloads; viewing has no mutations', async () => {
   const f = fixture(); render(<SyncScreen {...f} />)
   await screen.findByText('0 pending uploads')
