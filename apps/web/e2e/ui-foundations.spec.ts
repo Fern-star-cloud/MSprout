@@ -31,6 +31,7 @@ test('shared examples reflow at five widths with readable labels, targets and co
       if (box) { expect(box.height).toBeGreaterThanOrEqual(44); expect(box.width).toBeGreaterThanOrEqual(44) }
     }
     await expectNoSeriousAccessibilityIssues(page)
+    await page.screenshot({ path: test.info().outputPath(`foundations-${width}.png`), fullPage: true })
   }
   await page.setViewportSize({ width: 320, height: 900 })
   await page.screenshot({ path: test.info().outputPath('foundations-320.png'), fullPage: true })
@@ -53,6 +54,28 @@ test('native dialog contains keyboard focus, cancels with Escape and returns to 
   await trigger.click()
   await page.getByRole('button', { name: 'Confirm example' }).click()
   await expect(trigger).toBeFocused()
+})
+
+test('shared actions preserve disabled hover, keyboard focus and truthful activity semantics', async ({ page }) => {
+  const quiet = page.getByRole('button', { name: 'Quiet action' })
+  await quiet.focus()
+  expect(await quiet.evaluate(element => getComputedStyle(element).outlineStyle)).toBe('solid')
+  for (const name of ['Unavailable action', 'Saving example', 'Unavailable native action']) {
+    const action = page.getByRole('button', { name })
+    await expect(action).toBeDisabled()
+    const before = await action.evaluate(element => { const s = getComputedStyle(element); return [s.color, s.backgroundColor, s.backgroundImage, s.borderColor] })
+    await action.hover()
+    expect(await action.evaluate(element => { const s = getComputedStyle(element); return [s.color, s.backgroundColor, s.backgroundImage, s.borderColor] })).toEqual(before)
+  }
+  await expect(page.getByRole('button', { name: 'Saving example' })).toHaveAttribute('aria-busy', 'true')
+  const steps = page.getByRole('list', { name: 'Example workflow position' })
+  await expect(steps.locator('[aria-current="step"]')).toContainText('Review selection')
+  await expect(steps).not.toContainText(/complete|%/i)
+  await expect(page.getByRole('progressbar')).toHaveCount(0)
+  await expect(page.getByRole('status', { name: 'Loading authorized data' })).toBeVisible()
+  const native = page.getByRole('button', { name: 'Unavailable native action' })
+  expect(await native.evaluate(element => getComputedStyle(element).fontWeight)).toBe(await native.evaluate(element => getComputedStyle(element.parentElement!).fontWeight))
+  await expectNoSeriousAccessibilityIssues(page)
 })
 
 test('auth errors are safe, focused and linked while clearing the password', async ({ page }) => {

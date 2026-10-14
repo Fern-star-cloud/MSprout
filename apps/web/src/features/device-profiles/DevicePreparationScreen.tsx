@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FocusEvent } from 'react'
-import { Button, ErrorSummary, Field, LoadingState, StatusBadge, StatusBanner } from '../../components/ui/Foundations'
+import { Button, ErrorSummary, Field, LoadingState, StatusBadge, StatusBanner, StepIndicator } from '../../components/ui/Foundations'
 import { ProfilePinError, profileStore, type LocalProfileStore } from '../../offline/profile-store'
 import type { OfflineBootstrap, ProfileRecord } from '../../offline/schema'
 import type { ChurchWorkspace } from '../../app/workspace-context'
@@ -190,7 +190,7 @@ export function DevicePreparationScreen({ store = profileStore, onAttendance }: 
   const protectedNotice = <StatusBanner tone={ready ? 'success' : 'neutral'}><HomeIcon id="verified" /><div><strong>{ready ? 'Protected when locked' : 'Encryption on this device'}</strong><p>{ready ? 'The saved roster is encrypted and protected by your local PIN.' : 'The roster will be encrypted and protected by your local PIN. There is no PIN-reset shortcut.'}</p></div></StatusBanner>
   return <section className="device-preparation" aria-busy={busy}>
     <header className="preparation-heading"><h1>Prepare this device</h1><p>For attendance when you are offline</p></header>
-    <ol className="preparation-steps" aria-label="Preparation stages">{['Confirm access', 'Local PIN', 'Ready'].map((label, index) => <li key={label} aria-current={stage === index + 1 ? 'step' : undefined}><span>{index + 1}</span>{label}</li>)}</ol>
+    <StepIndicator className="preparation-steps" label="Preparation stages" steps={[{ id: '1', label: 'Confirm access' }, { id: '2', label: 'Local PIN' }, { id: '3', label: 'Ready' }]} current={String(stage)} />
     <div className="preparation-layout" data-stage={stage}>
       {stage !== 1 && <aside className="preparation-panel preparation-access-summary" aria-label="Verified access summary"><p className="preparation-panel-bar">Confirm access</p><div className="preparation-panel-body"><p className="preparation-caption">Verified for this preparation</p><h3>Church and access</h3>{verifiedContext}<p>{access?.workspace.role === 'owner' ? 'Current Owner verification and MFA are required.' : 'Only your active assigned ministries can be saved.'}</p></div></aside>}
       {stage === 3 && <aside className="preparation-panel preparation-pin-summary" aria-label="Local protection summary"><p className="preparation-panel-bar">Local PIN</p><div className="preparation-panel-body"><p className="preparation-caption">{ready ? 'Profile protected' : 'Preparation in progress'}</p><h3>Local profile protection</h3>{pinNotice}{protectedNotice}</div></aside>}

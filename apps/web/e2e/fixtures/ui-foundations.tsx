@@ -6,7 +6,7 @@ import '../../src/styles/global.css'
 import '../../src/App.css'
 import '../../src/styles/foundations.css'
 import '../../src/styles/branding-text.css'
-import { Button, Dialog, EmptyState, Field, LoadingState, ResponsiveList, ResponsiveTable, StatusBadge, StatusBanner, Tabs } from '../../src/components/ui/Foundations'
+import { Button, Dialog, EmptyState, Field, LoadingState, ResponsiveList, ResponsiveTable, StatusBadge, StatusBanner, StepIndicator, Tabs } from '../../src/components/ui/Foundations'
 import { AuthForm } from '../../src/features/auth/AuthForm'
 import { emailField, passwordField } from '../../src/features/auth/fields'
 import { ApiError } from '../../src/api/client'
@@ -20,7 +20,8 @@ export function Examples() {
     <section className="auth-card" aria-label="Shared examples" style={{ display: 'grid', gap: 'var(--space-4)' }}>
       <h2>Accessible controls</h2>
       <Field label="Local PIN example" name="pin" type="password" inputMode="numeric" hint="Synthetic example only" />
-      <div className="application-actions"><Button>Primary action</Button><Button variant="secondary">Secondary action</Button><Button variant="danger">Destructive action</Button></div>
+      <div className="application-actions"><Button>Primary action</Button><Button variant="secondary">Secondary action</Button><Button variant="quiet">Quiet action</Button><Button variant="danger">Destructive action</Button><Button variant="secondary" disabled>Unavailable action</Button><Button busy>Saving example</Button><button type="button" className="secondary" disabled>Unavailable native action</button></div>
+      <StepIndicator label="Example workflow position" steps={[{ id: 'access', label: 'Confirm access' }, { id: 'review', label: 'Review selection' }, { id: 'result', label: 'Results' }]} current="review" />
       <p><StatusBadge>Absent</StatusBadge> <StatusBadge tone="success">Saved</StatusBadge> <StatusBadge tone="warning">Needs review</StatusBadge> <StatusBadge tone="danger">Failed</StatusBadge></p>
       <StatusBanner>Offline</StatusBanner><StatusBanner tone="info">Account required</StatusBanner><LoadingState label="Loading authorized data" />
       <EmptyState title="No loaded results" description="Try a different filter." />

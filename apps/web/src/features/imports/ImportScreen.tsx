@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useWorkspaceChurchId } from '../../app/workspace-context'
-import { ErrorSummary } from '../../components/ui/Foundations'
+import { ErrorSummary, StepIndicator } from '../../components/ui/Foundations'
 import { correctionsCsv, eligible, headers, outcomeCounts, type ImportRow } from './import-model'
 import { saveBlob, useImportWizard, type Stage } from './useImportWizard'
 import './import-wizard.css'
@@ -51,7 +51,7 @@ export function ImportScreen() {
     {wizard.authorization === 'forbidden' && <p role="status">Student imports are available only to the church Owner with confirmed MFA.</p>}
     {wizard.authorization === 'error' && <button type="button" className="secondary" disabled={busy || !navigator.onLine} onClick={wizard.refresh}>Check account access</button>}
     {wizard.authorization === 'authorized' && <>
-      <nav aria-label="Import stages"><ol className="import-steps">{stages.map((name, index) => <li key={name} aria-current={stage === name ? 'step' : undefined}><span aria-hidden="true">{index + 1}</span>{name}{stage === name && <span className="wizard-sr-only"> · Current stage</span>}</li>)}</ol></nav>
+      <nav aria-label="Import stages"><StepIndicator className="import-steps" label="Import stages" steps={stages.map(name => ({ id: name, label: name }))} current={stage} /></nav>
       <h3 ref={heading} tabIndex={-1}>{stage}</h3>
       {busy && <p role="status">{stage === 'Upload' ? 'Checking access and inspecting spreadsheet…' : 'Checking access and the same import batch…'}</p>}
       {stage === 'Upload' && <>

@@ -3,9 +3,46 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import { useRef, useState } from 'react'
-import { Button, Dialog, EmptyState, ErrorSummary, Field, LoadingState, ResponsiveTable, StatusBadge, StatusBanner, Tabs } from './Foundations'
+import { Button, Dialog, EmptyState, ErrorSummary, Field, LoadingState, ResponsiveTable, StatusBadge, StatusBanner, StepIndicator, Tabs } from './Foundations'
 
 afterEach(cleanup)
+
+it('keeps quiet actions named and avoids redundant indicators on a busy action', async () => {
+  const click = vi.fn()
+  render(<><Button variant="quiet">Show details</Button><Button busy onClick={click}>Save changes</Button><LoadingState label="Saving changes…" /></>)
+  expect(screen.getByRole('button', { name: 'Show details' }).className).toContain('ui-button-quiet')
+  const busy = screen.getByRole('button', { name: 'Save changes' })
+  expect(busy.getAttribute('aria-busy')).toBe('true')
+  expect(busy.querySelector('[aria-hidden="true"]')).toBeNull()
+  expect(screen.getAllByRole('status')).toHaveLength(1)
+  await userEvent.click(busy)
+  expect(click).not.toHaveBeenCalled()
+})
+
+it('describes unknown-duration activity once without inventing a progress range', () => {
+  render(<LoadingState label="Downloading authorized changes…" />)
+  const status = screen.getByRole('status', { name: 'Downloading authorized changes…' })
+  expect(status.textContent).toBe('Downloading authorized changes…')
+  expect(status.getAttribute('aria-atomic')).toBe('true')
+  expect(status.querySelector('[aria-hidden="true"]')).not.toBeNull()
+  expect(screen.queryByRole('progressbar')).toBeNull()
+  expect(status.hasAttribute('aria-valuenow')).toBe(false)
+})
+
+it('reports real workflow position without inferring completion or percentages', () => {
+  const steps = [{ id: 'access', label: 'Confirm access' }, { id: 'pin', label: 'Local PIN' }, { id: 'ready', label: 'Ready' }]
+  const { rerender } = render(<StepIndicator label="Preparation stages" steps={steps} current="pin" />)
+  const list = screen.getByRole('list', { name: 'Preparation stages' })
+  expect(list.tagName).toBe('OL')
+  expect(list.querySelectorAll('[aria-current="step"]')).toHaveLength(1)
+  expect(list.querySelector('[aria-current="step"]')?.textContent).toContain('Local PIN')
+  expect(list.textContent).not.toMatch(/complete|%/i)
+  expect(screen.queryByRole('progressbar')).toBeNull()
+  rerender(<StepIndicator label="Preparation stages" steps={steps} current="access" />)
+  expect(list.querySelector('[aria-current="step"]')?.textContent).toContain('Confirm access')
+  rerender(<StepIndicator label="Preparation stages" steps={steps} current="unavailable" />)
+  expect(list.querySelector('[aria-current]')).toBeNull()
+})
 
 it('connects unique field labels, hints and errors without losing caller descriptions', () => {
   render(<><Field label="First email" name="email" hint="Use your account" error="Check this field." aria-describedby="context" /><Field label="Second email" name="email" /><p id="context">Online only</p></>)

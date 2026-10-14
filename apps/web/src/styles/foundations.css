@@ -1,9 +1,21 @@
 /* Shared primitives; workflow-specific styling stays with its existing screen. */
-.ui-button { min-width: var(--touch-target); overflow-wrap: anywhere; }
+.ui-button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-width: var(--touch-target); min-height: var(--touch-target); padding: var(--space-3) var(--space-4); border: 1px solid transparent; border-radius: var(--radius-button); font-size: var(--font-supporting); font-weight: var(--weight-control); line-height: 1.5; text-align: center; overflow-wrap: anywhere; transition: background-color var(--motion-control) var(--motion-easing), border-color var(--motion-control) var(--motion-easing); }
+.ui-button-primary { color: var(--color-surface); background: var(--gradient-primary); border-color: var(--color-brand-end); }
+.ui-button-primary:hover:not(:disabled) { background: var(--color-brand-strong); border-color: var(--color-brand-strong); }
 .ui-button-secondary, button.secondary { color: var(--color-brand); background: var(--color-surface); border-color: var(--color-brand); }
-.ui-button-secondary:hover, button.secondary:hover { color: var(--color-brand-strong); background: var(--color-brand-soft); }
-.ui-button-danger { color: white; background: var(--color-danger); }
-.ui-button-danger:hover { background: var(--color-danger-strong); }
+.ui-button-secondary:hover:not(:disabled), button.secondary:hover:not(:disabled) { color: var(--color-brand-strong); background: var(--color-brand-soft); }
+.ui-button-quiet { color: var(--color-brand); background: transparent; }
+.ui-button-quiet:hover:not(:disabled) { color: var(--color-brand-strong); background: var(--color-brand-soft); border-color: transparent; }
+.ui-button-danger { color: var(--color-surface); background: var(--color-danger); }
+.ui-button-danger:hover:not(:disabled) { background: var(--color-danger-strong); }
+/* Preserve a disabled action's treatment even while the pointer is over it. */
+.ui-button-primary:disabled { background: var(--gradient-primary); border-color: var(--color-brand-end); }
+.ui-button-secondary:disabled { color: var(--color-brand); background: var(--color-surface); border-color: var(--color-brand); }
+.ui-button-quiet:disabled { color: var(--color-brand); background: transparent; border-color: transparent; }
+.ui-button-danger:disabled { background: var(--color-danger); }
+.ui-button > svg { width: var(--icon-size); height: var(--icon-size); flex-shrink: 0; }
+.ui-field > label { color: var(--color-navy); font-size: var(--font-supporting); }
+.ui-field > input { border-radius: var(--radius-control); }
 .ui-field-hint, .ui-field-error { margin: var(--space-2) 0; font-size: var(--font-supporting); }
 .ui-field-hint { color: var(--color-muted); }
 .ui-field-error { color: var(--color-danger); }
@@ -11,8 +23,16 @@
 .ui-error-summary p { margin: 0; }
 .ui-error-summary ul { margin-bottom: 0; padding-left: var(--space-6); }
 .ui-error-summary a { color: inherit; display: inline-flex; align-items: center; min-height: var(--touch-target); }
-.ui-status-badge { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); border: 1px solid currentColor; border-radius: 999px; font-size: var(--font-supporting); overflow-wrap: anywhere; }
+.ui-status-badge { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); border: 1px solid currentColor; border-radius: var(--radius-pill); font-size: var(--font-supporting); overflow-wrap: anywhere; }
 .ui-status-banner { padding: var(--space-4); border: 1px solid currentColor; border-radius: var(--radius-small); overflow-wrap: anywhere; }
+.ui-loading-state { display: flex; align-items: center; gap: var(--space-3); font-size: var(--font-supporting); }
+/* Static indeterminate mark: no timer, percentage or continuous animation. */
+.ui-activity-mark { display: inline-block; width: 1em; height: 1em; flex: 0 0 1em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; }
+.ui-loading-state > span:last-child { min-width: 0; }
+.ui-steps { display: flex; flex-wrap: wrap; gap: var(--space-2); padding: 0; list-style: none; font-size: var(--font-supporting); }
+.ui-steps > li { display: flex; align-items: center; gap: var(--space-2); min-width: 0; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-small); color: var(--color-muted); background: var(--color-surface); }
+.ui-steps > li[aria-current="step"] { border-color: var(--color-brand); color: var(--color-brand-strong); background: var(--color-brand-soft); font-weight: var(--weight-control); }
+.ui-steps > li > span:first-child { flex-shrink: 0; }
 .tone-neutral { color: var(--color-neutral); background: var(--color-neutral-soft); }
 .tone-info { color: var(--color-brand); background: var(--color-brand-soft); }
 .tone-success { color: var(--color-success); background: var(--color-success-soft); }
@@ -40,4 +60,6 @@
   .ui-button, .ui-status-badge, .ui-status-banner, .ui-dialog, .ui-tabs [role="tab"], .ui-empty-state, .ui-table-region, .ui-responsive-list > li { border-color: CanvasText; }
   .ui-tabs [role="tab"][aria-selected="true"] { border: 3px solid Highlight; }
   :focus-visible { outline-color: Highlight; }
+  .ui-steps > li[aria-current="step"] { border-color: Highlight; }
+  .ui-activity-mark { forced-color-adjust: none; color: CanvasText; }
 }

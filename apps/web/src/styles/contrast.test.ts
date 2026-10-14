@@ -16,6 +16,7 @@ it('measures normal text, semantic feedback and filled actions at WCAG AA contra
   for (const [foreground, background] of [
     ['ink', 'surface'], ['ink', 'canvas'], ['muted', 'surface'], ['muted', 'canvas'],
     ['surface', 'navy'], ['surface', 'brand'], ['surface', 'brand-strong'], ['surface', 'danger'],
+    ['surface', 'brand-start'], ['surface', 'brand-end'],
     ['brand', 'brand-soft'], ['success', 'success-soft'], ['warning-ink', 'warning-soft'], ['danger', 'danger-soft'], ['neutral', 'neutral-soft'],
   ]) expect(contrast(foreground, background), `${foreground} on ${background}`).toBeGreaterThanOrEqual(4.5)
 })

@@ -1,5 +1,20 @@
 # Testing Environment
 
+## UX-F1 accepted qualification and finalization — 2026-10-14
+
+[Current results, root-cause evidence, rejected diagnostics, inventory and review](../docs/qa/ux-f1-shared-foundations-review.md). Commit identity **feat: establish shared UI foundations UX-F1**, parent CI-01 `a91cdec5f9873eca99c24cde68d5486fea205935`. Stakeholder accepted shared-foundation direction and controlled 24-path finalization. Actual SHA/push/hosted results are retained under ignored `.git/msprout-uxf1-20261014/finalization/`; local passes do not imply hosted success. Earlier review holds/failures remain historical evidence.
+
+Valid process-scoped Node 24.19.0/pnpm 10.34.5, PHP 8.3.33/external extension-scan files and trusted CA setup remain unchanged. Serial isolated PostgreSQL 18 API suite 306 tests / 3,626 assertions and final web 743/79 pass. Types/lint/build, Pint, strict Composer/audits and structure pass. Root verify was not separately repeated; its component commands ran. Raw Windows CRLF contract command retains its unchanged limitation; identical LF-mirror proof passes. Dependency, app, contract and workflow bytes did not change after qualification.
+
+PWA fixture captures the exact waiting worker before the action, requires activated state and controller identity, then queries its exact revision within the original single five-second assertion. Notice-removal, authority, privacy, encrypted-store/cache and accessibility assertions remain. Focused 3/3 and complete 9/9 pass (Chrome 4/4, WebKit 4/4, baseline update 1/1), retries 0. Existing Chrome 155.0.8059.40 and process-scoped native WebKit 2336 are used; no install/global reconfiguration. All 153 distinct broad cases have valid passing evidence through retained results plus closure; old failed aggregates and rejected tooling experiments are not relabeled green. Browser-internal scheduling details and universal installed-client/restart strategies are not independently qualified.
+
+Final fixture ESLint and OWASP Semgrep 76 rules / 1 source pass with 0 findings/errors; unchanged task 29-input scan and complete CI-01 baseline retain their guarantees. Two prior parser warnings remain unchanged. Full 629-source Gitleaks snapshot plus focused closures cover current tracked/new sources; finalization's four documentation-only status edits require a changed-document refresh, not another application scan. Original user data/keys/browser profiles are not modified. Fresh read-only 39-table/runtime-role census and protected-file/stash/backup hashes match task entry.
+
+Visual evidence remains 21 views × five widths = 105 equivalent pairs. Finalization reviews all compositions using seven local contact sheets and pixel/dimension metrics; no significant unapproved difference or new overflow. Matrix overflow/shared-button targets are checked at five widths and serious/critical axe at 390px per view. Screenshots, app build, all broad tests and application security inputs remain unchanged by documentation cleanup, so their valid results are retained under AGENTS invalidation policy. Refresh links/anchors/whitespace, exact scope, changed-document secrets and Git/preservation proof. Synthetic CAPTCHA qualifies form presentation only; baseline live-widget overflow and Sign in/Continue hierarchy remain later screen work. Stop after exact-SHA hosted/Git qualification; no next task, merge or deployment.
+
+## Preserved earlier validation
+
+
 ## CI-01 validation — 2026-10-14
 
 [Current diagnosis and actual results](../docs/qa/ci-01-hosted-api-test-working-directory.md). Root invocation php apps/api/artisan test --filter=ExampleTest --no-ansi reproduces exit 1 and missing vendor/pestphp/pest/bin/pest. API-directory invocation php artisan test --filter=ExampleTest --no-ansi passes 2 tests / 2 assertions. Current installed Laravel/Collision/Pest/Symfony Process versions match the lock; no install/upgrade or test/assertion change.

@@ -1,5 +1,20 @@
 # Current State
 
+## UX-F1 accepted implementation and finalization milestone — 2026-10-14
+
+Selected/completed implementation scope: UX-F1 only. The stakeholder accepts the shared-foundation visual direction and explicitly authorizes finalization of the reviewed 24 paths after final verification. Commit identity: **feat: establish shared UI foundations UX-F1**, parent CI-01 `a91cdec5f9873eca99c24cde68d5486fea205935`, expected branch `feat/mvp-foundation` and existing origin tracking branch. Actual commit SHA, normal push, clean worktree/0:0 synchronization, unchanged main and exact-SHA web/API/Security outcomes resolve through Git and ignored `.git/msprout-uxf1-20261014/finalization/final.json`. Pending/failed hosted results do not establish GREEN delivery. [Review, exact inventory and evidence](../docs/qa/ux-f1-shared-foundations-review.md).
+
+Shared tokens/native control ownership, Button/Field/loading treatment and truthful StepIndicator are qualified; Preparation/Import retain their original controllers and layout adapters. PWA observation correction captures the actual waiting worker and proves activated state/controller identity before the exact revision query, preserving the original single five-second budget and all notice/privacy/encrypted-store assertions. No product update policy or persistence/authorization/API behavior changed.
+
+Valid local qualification: 743 web tests / 79 files; API 306 / 3,626 assertions; 153 distinct browser outcomes through retained passes plus focused closure; focused PWA 3/3 and complete PWA 9/9 (Chrome 4 + WebKit 4 + baseline update 1). Applicable types/lint/build, Pint, strict Composer/audits, structure and scoped OWASP/secret checks pass. Raw Windows CRLF contract limitation remains; identical LF mirror passes. Prior parser warnings remain unchanged. All 105 before/after pairs and 21 consumer compositions were reviewed at finalization; no significant unapproved departure or new overflow was found.
+
+Protected originals/private files, 11 stashes, 10 backups, prior QA and read-only fingerprints of 39 development tables/runtime role remain preserved. Screenshots, test helpers, scanner snapshots and receipts are ignored local evidence, excluded from the task commit. Final documentation-only status edits reuse valid application guarantees and refresh documentation/secret/preservation checks.
+
+STOP after UX-F1 publication and hosted verification. No next task is selected. Baseline live CAPTCHA 320px overflow and Sign in/Continue hierarchy remain later authorized screen work; universal installed-client/restart qualification is not claimed. UX-F2/F3, compatibility, Late, packs, CI-02, merge and deployment remain unauthorized. Historical bodies below retain their original scope and dates.
+
+## Preserved earlier handoffs
+
+
 ## CI-01 approved finalization handoff — 2026-10-14
 
 The stakeholder separately approved controlled CI-01 finalization under AGENTS.md section 14: exactly five reviewed files, one commit with subject **fix: run API tests from Laravel working directory**, and a normal push to origin/feat/mvp-foundation. Parent/checkpoint: DOC-GOV-01 65c5072c0c15498027ed8c4333f83315c324ede1 on feat/mvp-foundation; entry local/tracking/live feature match, ahead/behind 0/0, staging empty. Resolve actual commit SHA, publication and exact-SHA hosted outcomes through Git and the ignored .git/msprout-ci01-20261014/finalization/final.json receipt; an absent receipt is not proof of success. Hosted pending/failed results must not be called GREEN.

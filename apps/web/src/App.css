@@ -8,13 +8,10 @@
 .auth-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-medium); padding: clamp(var(--space-4), 4vw, var(--space-8)); box-shadow: var(--shadow-card); }
 .eyebrow { font-size: var(--font-supporting); text-transform: uppercase; letter-spacing: .1em; color: var(--color-muted); }
 .auth-card h2 { margin-top: .25rem; font-size: var(--font-heading-2); }
-.form-field { margin-bottom: 1rem; }
-label { display: block; font-weight: 600; margin-bottom: .35rem; }
-input { width: 100%; min-height: 48px; border: 1px solid var(--color-control-border); border-radius: var(--radius-small); padding: .7rem; font: inherit; background: var(--color-surface); color: var(--color-ink); }
-input[type="checkbox"] { width: 24px; min-height: 24px; accent-color: var(--color-brand); }
 form { margin: 1.5rem 0; }
 form button { width: 100%; }
-input:focus-visible, a:focus-visible, button:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+/* Legacy role feedback adapters: retained until each screen uses shared feedback.
+   Selected UX-F2/F3/pack tasks and UX-15 own removal, with state evidence. */
 [role="alert"], [aria-invalid="true"] { border: 1px solid var(--color-danger); }
 [role="alert"] { padding: .8rem; color: var(--color-danger); background: var(--color-danger-soft); border-radius: var(--radius-small); }
 [role="status"] { padding: 1rem; color: var(--color-neutral); background: var(--color-neutral-soft); border-radius: var(--radius-small); }
@@ -23,9 +20,6 @@ input:focus-visible, a:focus-visible, button:focus-visible { outline: 3px solid 
 .secondary { background: var(--color-brand-soft); color: var(--color-brand); }
 footer { margin-top: 2rem; font-size: var(--font-supporting); }
 
-select, textarea { width: 100%; min-height: 48px; border: 1px solid var(--color-control-border); border-radius: var(--radius-small); padding: .7rem; font: inherit; background: var(--color-surface); color: var(--color-ink); margin-bottom: 1rem; }
-textarea { min-height: 120px; resize: vertical; }
-select:focus-visible, textarea:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 .application-list { list-style: none; padding: 0; }
 .application-list li { border-bottom: 1px solid var(--color-border); padding: 1rem 0; overflow-wrap: anywhere; }
 .application-actions { display: flex; flex-wrap: wrap; gap: .75rem; }

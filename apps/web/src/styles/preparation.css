@@ -20,7 +20,7 @@
 .preparation-steps { display: flex; justify-content: space-between; gap: 12px; max-width: 520px; padding: 0; margin: 0 0 20px; list-style: none; }
 .preparation-steps li { display: flex; align-items: center; gap: 8px; padding: 6px 12px; min-width: 0; border-radius: 24px; background: #eef2f6; color: var(--color-muted); font-size: .8125rem; }
 .preparation-steps li span { font-weight: 700; }
-.preparation-steps li[aria-current="step"] { background: linear-gradient(110deg, #0768ed, #0054dc); color: white; }
+.preparation-steps li[aria-current="step"] { background: var(--gradient-primary); color: white; }
 .preparation-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
 .preparation-panel { min-width: 0; background: white; border: 1px solid var(--color-border); border-radius: 8px; box-shadow: 0 4px 16px #1565d809; overflow-wrap: anywhere; }
 .preparation-panel-bar { margin: 5px 5px 0; padding: 8px 12px; background: linear-gradient(110deg, #102c46, #122f58); border-radius: 5px; color: white; font-size: .8125rem; font-weight: 600; }
@@ -51,8 +51,8 @@
 .device-preparation .tone-info { color: #104fa9; background: var(--color-brand-soft); }
 .device-preparation .tone-success { color: #076447; background: var(--color-success-soft); }
 .device-preparation .ui-button { min-height: 44px; padding: 9px 12px; margin: 0; border-radius: 6px; font-family: inherit; font-size: .875rem; font-weight: 600; line-height: 1.3; text-align: center; white-space: normal; }
-.device-preparation .ui-button-primary { background: linear-gradient(110deg, #0768ed, #0054dc); border-color: #0054dc; color: white; }
-.device-preparation .ui-button-primary:hover { background: #104fa9; }
+.device-preparation .ui-button-primary { background: var(--gradient-primary); border-color: #0054dc; color: white; }
+.device-preparation .ui-button-primary:hover:not(:disabled) { background: #104fa9; }
 .device-preparation .ui-button-secondary { border-color: var(--color-brand); color: var(--color-brand); background: white; }
 .device-preparation .ui-button:disabled { opacity: .6; }
 .device-preparation a { color: var(--color-brand); }

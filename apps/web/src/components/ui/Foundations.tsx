@@ -3,8 +3,8 @@ import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, Ref, RefObje
 
 export type Tone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
 
-export function Button({ variant = 'primary', busy = false, disabled, className = '', type = 'button', ref, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'danger'; busy?: boolean; ref?: Ref<HTMLButtonElement> }) {
-  return <button {...props} ref={ref} type={type} className={`ui-button ui-button-${variant} ${className}`} disabled={disabled || busy} aria-busy={busy || undefined} />
+export function Button({ variant = 'primary', busy = false, disabled, className = '', type = 'button', ref, children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'quiet' | 'danger'; busy?: boolean; ref?: Ref<HTMLButtonElement> }) {
+  return <button {...props} ref={ref} type={type} className={`ui-button ui-button-${variant} ${className}`} disabled={disabled || busy} aria-busy={busy || undefined}>{children}</button>
 }
 
 export function Field({ label, hint, error, id, className = '', 'aria-describedby': describedBy, ...props }: InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string; error?: string }) {
@@ -38,7 +38,14 @@ export function StatusBanner({ tone = 'neutral', live = false, children }: { ton
 }
 
 export function LoadingState({ label = 'Loading…' }: { label?: string }) {
-  return <StatusBanner live>{label}</StatusBanner>
+  const id = useId()
+  return <div className="ui-status-banner tone-neutral ui-loading-state" role="status" aria-labelledby={id} aria-atomic="true"><span className="ui-activity-mark" aria-hidden="true" /><span id={id}>{label}</span></div>
+}
+
+// Position comes from the feature's existing state. Earlier steps are never
+// inferred to be complete, and the list deliberately exposes no percentage.
+export function StepIndicator({ label, steps, current, className = 'ui-steps' }: { label: string; steps: readonly { id: string; label: string }[]; current: string; className?: string }) {
+  return <ol className={className} role="list" aria-label={label}>{steps.map((step, index) => <li key={step.id} aria-current={current === step.id ? 'step' : undefined}><span aria-hidden="true">{index + 1}</span>{step.label}{current === step.id && <span className="sr-only"> · Current stage</span>}</li>)}</ol>
 }
 
 export function EmptyState({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {

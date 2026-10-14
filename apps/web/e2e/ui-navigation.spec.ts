@@ -20,7 +20,7 @@ for (const role of ['owner','teacher'] as const) {
       await expect(page.getByRole('heading',{name:'Home',exact:true})).toBeVisible()
       await expect(page.getByText('Synthetic church with a long verified display name')).toBeVisible()
       if(role==='teacher') {
-        await expect(page.getByText('Assigned ministry',{exact:true})).toBeVisible()
+        await expect(page.getByRole('heading',{name:'Assigned ministry',exact:true})).toBeVisible()
         await expect(page.getByRole('link',{name:'Teachers',exact:true})).toHaveCount(0)
         await expect(page.getByRole('link',{name:'Import',exact:true})).toHaveCount(0)
       }

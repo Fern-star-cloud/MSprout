@@ -2,12 +2,14 @@ import { expect, test as base, type Page } from '@playwright/test'
 import { addProfile, deviceRecords, expectNoSeriousAccessibilityIssues, mockCsrf } from './support'
 import { startPwaServer } from './pwa-server'
 
-const test = base.extend<object, { pwaOrigin: string }>({
-  pwaOrigin: [async ({ browserName }, provide) => {
+const test = base.extend<{ pwaOrigin: string }>({
+  // Each case owns its origin, revision counter and network state. A previous
+  // pending-update case must not affect the next case's activation evidence.
+  pwaOrigin: async ({ browserName }, provide) => {
     if (!browserName) throw new Error('Qualification requires an isolated browser')
     const server = await startPwaServer()
     try { await provide(server.origin) } finally { await server.stop() }
-  }, { scope: 'worker' }],
+  },
   baseURL: async ({ pwaOrigin }, provide) => { await provide(pwaOrigin) },
 })
 
@@ -40,7 +42,8 @@ test('production approved raster branding and icons decode and remain available 
   expect(new URL(page.url()).pathname).toBe(manifest.start_url)
   const favicon = await page.locator('link[rel=icon]').getAttribute('href')
   expect(favicon).toBe('/icons/msprout-32.png')
-  for (const link of await page.locator('footer a').all()) expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+  await expect(page.locator('footer')).toHaveCount(0)
+  for (const link of await page.locator('.device-entry-frame a').all()) expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44)
   for (const icon of manifest.icons) {
     expect(await page.evaluate(async (src: string) => {
       const response = await fetch(src); if (!response.ok || !response.headers.get('content-type')?.includes('image/png')) return false
@@ -78,7 +81,9 @@ test('production approved raster branding and icons decode and remain available 
   expect(reload?.status()).toBe(200); expect(reload?.fromServiceWorker()).toBe(true)
   await expect(page.getByRole('heading', { name: 'Choose a device profile' })).toBeVisible()
   // navigator.onLine is a browser hint, not a server-readiness measurement.
-  await expect(page.getByRole('status').filter({ hasText: browserName === 'webkit' ? 'Online' : 'Offline' })).toBeVisible()
+  const connectivity = page.getByRole('status').filter({ hasText: 'Browser connectivity:' })
+  await expect(connectivity).toBeVisible()
+  await expect(connectivity).toContainText(browserName === 'webkit' ? 'Online' : 'Offline')
   const cachePaths = await page.evaluate(async () => (await Promise.all((await caches.keys()).map(async name => (await (await caches.open(name)).keys()).map(request => new URL(request.url).pathname)))).flat())
   expect(cachePaths.some(path => /^\/(api|platform|auth|sanctum|health)(\/|$)/.test(path))).toBe(false)
   await page.screenshot({ path: test.info().outputPath('offline-profile-entry.png'), fullPage: true })
@@ -123,13 +128,21 @@ test('a real waiting worker remains deferred with exact encrypted pending-work p
   await page.screenshot({ path: test.info().outputPath('privacy-safe-deferred-update.png'), fullPage: true })
 })
 test('public and Platform account show a deliberate real update without claiming account authority', async ({ page }) => {
-  await page.goto('/profiles'); await controlled(page)
+  await page.goto('/account'); await controlled(page)
   const revision = await announce(page)
   await page.getByRole('link', { name: 'Platform administration', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Application update' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Applications', exact: true })).toHaveCount(0)
+  const waitingWorker = await page.evaluateHandle(async () => (await navigator.serviceWorker.ready).waiting)
   await page.getByRole('button', { name: 'Update when safe' }).click()
-  await expect.poll(() => version(page)).toBe(revision)
+  // Querying the old worker during its shutdown can restart it and obstruct
+  // activation. Observe this waiting worker without registration lookups or
+  // messages during handoff; keep the original revision assertion and deadline.
+  await expect.poll(async () => {
+    const activated = await waitingWorker.evaluate(worker => worker?.state === 'activated'
+      && navigator.serviceWorker.controller === worker)
+    return activated ? version(page) : null
+  }).toBe(revision)
   await expect(page.getByRole('region', { name: 'Application update' })).toHaveCount(0)
   await expect(page.getByRole('link', { name: 'Applications', exact: true })).toHaveCount(0)
   await expectNoSeriousAccessibilityIssues(page)

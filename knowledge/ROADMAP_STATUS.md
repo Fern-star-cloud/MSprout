@@ -1,5 +1,18 @@
 # Roadmap Status
 
+## Current modernization milestone — 2026-10-14
+
+| Task | Verified status |
+|---|---|
+| CI-01 | GREEN predecessor `a91cdec5f9873eca99c24cde68d5486fea205935`. |
+| UX-F1 | Implementation/local qualification complete; shared-foundation visual direction and exact 24-path controlled finalization explicitly approved. Commit identity `feat: establish shared UI foundations UX-F1`, parent CI-01. Actual published/hosted delivery resolves through Git and ignored finalization/final.json named in CURRENT_STATE. [Review/inventory](../docs/qa/ux-f1-shared-foundations-review.md). |
+| UX-F2/F3, COMPAT-01, ATT-LATE-01, remaining packs, CI-02 and other later tasks | Not selected or begun. Stop after UX-F1; no automatic advancement. |
+
+UX-F1 has 153 distinct browser outcomes qualified, focused PWA 3/3, complete PWA 9/9 and accepted representative visual evidence, with complete 105-pair final manifest review. GREEN delivery additionally requires exact-SHA hosted CI/Security passes and verified Git synchronization. Baseline CAPTCHA sizing and Sign in/Continue hierarchy remain future screen work. Late counting/guest/bulk/color and compatibility/restart decisions remain PROPOSED. Historical status rows below do not select work or authorize later publication.
+
+## Preserved earlier task records
+
+
 ## CI-01 — approved controlled finalization milestone (2026-10-14)
 
 | Task | Actual status / evidence |
