@@ -1,5 +1,20 @@
 # Current State
 
+## CI-01 approved finalization handoff — 2026-10-14
+
+The stakeholder separately approved controlled CI-01 finalization under AGENTS.md section 14: exactly five reviewed files, one commit with subject **fix: run API tests from Laravel working directory**, and a normal push to origin/feat/mvp-foundation. Parent/checkpoint: DOC-GOV-01 65c5072c0c15498027ed8c4333f83315c324ede1 on feat/mvp-foundation; entry local/tracking/live feature match, ahead/behind 0/0, staging empty. Resolve actual commit SHA, publication and exact-SHA hosted outcomes through Git and the ignored .git/msprout-ci01-20261014/finalization/final.json receipt; an absent receipt is not proof of success. Hosted pending/failed results must not be called GREEN.
+
+The stakeholder supplied the retrieved API job log for run 38550603825/job 115807343017. Local reproduction confirms its exact missing-Pest error: root-launched Artisan inherits repository-root working directory into Collision's relative Pest subprocess. The executable is installed under apps/api/vendor. API-directory focused invocation passes 2 tests / 2 assertions. The only workflow repair is php artisan test with step-level working-directory apps/api; all other workflow semantics/security controls remain unchanged.
+
+[CI-01 diagnosis, exact diff and actual validation](../docs/qa/ci-01-hosted-api-test-working-directory.md) is the current evidence record. Full API 306/3,626 and frontend 740/79 pass; types/lint/build, Pint, Composer validation and dependency audits pass. The unchanged CRLF generated client requires the documented ignored LF-mirror contract proof; original bytes remain exact. OWASP coverage closes all 523 non-PNG app/workflow inputs with 0 findings and two reviewed unchanged Vitest parser warnings; source secret/reference/whitespace checks pass. Final review has 0 BLOCKING / 0 SHOULD FIX within scope. Preserve all application/test/contract/dependency/offline/Security-workflow content, keys, private data, 11 stashes, 9 original blobs, 10 backups and existing profiles/unsynchronized work. All 39 development-table and development-role fingerprints match before/after isolated testing.
+
+Finalization authority is limited to this specific five-file correction. Final documentation-status edits do not change executable or scanner inputs; retain the completed application/security guarantees by input equality and refresh documentation, whitespace, secret and preservation checks. Qualify web, API and Security for the exact published SHA; if a required hosted check fails, preserve the commit, report the exact evidence and stop without a second corrective commit. After CI-01, wait for explicit next-task authorization. CI-02, UX-F1/F2/F3, compatibility, Late, Packs, merge/deployment and application-data operations remain unselected. Unresolved Late and compatibility decisions remain PROPOSED as recorded in the approved design.
+
+## Preserved earlier handoffs and validation
+
+The bodies below retain their original text and dates; the current CI-01 entry above controls task selection and publication status.
+
+
 ## DOC-GOV-01 approved finalization handoff — 2026-10-14
 
 The stakeholder separately approved DOC-GOV-01 finalization under AGENTS.md section 14, including durable status cleanup and exactly one reviewed 20-file commit/normal feature push. Documentation scope is complete; resolve actual commit/push and hosted outcomes from the evidence below rather than the preserved review-hold statements.

@@ -1,5 +1,20 @@
 # Roadmap Status
 
+## CI-01 — approved controlled finalization milestone (2026-10-14)
+
+| Task | Actual status / evidence |
+|---|---|
+| DOC-GOV-01 | Committed/pushed as 65c5072c0c15498027ed8c4333f83315c324ede1. Exact-SHA Security passed; CI web passed/API failed. Historical evidence and approval preserved below. |
+| CI-01 | Explicitly selected. Hosted missing-Pest cause reproduced; minimal API-step directory correction prepared. Focused 2/2, full API 306/3,626 and frontend 740/79 pass; exact comprehensive/security results and tooling limits are recorded in the current report. Controlled publication separately approved for exactly five files, subject **fix: run API tests from Laravel working directory**, parent DOC-GOV-01 above. Actual SHA, push synchronization and exact-SHA web/API/Security results resolve through Git and ignored .git/msprout-ci01-20261014/finalization/final.json; pending/failed checks are not GREEN. |
+| CI-02 and later modernization tasks | NOT AUTHORIZED / NOT STARTED; no automatic task continuation. |
+
+[Current CI-01 report](../docs/qa/ci-01-hosted-api-test-working-directory.md) contains the exact scope, actual tests/security results and preservation limits. Existing hosted failure is not relabeled green by a local repair; exact-SHA hosted verification follows the separately approved controlled publication. A hosted failure requires preserving the commit and stopping without a second corrective commit. All unresolved Late/compatibility choices remain PROPOSED. Current task selection supersedes older no-next-task pointers, not their historical record.
+
+## Preserved earlier handoffs and validation
+
+The bodies below retain their original text and dates; the current CI-01 entry above controls task selection and publication status.
+
+
 ## Current modernization status — DOC-GOV-01 finalization milestone (2026-10-14)
 
 The approved [modernization roadmap](../docs/superpowers/plans/2026-10-14-unified-modernization-roadmap.md) is the sequencing baseline, not blanket task authorization. [Authority index](../docs/INDEX.md) and [supersession register](../docs/history/SUPERSESSION_REGISTER.md) separate MVP/UI/UX numbering and preserved history.

@@ -60,4 +60,5 @@ jobs:
           working-directory: apps/api
       - run: cp apps/api/.env.example apps/api/.env && php apps/api/artisan key:generate --force
       # tests/bootstrap.php provisions the isolated role/database; feature tests migrate it.
-      - run: php apps/api/artisan test
+      - run: php artisan test
+        working-directory: apps/api
