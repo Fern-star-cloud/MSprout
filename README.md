@@ -2,7 +2,9 @@
 
 MinistrySprout is a secure, multi-church attendance PWA for children's ministry.
 
-Start with the [canonical system handoff](docs/qa/MSPROUT_SYSTEM_HANDOFF.md) for current runtime setup, development fixtures, qualification evidence, known limitations, and the exact next action.
+Start with the [canonical documentation index](docs/INDEX.md) for current authority, specifications and task selection, then read [current state](knowledge/CURRENT_STATE.md). The [system handoff](docs/qa/MSPROUT_SYSTEM_HANDOFF.md) preserves dated runtime/QA evidence; its historical checkpoint and next-action statements do not select current work.
+
+The approved modernization baseline is recorded in the [unified design specification](docs/superpowers/specs/2026-10-14-unified-modernization-design.md) and [modernization roadmap](docs/superpowers/plans/2026-10-14-unified-modernization-roadmap.md). Consult CURRENT_STATE and ROADMAP_STATUS through the documentation index for the latest selected task and publication permissions; roadmap approval does not authorize later tasks. The [supersession register](docs/history/SUPERSESSION_REGISTER.md) identifies historical sources; the 125-page master PDF is history only and Packs 06–12 are references. The displayed product identity is MSprout; internal MinistrySprout identifiers remain unchanged.
 
 ## Prerequisites
 

@@ -1,5 +1,24 @@
 # Roadmap Status
 
+## Current modernization status — DOC-GOV-01 finalization milestone (2026-10-14)
+
+The approved [modernization roadmap](../docs/superpowers/plans/2026-10-14-unified-modernization-roadmap.md) is the sequencing baseline, not blanket task authorization. [Authority index](../docs/INDEX.md) and [supersession register](../docs/history/SUPERSESSION_REGISTER.md) separate MVP/UI/UX numbering and preserved history.
+
+| Item | Status / evidence |
+|---|---|
+| UX-08 | Latest application checkpoint before DOC-GOV-01: 5e87610265afeae1557aa6abb561d55fcf0fa221. Accepted visual evidence preserved below; historical hosted API CI failure unresolved. |
+| Revised modernization master plan | APPROVED planning/sequencing baseline with recorded decision gates/exclusions. |
+| DOC-GOV-01 | Documentation scope complete; exact 20-file finalization separately approved. Commit identity: docs: finalize DOC-GOV-01 documentation authority and governance, parent UX-08 above. Resolve actual committed/pushed/hosted status through Git and .git/msprout-doc-gov-01-20261014/finalization/final.json. No application task advanced. |
+| CI-01, UX-F1/F2/F3, COMPAT-01, UX-09–15, ATT-LATE-01, QUAL-01 | NOT AUTHORIZED / NOT STARTED as modernization tasks. Underlying product features may already exist. |
+| Optional CI-02 | Separate proposal; not selected. |
+
+No next task is selected. Late counting/guest/bulk/color/compatibility choices remain open. See [DOC-GOV-01 review](../docs/qa/doc-gov-01-authority-governance-review.md) for exact inventory, accepted amendments, historical review hold and final checks. A local documentation pass does not establish hosted delivery GREEN.
+
+## Preserved historical task records
+
+All earlier bodies below retain their dated evidence, numbering and approval history; their stop/publication statements do not select new work.
+
+
 ## UX-08 — stakeholder-approved / qualified final task checkpoint (2026-10-14)
 
 All stakeholder visual findings are closed; the final component geometry, five responsive widths, colors, roster-first presentation and safe workflows are approved. [Accepted review](../docs/qa/ux-08-attendance-guests-visual-review.md). Earlier pending status below is historical.

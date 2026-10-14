@@ -1,3 +1,5 @@
+> **Authority update — 2026-10-14 (DOC-GOV-01):** Retained MVP product/architecture baseline. Established security, tenancy, privacy, data-integrity and supported-product requirements remain applicable. Superseded visual/branding instructions do not override the new modernization direction. Read the [current documentation index](../../INDEX.md), [modernization design](../specs/2026-10-14-unified-modernization-design.md), [modernization roadmap](../plans/2026-10-14-unified-modernization-roadmap.md) and [supersession register](../../history/SUPERSESSION_REGISTER.md). Use current task/status knowledge and explicit user permission for execution and publication authority. Original source body follows unchanged.
+
 # MinistrySprout — Product and Architecture Design
 
 **Status:** Approved  

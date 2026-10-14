@@ -1,5 +1,16 @@
 # Project Brain
 
+## Current terminology and authority — 2026-10-14
+
+The displayed identity is **MSprout**, with approved sprout/wordmark provenance; internal MinistrySprout identifiers remain unchanged. Use the [current index](../docs/INDEX.md), [modernization design](../docs/superpowers/specs/2026-10-14-unified-modernization-design.md) and [roadmap](../docs/superpowers/plans/2026-10-14-unified-modernization-roadmap.md) for visual/task direction. CURRENT_STATE and ROADMAP_STATUS hold the latest task/checkpoint/publication evidence; the MVP sources below retain unsuperseded architecture/security requirements.
+
+PWA/offline/synchronization capabilities already exist at UX-08; older future-tense descriptions below are historical. Fourth-state Late and N/A reporting are approved direction requiring selected implementation; detailed Late/compatibility choices remain PROPOSED. The [supersession register](../docs/history/SUPERSESSION_REGISTER.md) scopes replacements. DOC-GOV-01 establishes approved documentation/governance and future progress-indicator conventions; its separate publication authorization does not implement product behavior or select the next task.
+
+## Preserved original product record
+
+The body below is retained for history; its old display-name, future-tense and implementation-order pointers are not the current modernization handoff.
+
+
 ## Product
 
 MinistrySprout is a secure, multi-church children's-ministry attendance system. The browser application is intended to become an installable, responsive PWA that supports deliberately limited offline attendance and safe synchronization. The API and PostgreSQL database remain authoritative for acknowledged data.

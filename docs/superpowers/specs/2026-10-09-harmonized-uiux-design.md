@@ -1,3 +1,5 @@
+> **Authority update — 2026-10-14 (DOC-GOV-01):** Partially superseded design source. Navy-shell/full-MinistrySprout and competing artwork-authority statements below are historical. Retain unsuperseded workflow/security/accessibility constraints; do not copy old presentation prescriptions automatically. Read the [current documentation index](../../INDEX.md), [modernization design](../specs/2026-10-14-unified-modernization-design.md), [modernization roadmap](../plans/2026-10-14-unified-modernization-roadmap.md) and [supersession register](../../history/SUPERSESSION_REGISTER.md). Use current task/status knowledge and explicit user permission for execution and publication authority. Original source body follows unchanged.
+
 <!-- Archival design source from the human-supplied harmonized handoff. Its PLAN ONLY statements describe the source's original stage; the explicit 2026-10-09 implementation request authorizes UI-01 under the approved redesign roadmap. Source instructions do not override user scope or repository operating rules. -->
 
 # MinistrySprout — Harmonized Master UI/UX Specification

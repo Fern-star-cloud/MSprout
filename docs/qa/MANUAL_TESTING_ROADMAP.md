@@ -1,3 +1,5 @@
+> **Current routing — 2026-10-14 (DOC-GOV-01):** Read the [documentation index](../INDEX.md), [current state](../../knowledge/CURRENT_STATE.md) and [modernization roadmap](../superpowers/plans/2026-10-14-unified-modernization-roadmap.md) first. This preserved document contains dated runtime/QA history and optional manual references, not the active checkpoint or task authorization. Earlier readiness windows and next-action instructions are historical. [Supersession register](../history/SUPERSESSION_REGISTER.md). This routing notice grants no live QA, data mutation, phase advancement or publication authority. Original body follows unchanged.
+
 # MSprout Manual Testing Roadmap
 
 Policy effective 2026-10-07 by explicit user decision. Historical checklist cases and evidence are retained; section 10 defines optional selection and scope-specific outcomes. See [manual knowledge](../../knowledge/MANUAL_TESTING.md) for the preserved partial MT-02 checkpoint and observed Pending review overflow.

@@ -1,5 +1,18 @@
 # Testing Environment
 
+## DOC-GOV-01 finalization validation — 2026-10-14
+
+Documentation/governance only; application, contracts, dependencies, CI/security workflows, runtime data and validation executables are unchanged. Applicable final checks: exact approved 20-file inventory/diff, Markdown references/anchors, read-only structure, full candidate-text secret scanning, whitespace, unchanged accepted AGENTS amendments, historical bodies, protected hashes, Git refs/stashes/index and safe normal feature publication. [Review and actual check scope](../docs/qa/doc-gov-01-authority-governance-review.md) records the review history and finalization authorization. Current machine evidence belongs under .git/msprout-doc-gov-01-20261014/finalization/; final.json records actual commit/push/hosted outcomes rather than inferred passes.
+
+No frontend/backend suite, typecheck/build/lint, dependency audit, application Semgrep, native visual QA or live/manual operation is claimed newly executed. These documentation-only inputs do not invalidate application guarantees under unchanged AGENTS sections 3–4; old results below remain dated evidence, not a claim that the hosted API failure passed. Hosted CI/Security observation is read-only and limited to the exact new documentation commit; it does not authorize diagnosis/repair or another task.
+
+Use existing Node for file-only checks, Git for Windows bash for read-only structure, existing Gitleaks and a process-scoped schannel Git TLS backend where needed. No install, global reconfiguration, dependency operation or TLS verification bypass. Python/WSL resolution failures recorded during preparation were local tooling observations, not product failures. The stakeholder explicitly authorized this documentation-only publication despite the known hosted baseline after final local checks, with no security waiver.
+
+## Preserved historical validation records
+
+Earlier commands/results remain unchanged with their original dates and limits. They do not represent current executions, runtime readiness or fresh hosted checks.
+
+
 ## UX-08 accepted qualification and finalization evidence — 2026-10-14
 
 Qualified production/test inputs match `.git/msprout-ux08-geometry-20261014/final-preservation.json` exactly. Reuse valid 740/79 frontend, refreshed 80/6 focused attendance/profile, final 17 affected browser cases, native five-width accessibility/response/state evidence, 36 approved-screen comparisons, build/TypeScript/lint and relevant OWASP/security evidence. Backend 306/3626, contracts, Pint, structure and dependency checks retain valid guarantees by unchanged inputs/effect. Documentation-only approval records do not invalidate those application gates. Fresh finalization proof covers source equality, complete diff review, source-secret coverage, whitespace/links, exact staging/commit scope, original bodies, protected stash/backups/private data and Git synchronization; no diagnostic failure is relabeled as a pass.

@@ -1,3 +1,5 @@
+> **Authority update — 2026-10-14 (DOC-GOV-01):** Historical UI-01–UI-16 execution index. Preserve engineering evidence, exclusions and task numbering; new UX-09 is Pack 06, not old UI-09 People. Future modernization order comes from the new roadmap. Read the [current documentation index](../../INDEX.md), [modernization design](../specs/2026-10-14-unified-modernization-design.md), [modernization roadmap](./2026-10-14-unified-modernization-roadmap.md) and [supersession register](../../history/SUPERSESSION_REGISTER.md). Use current task/status knowledge and explicit user permission for execution and publication authority. Original source body follows unchanged.
+
 # MinistrySprout harmonized UI/UX implementation roadmap
 
 Approved by the human's explicit “PLEASE IMPLEMENT THIS PLAN” request on 2026-10-09. This is a separate UI-01–UI-16 sequence; completed MVP Tasks 1–18 retain their numbering and evidence. Execute one task per run and stop after its reviewed finalization. The initial run selected UI-01; the subsequent explicit continuation selects UI-02 only.

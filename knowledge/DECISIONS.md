@@ -1,5 +1,18 @@
 # Technical Decisions
 
+## Approved modernization baseline and DOC-GOV-01 finalization — 2026-10-14
+
+The stakeholder approved the revised Unified Modernization Master Plan as the planning/sequencing baseline and separately approved finalization of DOC-GOV-01 under section 14. [Canonical design](../docs/superpowers/specs/2026-10-14-unified-modernization-design.md), [roadmap](../docs/superpowers/plans/2026-10-14-unified-modernization-roadmap.md) and [supersession register](../docs/history/SUPERSESSION_REGISTER.md) record its boundaries.
+
+Approved direction: coherent light/navy/MSprout design, approved blue gradients as starting point, compact accessible interactions, separately selected UX-03–08 retrofits, Packs 06–12 as references and the 125-page PDF as history only. Late is a fourth state; no-finalized-record reporting displays N/A. Counting, guests, bulk Late, purple, feature negotiation, HTTP handling, restart and activation details remain PROPOSED, not durable implementation decisions. The explicit progress-indicator standard is approved documentation for future selected implementation tasks.
+
+Accepted governance amendments cover routing/approval labels, browser visual acceptance, pre-finalization qualification versus exact-SHA hosted evidence, and retained section 14/Git/security safeguards. Finalization permission covers only the reviewed 20-file documentation scope, durable status cleanup and one commit/normal feature push despite the acknowledged hosted API baseline failure. It does not waive local validation, declare CI green, authorize repair or select a later task. No merge, deployment, data change or historical move/deletion is authorized. Previous exact-PDF/mockup-fidelity authority is superseded for future modernization; branding provenance, compactness, text safety and security remain.
+
+## Preserved historical decisions
+
+Original records below remain unchanged. References to permanent artwork authority and historical task publication must be read through the supersession register.
+
+
 ## UX-04 final stakeholder-approved implementation decisions - 2026-10-13
 
 Explicit final visual acceptance covers Owner nine-item grouped People rail and five-item phone bar/persistent Sync; compact Teacher hierarchy/four-item phone bar, authorized More destinations and accessible branded drawer; Pack01 blue/navy/light identity, approved sprout/MSprout, density/proportions,50-code-point compact church presentation and complete names; two-line compact ministry/record-name labels with full accessible data and mobile/keyboard complete-name views. Normal-name pixels and44/48px targets remain. Preserve real permissions/state, all server authorization/contracts and encrypted offline/synchronization behavior. [Accepted review](../docs/qa/ux-04-shared-navigation-review.md) and [unchanged permanent artwork/density guidance plus approval](../docs/superpowers/specs/2026-10-13-stakeholder-visual-clarification.md). This authorizes UX-04-only reviewed GREEN commit/push and stop; no future-task implementation, competing theme, universal record limit, merge or deployment. Earlier pending decisions/status below are historical.

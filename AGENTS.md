@@ -2,6 +2,8 @@
 
 This file defines how coding agents operate in this repository. The approved design and implementation roadmap under `docs/superpowers/` define what the product and each roadmap task require. Do not duplicate or broaden those task specifications here.
 
+Use [the documentation index](docs/INDEX.md) to locate the current approved specification, roadmap and supersession register. The index routes authority; it does not grant task permissions. Draft operating-contract changes do not authorize their own staging, commit or push; explicit finalization holds and Section 14 apply.
+
 Correctness, security, privacy, tenant isolation, data integrity, and preservation of user work take priority over speed or usage savings.
 
 ## 1. Applicability and authority
@@ -16,6 +18,8 @@ Obey system/platform instructions and the user's current explicit scope and perm
 
 The active task prompt selects and may narrow the work, but it does not silently change approved product scope or security invariants. Tests are evidence of verified behavior; they do not override an explicitly approved newer requirement. When a legitimate requirement changes, update the implementation and its expectations rather than preserving a stale test or weakening a valid one.
 
+Approval of a planning or sequencing baseline is not authorization to implement its tasks or approval of choices explicitly labeled PROPOSED. Consult the [supersession register](docs/history/SUPERSESSION_REGISTER.md) for the exact subjects replaced by newer stakeholder decisions. Historical specifications, mockups, dated stop instructions and prior publication approvals do not independently select current work. Preserve their record and all unsuperseded security, architecture and data-integrity requirements.
+
 Resolve discrepancies using repository evidence, documented recency, and the hierarchy above. Update stale knowledge when the resolution is deterministic. Never invent project state or silently resolve a material conflict. An unresolved conflict affecting product scope, architecture, security, privacy, data integrity, destructive operations, or user-owned work is YELLOW and eventually requires user direction.
 
 ## 2. Start and task boundary
@@ -25,6 +29,7 @@ Before work:
 - Inspect the current branch, `HEAD`, tracking branch, ahead/behind state, `origin/main`, `git status`, staged changes, and relevant diffs. Fetch only when needed to verify remote state and a safe authenticated connection is available.
 - Compare the actual checkpoint with the prompt, `knowledge/CURRENT_STATE.md`, and `knowledge/ROADMAP_STATUS.md`. Investigate differences non-destructively; never discard unexplained work.
 - Read `knowledge/README.md` and `knowledge/CURRENT_STATE.md`, then use the index to read only task-relevant knowledge. Read the current roadmap task and the relevant approved design sections.
+- Use `docs/INDEX.md` to identify the current approved task/specification; distinguish its approved requirements from unresolved proposals and historical evidence. A documentation pointer is not permission to begin the next task.
 - Locate applicable nested `AGENTS.md` files, repository scripts, workflow gates, and task-specific instructions once during reconnaissance.
 
 Implement exactly one roadmap task per run unless the user explicitly defines a different scope. Verify the preceding task checkpoint before starting. Preserve every completed task. Limit changes to the selected task plus strictly necessary compatibility, correctness, or security corrections that directly block it.
@@ -193,6 +198,7 @@ GREEN requires all applicable conditions:
 - the selected task is fully implemented and the next task remains untouched;
 - focused and required repository-wide validation is green;
 - security gates are green;
+- required stakeholder visual acceptance is explicitly recorded after actual browser evidence for a UI redesign or retrofit; technical test passes alone do not satisfy that acceptance;
 - no BLOCKING or SHOULD FIX finding remains;
 - knowledge is synchronized with verified reality;
 - no unexpected/unrelated files or material ambiguity remains;
@@ -206,6 +212,8 @@ Classify all findings as BLOCKING, SHOULD FIX, or INFORMATIONAL/ACCEPTABLE and r
 Do not automatically restart the complete final review after each correction. Closing the remediation queue, completing invalidation-based validation, and reviewing corrected portions and direct interactions is sufficient unless remediation materially changes task scope, architecture, security boundaries, the data model or migrations, dependencies, authorization or tenant behavior, or a sufficiently broad part of the implementation that the original review is no longer reliable. In those cases, perform a second complete final review.
 
 Only GREEN permits automatic commit and push.
+
+GREEN qualifies the selected task for authorized finalization; it does not override an explicit hold or Section 14. Distinguish pre-finalization technical/visual qualification from Git synchronization and post-push hosted evidence. A required hosted result for a not-yet-published candidate is pending, never passed; an existing required hosted failure remains unresolved and must not be hidden by a local pass. If verifying a CI repair requires publishing a reviewed candidate while the baseline is failing, stop for a separate explicit instruction identifying that candidate and known failure; this paragraph grants no publication exception or gate waiver.
 
 ## 10. Knowledge maintenance
 
@@ -243,6 +251,8 @@ After the GREEN commit, a normal push is authorized only when the checked-out br
 
 Push normally only to that existing feature tracking branch. Then verify local and remote `HEAD` match, ahead/behind is `0/0`, the worktree is clean, `origin/main` is unchanged, and the next task remains untouched. Report completion and stop. Treat normal transport/TLS trouble through YELLOW resolution; escalate unexpected divergence or any destructive-history requirement.
 
+Report required hosted checks against the exact pushed SHA as pending, passed or failed. Claim GREEN delivery only after required hosted checks pass and Git synchronization is verified. A post-push failure prevents that claim: preserve the commit, diagnose within authorized scope, and obtain follow-up authorization if another task commit is required. Never amend completed history or automatically begin the next task. Read-only observation of the selected task's hosted checks does not authorize workflow edits, additional commits, scheduled automation, merge or deployment.
+
 ## 13. Absolute Git safety
 
 Unless the user gives a separate explicit instruction after the specific situation is known, never:
@@ -266,11 +276,15 @@ Material changes to `AGENTS.md`, source authority, security policy, validation r
 
 Therefore a governance-changing run must remain unstaged, uncommitted, and unpushed unless the user separately authorizes finalization after reviewing the known change. This exception overrides the ordinary GREEN automatic-finalization rule for the governance change itself.
 
+Authorization to prepare governance changes, or approval of a master plan containing them, is not that separate finalization instruction. Present the exact changed-file inventory, authority hierarchy, governance diff, applicable validation/review evidence and unresolved risks first. Proposed changes cannot enlarge their own authority or bypass a known failing gate.
+
 ## 15. Reporting
 
 Avoid narrating routine commands. During execution, interrupt the user only for a genuine unresolved blocker, unexplained unsafe repository state, or a material product/architecture/security decision requiring their input.
 
 At completion, report concisely: task/status, changed files and implementation summary, focused and full validation/security results, final-review result, knowledge updates, commit SHA/subject and push synchronization when finalized, confirmation the next task is untouched, and any unresolved risk. Stop after the selected task.
+
+Distinguish checks actually run from retained historical evidence, technical qualification from stakeholder approval, and committed/pushed work from an unstaged review candidate. State an explicit finalization hold and any pending/failed hosted results; do not describe a held governance task as finalized or GREEN delivered.
 
 ## 16. Autonomous Local Manual-Test Operator Mode
 

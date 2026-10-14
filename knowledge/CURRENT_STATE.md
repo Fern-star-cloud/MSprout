@@ -1,5 +1,23 @@
 # Current State
 
+## DOC-GOV-01 approved finalization handoff — 2026-10-14
+
+The stakeholder separately approved DOC-GOV-01 finalization under AGENTS.md section 14, including durable status cleanup and exactly one reviewed 20-file commit/normal feature push. Documentation scope is complete; resolve actual commit/push and hosted outcomes from the evidence below rather than the preserved review-hold statements.
+
+- Application parent/checkpoint: 5e87610265afeae1557aa6abb561d55fcf0fa221 (UX-08), feat/mvp-foundation, tracking origin/feat/mvp-foundation. The finalization commit subject is **docs: finalize DOC-GOV-01 documentation authority and governance**. Its exact SHA, parent and publication resolve through Git history and .git/msprout-doc-gov-01-20261014/finalization/final.json. An absent receipt is not proof of successful publication.
+- Local main d6c66694a8acc252815a088ada3ef8703340b038 and origin/live main 5dcbfebdd5f9d6c04b71b684f13c9639c4c2cd6f are preservation targets. Entry live feature matched UX-08; entry local tracking was 0/0 and staging empty.
+- Completed documentation scope: canonical index/spec/roadmap/register, durable current routing, narrow accepted AGENTS amendments, progress-indicator standard, reviewed source notices and preservation of original bodies. No application/UI/backend/contract/dependency/offline/workflow or data change.
+- Preserve all 11 stashes, protected stash 1e104f06fbe3091b54e3916f612668b93f0107b4, nine original blobs, ten backups, private environment/SQLite, local QA data, encrypted/browser profiles and prior evidence. No restore, removal, relocation or reclassification.
+- [Current index](../docs/INDEX.md), [task roadmap](../docs/superpowers/plans/2026-10-14-unified-modernization-roadmap.md), [design](../docs/superpowers/specs/2026-10-14-unified-modernization-design.md), [supersession](../docs/history/SUPERSESSION_REGISTER.md), [review/actual checks](../docs/qa/doc-gov-01-authority-governance-review.md).
+- Late fourth state and no-finalized-record N/A display are approved direction, not implemented here. Counting, guests, bulk, purple styling, compatibility/restart/activation remain PROPOSED. Progress indicators are specified for future selected tasks; no component was implemented.
+- Known hosted API CI failure at UX-08 remains unresolved; root cause is unverified. The stakeholder explicitly permits this documentation-only publication despite that baseline. This is not a gate waiver, hosted GREEN claim, CI-01 selection or repair authority. Report CI/Security against the exact finalization SHA; actual outcomes belong in the receipt and final task report.
+- **Next action: wait for explicit next-task authorization.** No CI-01, UX-F1, COMPAT-01, Late, Pack task, merge/deployment, historical move/deletion or application-data operation is authorized. No second task commit is authorized automatically.
+
+## Preserved historical handoffs
+
+The following bodies are retained verbatim. “No further redesign” and “exact artwork controls” describe earlier permissions; the approved modernization baseline permits separately authorized future retrofits.
+
+
 ## UX-08 stakeholder-approved final delivery checkpoint — 2026-10-14
 
 Explicit stakeholder authorization states: **“Stakeholder visual approval for UX-08 — Attendance & Temporary Guests is GRANTED.”** All UX-08 visual findings are closed. The accepted candidate includes 1440/1024 desktop, 768 tablet, 390/320 phone, approved MSprout branding/light surfaces/navy headings/blue primary actions, emerald #087754 Present, pale-amber Absent, softly rounded unified filters/actions, wider paired controls, divider-only rows, readable names and two-row controls at narrow widths, compact Add guest/Finalize with full accessible names, roster-first phones and all documented accessibility/security/responsive adaptations. Safe Start/Resume, guest and finalization workflows remain accepted. No further visual redesign is authorized without a newly established blocking issue.

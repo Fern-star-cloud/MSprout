@@ -1,3 +1,5 @@
+> **Authority update — 2026-10-14 (DOC-GOV-01):** Historical completed MVP Tasks 1–18 roadmap. Preserve task evidence and unsuperseded requirements; this sequence does not select future modernization work. Read the [current documentation index](../../INDEX.md), [modernization design](../specs/2026-10-14-unified-modernization-design.md), [modernization roadmap](./2026-10-14-unified-modernization-roadmap.md) and [supersession register](../../history/SUPERSESSION_REGISTER.md). Use current task/status knowledge and explicit user permission for execution and publication authority. Original source body follows unchanged.
+
 # MinistrySprout Implementation Roadmap
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (- [ ]) syntax for tracking.

@@ -1,3 +1,5 @@
+> **Current routing — 2026-10-14 (DOC-GOV-01):** Read the [documentation index](../INDEX.md), [current state](../../knowledge/CURRENT_STATE.md) and [modernization roadmap](../superpowers/plans/2026-10-14-unified-modernization-roadmap.md) first. This preserved document contains dated runtime/QA history and optional manual references, not the active checkpoint or task authorization. Earlier readiness windows and next-action instructions are historical. [Supersession register](../history/SUPERSESSION_REGISTER.md). This routing notice grants no live QA, data mutation, phase advancement or publication authority. Original body follows unchanged.
+
 # MSprout System Handoff
 
 ## Profile 1 synchronization recovery human PASS — 2026-10-08

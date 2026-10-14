@@ -1,5 +1,18 @@
 # MinistrySprout Knowledge Index
 
+## Current documentation routing — 2026-10-14
+
+Start with the [documentation index](../docs/INDEX.md), [CURRENT_STATE](CURRENT_STATE.md) and [ROADMAP_STATUS](ROADMAP_STATUS.md) for the latest selected task, checkpoint, publication evidence and permissions. The stakeholder approved the DOC-GOV-01 authority/design/roadmap/governance changes, including the progress-indicator correction, and separately authorized finalization of the exact reviewed 20-file scope. No later task is selected by that approval.
+
+The [modernization roadmap](../docs/superpowers/plans/2026-10-14-unified-modernization-roadmap.md) and [design specification](../docs/superpowers/specs/2026-10-14-unified-modernization-design.md) define the accepted planning baseline, not automatic execution permission. UX-08 at 5e87610265afeae1557aa6abb561d55fcf0fa221 remains the latest application checkpoint before this documentation milestone. The old PDF is history only and Packs 06–12 are references. The [supersession register](../docs/history/SUPERSESSION_REGISTER.md) scopes earlier exact-artwork and roadmap instructions. Late fourth-state direction is approved; counting, guest, bulk, color and compatibility details remain proposals.
+
+Use [ARCHITECTURE](ARCHITECTURE.md) for verified topology, [DECISIONS](DECISIONS.md) for durable approvals, [TESTING_ENVIRONMENT](TESTING_ENVIRONMENT.md) for actual checks, [MANUAL_TESTING](MANUAL_TESTING.md) for dated optional QA and [CODEBASE_MEMORY](CODEBASE_MEMORY.md) for advisory tooling. The [system handoff](../docs/qa/MSPROUT_SYSTEM_HANDOFF.md) retains runtime/QA history, not the current task pointer. Exact DOC-GOV-01 publication/hosted results resolve through Git and the finalization receipt identified in CURRENT_STATE; no hosted pass follows from a local documentation check.
+
+## Preserved historical entries
+
+All entries below retain their original bodies. Earlier “current,” YELLOW, stop, artwork-authority and publication statements apply to their dated scope, not the currently selected task.
+
+
 ## UX-08 accepted attendance and temporary guests — 2026-10-14
 
 Explicit stakeholder visual approval closes all UX-08 visual findings. [Accepted review and exact 13-path scope](../docs/qa/ux-08-attendance-guests-visual-review.md) records the final component geometry, native desktop/tablet/phone comparisons and preserved truthful/accessibility/security adaptations. CURRENT_STATE provides the delivery identity and preserved work; TESTING_ENVIRONMENT explains reused qualification and fresh finalization checks.
