@@ -4,7 +4,7 @@ import { bootstrap, deviceRecords, expectNoSeriousAccessibilityIssues, json, moc
 // Fresh isolated contexts, synthetic identities and intercepted API only.
 test.use({ serviceWorkers: 'block' })
 async function capture(page: import('@playwright/test').Page, state: string) {
-  for (const width of [390, 1440]) {
+  for (const width of [1440, 1024, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 900 })
     await page.screenshot({ path: test.info().outputPath(`${state}-${width}.png`), fullPage: true, scale: 'css' })
   }
@@ -52,6 +52,7 @@ test('filters, marking and finalization dialogs remain accessible at five widths
   for (const width of [320, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 })
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `width ${width}`).toBe(true)
+    await page.screenshot({ path: test.info().outputPath(`attendance-unmarked-${width}.png`), fullPage: true })
   }
   await expectNoSeriousAccessibilityIssues(page)
   await page.screenshot({ path: test.info().outputPath('attendance-desktop.png'), fullPage: true })
@@ -152,7 +153,7 @@ test('guest cancellation writes nothing; quota recovery preserves input and encr
   await context.setOffline(true)
   if (!await reopened.getByLabel('Local PIN', { exact: true }).count()) await reopened.getByRole('button', { name: 'Use profile 1' }).click()
   await reopened.getByLabel('Local PIN', { exact: true }).fill('184629')
-  await reopened.getByRole('button', { name: 'Use profile 1' }).click()
+  await reopened.getByRole('button', { name: 'Unlock Profile 1', exact: true }).click()
   await expect(reopened.getByRole('button', { name: 'Resume attendance' })).toBeEnabled()
   const unlocked = await deviceRecords(reopened)
   // Unlock may update authorization metadata; it must preserve the original key,
@@ -202,4 +203,70 @@ test('full long names, compact marking and keyboard dialogs reflow without chang
   await expect(page.getByRole('button', { name: 'Add temporary guest' })).toBeFocused()
   expect(await deviceRecords(page)).toEqual(before)
   await page.screenshot({ path: test.info().outputPath('long-names-enlarged.png'), fullPage: true, scale: 'css' })
+})
+
+for (const width of [320, 390]) test(`keyboard focus and outlines stay inside the usable attendance viewport at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 900 })
+  await addProfile(page)
+  await page.getByRole('button', { name: 'Mark Pilot Student A present' }).click()
+  await expect(page.getByRole('button', { name: 'Mark Pilot Student A present' })).toHaveAttribute('aria-pressed', 'true')
+  await page.getByRole('button', { name: 'Mark Pilot Student B absent' }).click()
+  await expect(page.getByRole('button', { name: 'Finalize attendance' })).toBeEnabled()
+  const saved = await deviceRecords(page)
+  const search = page.getByLabel('Search roster')
+  const input = await search.elementHandle()
+  const measurements: unknown[] = []
+  async function visible(control: import('@playwright/test').Locator, modal = false) {
+    await expect(control).toBeFocused()
+    await expect.poll(() => control.evaluate((element, modal) => {
+      const rect = element.getBoundingClientRect(), style = getComputedStyle(element)
+      const outline = parseFloat(style.outlineWidth) + Math.max(0, parseFloat(style.outlineOffset))
+      const viewport = window.visualViewport
+      const top = viewport?.offsetTop ?? 0, bottom = top + (viewport?.height ?? innerHeight)
+      const nav = document.querySelector('.phone-navigation')?.getBoundingClientRect()
+      const bar = document.querySelector('.attendance-finalize-bar')
+      const cover = bar && !bar.contains(element) ? bar.getBoundingClientRect() : null
+      return rect.top - outline >= top && rect.bottom + outline <= bottom
+        && (modal || !nav?.height || rect.bottom + outline <= nav.top || rect.top - outline >= nav.bottom)
+        && (modal || !cover?.height || rect.bottom + outline <= cover.top || rect.top - outline >= cover.bottom)
+    }, modal)).toBe(true)
+    measurements.push(await control.evaluate(element => ({ id: element.id, name: element.getAttribute('aria-label') || element.textContent, rect: element.getBoundingClientRect().toJSON(), scrollY, viewport: [innerWidth, innerHeight], outline: getComputedStyle(element).outline, offset: getComputedStyle(element).outlineOffset })))
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  }
+  for (const height of [900, 420]) {
+    await page.setViewportSize({ width, height })
+    // Reproduce the original scroll through the marking/actions before returning
+    // to search. Both actual keyboard directions retain full-outline assertions.
+    for (const name of ['Mark Pilot Student A present', 'Mark Pilot Student B absent', 'Add temporary guest', 'Finalize attendance']) {
+      const control = page.getByRole('button', { name })
+      await control.focus(); await visible(control)
+    }
+    await search.focus(); await visible(search)
+    await search.fill('Pilot')
+    await page.keyboard.press('Tab')
+    await visible(page.getByRole('button', { name: 'All', exact: true }))
+    await page.keyboard.press('Shift+Tab'); await visible(search)
+    expect(await input!.evaluate(element => element === document.activeElement)).toBe(true)
+    await expect(search).toHaveValue('Pilot')
+    await page.screenshot({ path: test.info().outputPath(`search-focus-${width}-${height}.png`) })
+    const guest = page.getByRole('button', { name: 'Add temporary guest' })
+    await guest.click()
+    await visible(page.getByLabel('Display name'), true)
+    await page.keyboard.press('Escape'); await visible(guest)
+    const finalize = page.getByRole('button', { name: 'Finalize attendance' })
+    await finalize.click()
+    await visible(page.getByRole('heading', { name: 'Finalize this session?' }), true)
+    await page.keyboard.press('Tab'); await visible(page.getByRole('button', { name: 'Keep editing' }), true)
+    await page.keyboard.press('Shift+Tab'); await visible(page.getByRole('button', { name: 'Finalize on this device' }), true)
+    await page.keyboard.press('Escape'); await visible(finalize)
+    expect(await deviceRecords(page)).toEqual(saved)
+    await expectNoSeriousAccessibilityIssues(page)
+  }
+  await page.addStyleTag({ content: ':root {font-size:200%}' })
+  await page.emulateMedia({ reducedMotion: 'reduce', forcedColors: 'active' })
+  await search.focus(); await visible(search)
+  await page.keyboard.press('Tab'); await page.keyboard.press('Shift+Tab'); await visible(search)
+  expect(await deviceRecords(page)).toEqual(saved)
+  await expectNoSeriousAccessibilityIssues(page)
+  await test.info().attach('focus-clearance-geometry', { body: JSON.stringify(measurements, null, 2), contentType: 'application/json' })
 })

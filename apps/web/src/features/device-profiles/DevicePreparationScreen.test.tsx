@@ -45,11 +45,13 @@ it('preserves leading zeros and shows Ready only after durable persistence, with
   const form = screen.getByRole('button', { name: 'Prepare encrypted profile' }).closest('form')!
   enter(); fireEvent.submit(form)
   await waitFor(() => expect(store.saveBootstrap).toHaveBeenCalledOnce())
+  expect(screen.getByRole('list', { name: 'Preparation stages' }).querySelector('[aria-current="step"]')?.textContent).toContain('Save securely')
   expect(store.createProfile.mock.calls[0][0]).toMatchObject({ actorId: '11', churchId: church, pin: '000123' })
   expect(screen.queryByRole('heading', { name: 'Ready for offline attendance' })).toBeNull()
   expect(store.createProfile).toHaveBeenCalledOnce()
   await act(async () => finish())
   await screen.findByRole('heading', { name: 'Ready for offline attendance' })
+  expect(screen.getByRole('list', { name: 'Preparation stages' }).querySelector('[aria-current="step"]')?.textContent).toContain('Ready')
   expect(attendance).not.toHaveBeenCalled()
   fireEvent.click(screen.getByRole('button', { name: 'Open Attendance' }))
   expect(attendance).toHaveBeenCalledOnce()

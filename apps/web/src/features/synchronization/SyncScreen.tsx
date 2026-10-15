@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { liveQuery } from 'dexie'
-import { Button, ErrorSummary, Field, StatusBanner } from '../../components/ui/Foundations'
+import { Button, ErrorSummary, Field, LoadingState, StatusBanner } from '../../components/ui/Foundations'
 import { HomeIcon } from '../../components/ui/HomeIcon'
 import { ProfilePinError, profileStore, type LocalProfileStore } from '../../offline/profile-store'
 import { offlineDatabase } from '../../offline/db'
@@ -52,6 +52,7 @@ export function SyncScreen({ store = profileStore, recovery = syncRecovery, stat
   const mounted = useRef(false), epoch = useRef(0), operating = useRef(false), unlocking = useRef(false)
   const connectionState = useRef(navigator.onLine)
   const continueButton = useRef<HTMLButtonElement>(null), focusAfterUnlock = useRef(false)
+  const screen = useRef<HTMLElement>(null)
   const target = useRef<ProfileRecord | undefined>(undefined)
   const profile = profiles.find(item => item.id === selected)
   useEffect(() => { target.current = profile }, [profile])
@@ -161,6 +162,59 @@ export function SyncScreen({ store = profileStore, recovery = syncRecovery, stat
     if (!busy && unlocked && focusAfterUnlock.current) { focusAfterUnlock.current = false; continueButton.current?.focus() }
   }, [busy, unlocked])
 
+  useEffect(() => {
+    const root = screen.current
+    if (!root) return
+    let frame = 0, pointerDown = false, pointerFocus = false
+    const reveal = () => {
+      cancelAnimationFrame(frame)
+      // Native WebKit reveals inputs after the first frame. Measure the settled
+      // visual viewport and actual navigation, rather than assuming its height.
+      frame = requestAnimationFrame(() => { frame = requestAnimationFrame(() => {
+        const control = document.activeElement
+        if (pointerDown || !(control instanceof HTMLElement) || !root.contains(control)) return
+        const rect = control.getBoundingClientRect()
+        if (!rect.width || !rect.height) return
+        const viewport = window.visualViewport, top = (viewport?.offsetTop ?? 0) + 8
+        let bottom = (viewport?.offsetTop ?? 0) + (viewport?.height ?? window.innerHeight) - 8
+        const nav = document.querySelector('.phone-navigation')?.getBoundingClientRect()
+        if (nav?.height && nav.left < rect.right && nav.right > rect.left && nav.bottom > top) bottom = Math.min(bottom, nav.top - 8)
+        const field = control.closest('.ui-field')?.getBoundingClientRect()
+        // Keep the label, hint and validation together when they fit. At extreme
+        // magnification keep the control reachable without trapping native scroll.
+        const area = field && field.height <= bottom - top ? field : rect
+        const delta = area.top < top ? area.top - top : area.bottom > bottom ? area.bottom - bottom : 0
+        if (delta) window.scrollBy({ top: delta, behavior: 'instant' })
+      }) })
+    }
+    const focus = () => { pointerFocus = pointerDown; reveal() }
+    const press = () => { pointerDown = true }
+    const release = () => { pointerDown = false; if (pointerFocus) { pointerFocus = false; reveal() } }
+    // Text/font reflow can change the navigation's row count after focus settles.
+    // Observe size, never scrolling: users must still be able to read tall context.
+    const observer = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(reveal)
+    observer?.observe(root)
+    const navigation = document.querySelector('.phone-navigation')
+    if (navigation) observer?.observe(navigation)
+    root.addEventListener('focusin', focus)
+    root.addEventListener('pointerdown', press)
+    window.addEventListener('pointerup', release)
+    window.addEventListener('pointercancel', release)
+    window.addEventListener('resize', reveal)
+    window.visualViewport?.addEventListener('resize', reveal)
+    reveal()
+    return () => {
+      cancelAnimationFrame(frame)
+      observer?.disconnect()
+      root.removeEventListener('focusin', focus)
+      root.removeEventListener('pointerdown', press)
+      window.removeEventListener('pointerup', release)
+      window.removeEventListener('pointercancel', release)
+      window.removeEventListener('resize', reveal)
+      window.visualViewport?.removeEventListener('resize', reveal)
+    }
+  }, [pinError])
+
   async function act(action: 'verify' | 'unlock' | 'sync') {
     if (!profile || !navigator.onLine || remaining || operating.current) return
     if (action === 'unlock' && !/^\d{6,12}$/.test(pin)) { setPinError('Enter the existing 6–12 digit PIN. Leading zeros are kept.'); return }
@@ -259,11 +313,11 @@ export function SyncScreen({ store = profileStore, recovery = syncRecovery, stat
     : visible.pending !== null && visible.pending > 0 ? 'Saved locally; these changes are waiting to upload. Locally finalized attendance is not yet server accepted.'
     : visible.pending === 0 && visible.downloads === 'incomplete' ? 'Your uploads are finished. Continue downloading changes before synchronization is complete.'
     : 'Zero queued uploads alone does not confirm that all downloads were applied.'
-  return <section className="sync-screen" aria-labelledby="sync-title">
+  return <section ref={screen} className="sync-screen" aria-labelledby="sync-title">
     <div className="sync-heading"><h1 id="sync-title">Sync &amp; device</h1><p>Saved locally is separate from synchronized.</p></div>
     {!loaded ? <StatusBanner live>Checking existing device profiles…</StatusBanner> : !profiles.length ? <div className="sync-panel"><h2>No device profile available</h2><p>Prepare an encrypted profile after verifying your church access.</p><a href="/account/prepare">Prepare this device</a></div> : <div className="sync-panel">
       <div className="sync-profile-row"><label className="sync-profile-choice"><span className="sr-only">Existing device profile</span><select value={selected} disabled={busy} onChange={event => select(event.target.value)}>{profiles.map((item, index) => <option value={item.id} key={item.id}>Profile {index + 1}</option>)}</select></label><section className="sync-unlock-state"><h3 className="sr-only">Profile unlock</h3><p>{unlocked ? 'Unlocked on this device — authorization checked separately' : 'Locked — encrypted work retained'}</p></section></div>
-      <div className={`sync-summary sync-tone-${tone}`} role="status" aria-live="polite" aria-atomic="true"><SyncIcon kind={complete ? 'check' : interrupted ? 'warning' : transferring ? 'sync' : !unlocked ? 'lock' : 'clock'} /><div><h2>{headline}</h2><p>{description}</p></div></div>
+      <div className={`sync-summary sync-tone-${tone}`} role={busy ? undefined : 'status'} aria-live={busy ? undefined : 'polite'} aria-atomic="true">{!busy && <SyncIcon kind={complete ? 'check' : interrupted ? 'warning' : !unlocked ? 'lock' : 'clock'} />}<div><h2>{headline}</h2>{busy && <LoadingState label={message || headline} />}<p>{description}</p></div></div>
       <div className="sync-stages" role="region" aria-label="Transfers">
         <section className={`sync-stage sync-tone-${visible.pending === 0 ? 'success' : 'info'}`}><SyncIcon kind={visible.pending === 0 ? 'check' : transferring ? 'sync' : 'upload'} /><div><h3>Uploads</h3><p>{visible.pending === null ? 'Upload count unavailable' : `${visible.pending} pending uploads`}</p>{summary && <p>{summary.acknowledged} server accepted in this completed attempt</p>}{transferring && <p>{visible.pending === null ? 'Upload progress unknown' : visible.pending > 0 ? 'Sending saved changes or awaiting authorization / receipts…' : 'No queued uploads; downloads still require confirmation.'}</p>}</div></section>
         <section className={`sync-stage sync-tone-${transferring ? 'info' : visible.downloads === 'complete' ? 'success' : visible.downloads === 'incomplete' ? 'warning' : 'info'}`}><SyncIcon kind={transferring ? 'sync' : visible.downloads === 'complete' ? 'check' : visible.downloads === 'incomplete' ? 'clock' : 'download'} /><div><h3>Downloads</h3><p>{transferring ? 'In progress or awaiting authorization — not complete' : visible.downloads === 'incomplete' ? 'Incomplete — continue from the applied cursor' : visible.downloads === 'complete' ? 'All download pages applied at last completed sync' : 'Completion not verified'}</p></div></section>
@@ -281,7 +335,7 @@ export function SyncScreen({ store = profileStore, recovery = syncRecovery, stat
       <div className="sync-access-row"><section><h3 className="sr-only">Church-account session</h3><p>{session === 'verified' ? 'Matching account verified' : session === 'checking' ? 'Checking account access…' : session === 'offline' ? 'Account access not checked while offline' : 'Account verification required'}</p></section><section className="sr-only"><h3>Connection</h3><p>{online ? 'Online — server access checked separately' : 'Offline'}</p></section><div className="sync-tools"><Button variant="secondary" disabled={!online || busy || remaining > 0} onClick={() => void act('verify')}>Verify account access</Button><Button variant="secondary" disabled={!unlocked || busy || (session !== 'verified' && session !== 'offline')} onClick={() => void checkStatus()}>Check device status</Button></div></div>
       <section className={`sync-review${needsReview ? ' sync-tone-warning' : ''}`} aria-labelledby="sync-review-title"><HomeIcon id="info" /><div><h3 id="sync-review-title">Unresolved review</h3><p>{visibleReview === null ? 'Server review status unknown' : visibleReview ? 'Server work needs Owner review' : 'No open server conflict reported at last check'}</p><p>{visible.quarantined === null ? 'Local review count unavailable' : `${visible.quarantined} quarantined ${visible.quarantined === 1 ? 'item' : 'items'} retained on this device`}</p><p>{visible.reviews === null ? 'Downloaded review count unavailable' : `${visible.reviews} downloaded ${visible.reviews === 1 ? 'session needs' : 'sessions need'} review`}</p>{needsReview && <p>Transfer does not resolve review. Retained local items are not automatically cleared by a server decision.</p>}{unlocked && session === 'verified' && needsReview && <a href={profile?.churchId ? `/account/conflicts?church=${encodeURIComponent(profile.churchId)}` : '/account/conflicts'}>Open Review</a>}</div></section>
     </div>}
-    {error && <ErrorSummary message={error} />}<div className="sync-support">{message && <StatusBanner live>{message}</StatusBanner>}
+    {error && <ErrorSummary message={error} />}<div className="sync-support">{message && !busy && <StatusBanner live>{message}</StatusBanner>}
     <details className="sync-guidance"><summary><HomeIcon id="info" /><span>Recovery and preservation guidance</span></summary><div><p>Viewing Sync and checking device status do not upload, download or create attendance.</p><p>When a response is lost, server acceptance is uncertain until the existing events are reconciled. Interrupted downloads resume from the last applied page.</p><p>Keep this profile and browser storage. Do not clear site data, remove and recreate this profile, or reset the PIN to recover synchronization. Interrupted retries retain existing events, receipts, applied cursors and quarantined work.</p><p>An expired local authorization requires verified online access and the existing PIN before continuing. Local PIN unlock does not renew church authorization. No profile switch or logout is needed for direct unlock. Church sign-in cannot decrypt a forgotten PIN; ask the Owner for account-access help.</p><a href={accountEntry('/account/login', '/account/sync')}>Check Account / sign in online</a><a href="/profiles">Manage device profiles</a></div></details>
     </div>
   </section>

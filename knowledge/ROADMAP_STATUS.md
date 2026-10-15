@@ -1,5 +1,34 @@
 # Roadmap Status
 
+## UX-F3 accepted milestone and task stop — 2026-10-16
+
+**Implementation, technical qualification and stakeholder visual acceptance COMPLETE**, including both F3-FINAL-01/F3-FINAL-02; exact17-path controlled finalization separately authorized. Task identity: **feat: unify preparation sync and attendance UX-F3**, parent UX-F2 c09e40f4ec5ec08cf63eb0c509ee17f1d5b17061. [Accepted review, inventory, preserved timing failures and evidence](../docs/qa/ux-f3-device-workflows-review.md). Git and the publication-20261016 receipt resolve the exact commit/push/hosted results; GREEN delivery requires synchronized Git and successful Web/API/Security checks. Earlier holds are preserved history, not current permission limits for this approved candidate.
+
+**INFORMATIONAL / possible UX-15 item:** two-row fixed phone navigation at390×420px/200% text consumes about169.78px; consider accessible density/usable-height refinement only in a separately selected UX-15 scope. Current Sync geometry/manual scrolling and final visuals are accepted; no new UX-F3 redesign or shared-navigation work. No next task is selected. All unresolved Late/compatibility decisions remain PROPOSED. Stop after UX-F3; no COMPAT-01, ATT-LATE-01, packs, CI-02, other task, merge or deployment.
+
+
+## UX-F3 F3-FINAL-02 qualification; publication hold — 2026-10-16
+
+**Sync PIN correction implemented and technically qualified; unstaged review candidate.** F3-FINAL-01 is stakeholder-accepted and retained; F3-FINAL-02 is resolved locally with zero BLOCKING/SHOULD FIX findings. [Current evidence, exact diff and17-path inventory](../docs/qa/ux-f3-device-workflows-review.md):37 Sync tests,30 fresh Sync/workflow Chrome/native WebKit cases plus12 retained Attendance cases, original direct/keyboard4/4 each and2 matched visual cases; current types/lint/build/security and preservation checks. No source outside Sync presentation/tests changes in this correction. Predecessor HEAD unchanged; no stage/commit/push. Targeted visual review and separate finalization authorization remain required; hosted candidate checks pending. No compatibility, Late, packs or other task. Unresolved decisions remain PROPOSED; earlier statuses below are preserved history.
+
+
+## UX-F3 targeted F3-FINAL-01 correction — 2026-10-15
+
+**Attendance correction implemented/qualified; unstaged stakeholder review candidate.** [Evidence and exact17-path inventory](../docs/qa/ux-f3-device-workflows-review.md):16 affected Chrome/WebKit cases,46 Attendance tests and current type/lint/build/scoped security pass; layouts remain approved. Original full probes now fail later in Sync, not Attendance. **One separate SHOULD FIX F3-FINAL-02** (Sync PIN hidden by phone nav at short WebKit viewports) reproduces on UX-F2 and candidate; no repair or scope expansion occurs. No stage/commit/push; predecessor HEAD unchanged. Stop for review/authorization; no compatibility, Late, packs or other task. All unresolved Late/compatibility decisions stay PROPOSED. Earlier findings/statuses are preserved history.
+
+
+## UX-F3 finalization halted — 2026-10-15
+
+**Visual approval granted; publication NOT completed.** A fresh required native WebKit320/390 Attendance search focus-clearance failure is SHOULD FIX F3-FINAL-01. [Evidence and proposed narrow correction](../docs/qa/ux-f3-device-workflows-review.md). Current instruction requires stopping on a material issue and prohibits additional functional edits during finalization; no repair, staging, commit or push occurs. HEAD remains UX-F2 c09e40f4ec5ec08cf63eb0c509ee17f1d5b17061. Earlier zero-findings/visual-pending entries are historical. No later task is selected; all unresolved Late/compatibility decisions remain PROPOSED.
+
+
+## UX-F3 selected — implementation and technical qualification complete; visual hold — 2026-10-15
+
+**UX-F3 only: VISUAL APPROVAL PENDING / NOT FINALIZED.** The stakeholder explicitly selected it after GREEN UX-F2 c09e40f4ec5ec08cf63eb0c509ee17f1d5b17061. [Review, exact17 paths and evidence](../docs/qa/ux-f3-device-workflows-review.md) cover bounded Preparation/Sync/Attendance presentation, truthful indicators, preserved three-state/domain/security behavior,273 visual pairs, frontend744/79, API306/3,626 assertions and62 distinct browser outcomes including real PWA8. Final accessibility remediation is qualified; zero BLOCKING/SHOULD FIX findings remain. No staging, commit or push is authorized. Current selected task supersedes dated stop/status statements below without altering their historical record.
+
+UX-F2 remains the published GREEN predecessor. COMPAT-01, ATT-LATE-01, Packs06–12, CI-02 and every other later task remain unselected and untouched. Proposed Late counting/guest/bulk/color and protocol/restart details remain PROPOSED. Stop for stakeholder visual approval and separate UX-F3 finalization authorization; no merge/deployment.
+
+
 ## UX-F2 accepted finalization milestone — 2026-10-15
 
 **Implementation, technical qualification and stakeholder visual approval complete; exact 22-path finalization explicitly authorized.** Task commit identity: **feat: unify entry home navigation and profiles UX-F2**, parent UX-F1 `c0e4a8f967b92e4028b9ea475760b06fdff1a3c0`, existing feature branch/tracking remote. Actual publication and exact-SHA hosted qualification resolve through CURRENT_STATE, Git and the finalization receipt; GREEN delivery is conditional on verified synchronization and passed required hosted checks. [Accepted review/inventory](../docs/qa/ux-f2-entry-shell-profiles-review.md). Earlier pending/hold entries are historical. UX-F3 and every later task remain NOT AUTHORIZED / NOT STARTED; stop after UX-F2.

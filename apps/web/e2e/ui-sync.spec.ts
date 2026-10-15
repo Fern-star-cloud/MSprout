@@ -1,12 +1,110 @@
-import { expect, test, type Page, type BrowserContext } from '@playwright/test'
+import { expect, test, type Page, type BrowserContext, type Locator } from '@playwright/test'
 import { bootstrap, churchId, ministryId, json, mockCsrf, prepareProfile, addProfile, outboxCount, expectNoSeriousAccessibilityIssues } from './support'
 
 // This synthetic API fixture must remain intercepted; service-worker fetches can
 // bypass Playwright routes in WebKit. Offline/SW behavior has its own real-PWA tests.
 test.use({ serviceWorkers: 'block' })
 
+for (const width of [320, 390]) test(`Sync PIN and recovery focus clear phone navigation at ${width}px`, async ({ page, context }) => {
+  await setup(context)
+  let transfers = 0
+  await context.route('**/api/sync/**', route => { transfers++; return json(route, {}, 503) })
+  await page.setViewportSize({ width, height: 900 })
+  await addSavedAttendance(page)
+  const original = await records(page)
+  await page.goto('/account/sync')
+  await expect(page.getByText('Matching account verified')).toBeVisible()
+  const pin = page.getByLabel('Existing local PIN', { exact: true })
+  const unlock = page.getByRole('button', { name: 'Unlock existing profile', exact: true })
+  async function visible(control: Locator, field = false) {
+    await expect(control).toBeFocused()
+    // Sample after native focus and the screen's scheduled reveal, not a transient
+    // pre-scroll position that happens to satisfy the bounds for one frame.
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))))
+    try { await expect.poll(() => control.evaluate((element, field) => {
+      const rect = element.getBoundingClientRect(), css = getComputedStyle(element)
+      const outline = parseFloat(css.outlineWidth) + Math.max(0, parseFloat(css.outlineOffset))
+      const viewport = visualViewport, top = viewport?.offsetTop ?? 0
+      const nav = document.querySelector('.phone-navigation')?.getBoundingClientRect()
+      const bottom = Math.min(top + (viewport?.height ?? innerHeight), nav?.height ? nav.top : Infinity)
+      const group = field ? element.closest('.ui-field')!.getBoundingClientRect() : rect
+      return rect.top - outline >= top && rect.bottom + outline <= bottom && group.top >= top && group.bottom <= bottom
+    }, field)).toBe(true) } catch (error) {
+      await test.info().attach('failed-Sync-clearance', { body: JSON.stringify(await control.evaluate(element => ({ rect: element.getBoundingClientRect().toJSON(), field: element.closest('.ui-field')?.getBoundingClientRect().toJSON(), nav: document.querySelector('.phone-navigation')?.getBoundingClientRect().toJSON(), outline: getComputedStyle(element).outline, offset: getComputedStyle(element).outlineOffset, visual: { top: visualViewport?.offsetTop, height: visualViewport?.height } }))), contentType: 'application/json' })
+      await page.screenshot({ path: test.info().outputPath('failed-clearance.png') })
+      throw error
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  }
+  for (const height of [420, 900]) {
+    await page.setViewportSize({ width, height })
+    await pin.focus(); await visible(pin, true)
+    await expect(pin).toHaveAttribute('type', 'password')
+    await expect(pin).toHaveAttribute('pattern', '[0-9]{6,12}')
+    await page.screenshot({ path: test.info().outputPath(`pin-${width}-${height}.png`) })
+    await page.keyboard.press('Tab'); await visible(unlock)
+    await page.keyboard.press('Shift+Tab'); await visible(pin, true)
+  }
+  await page.setViewportSize({ width, height: 420 })
+  await pin.fill('999999'); await unlock.click()
+  await expect(pin).toHaveAttribute('aria-invalid', 'true')
+  await expect(page.getByText('The existing local PIN is incorrect. Encrypted work is unchanged.')).toBeVisible()
+  await pin.focus(); await visible(pin, true)
+  await page.screenshot({ path: test.info().outputPath(`pin-error-${width}-420.png`) })
+  await expectNoSeriousAccessibilityIssues(page)
+  // A wrong PIN may update only the existing profile's retry metadata.
+  const failed = await records(page)
+  expect({ ...failed, profiles: original.profiles }).toEqual(original)
+  expect(failed.profiles).toEqual(original.profiles.map(profile => ({ ...profile, failedAttempts: Number(profile.failedAttempts) + 1, retryAfter: expect.any(String) })))
+  expect(failed.profiles[0].wrappedDataKey).toEqual(original.profiles[0].wrappedDataKey)
+  await expect(unlock).toBeEnabled()
+  await pin.fill('184629'); await unlock.click()
+  const continuation = page.getByRole('button', { name: 'Continue synchronization', exact: true })
+  await expect(continuation).toBeEnabled(); await visible(continuation)
+  await page.keyboard.press('Tab'); await visible(page.getByRole('button', { name: 'Lock profile', exact: true }))
+  await page.keyboard.press('Shift+Tab'); await visible(continuation)
+  await page.getByRole('button', { name: 'Lock profile', exact: true }).click()
+  await pin.focus(); await visible(pin, true)
+  await page.keyboard.press('Tab'); await visible(unlock)
+  await page.emulateMedia({ reducedMotion: 'reduce', forcedColors: 'active' })
+  await page.addStyleTag({ content: ':root {font-size:200%}' })
+  await page.keyboard.press('Shift+Tab')
+  await test.info().attach('enlarged-PIN-geometry', { body: JSON.stringify(await pin.evaluate(element => ({ input: element.getBoundingClientRect().toJSON(), field: element.closest('.ui-field')!.getBoundingClientRect().toJSON(), nav: document.querySelector('.phone-navigation')!.getBoundingClientRect().toJSON() }))), contentType: 'application/json' })
+  // At 200% text the 320px field group is taller than the space above navigation.
+  // Keep the complete focused control visible and prove its context is scrollable.
+  await visible(pin)
+  for (const description of [page.locator('label[for="sync-existing-pin"]'), page.locator('#sync-existing-pin-hint')]) {
+    await description.evaluate(element => window.scrollBy({ top: element.getBoundingClientRect().top - (visualViewport?.offsetTop ?? 0) - 8, behavior: 'instant' }))
+    await expect.poll(() => description.evaluate(element => {
+      const rect = element.getBoundingClientRect(), viewport = visualViewport
+      return rect.top >= (viewport?.offsetTop ?? 0) && rect.bottom <= Math.min((viewport?.offsetTop ?? 0) + (viewport?.height ?? innerHeight), document.querySelector('.phone-navigation')!.getBoundingClientRect().top)
+    })).toBe(true)
+  }
+  await page.keyboard.press('Tab'); await visible(unlock)
+  await page.keyboard.press('Shift+Tab'); await visible(pin)
+  await pin.fill('999999'); await unlock.click()
+  await expect(pin).toHaveAttribute('aria-invalid', 'true')
+  await pin.focus(); await visible(pin)
+  const feedback = page.locator('#sync-existing-pin-error')
+  await feedback.evaluate(element => window.scrollBy({ top: element.getBoundingClientRect().top - (visualViewport?.offsetTop ?? 0) - 8, behavior: 'instant' }))
+  await expect.poll(() => feedback.evaluate(element => {
+    const rect = element.getBoundingClientRect(), viewport = visualViewport
+    return rect.top >= (viewport?.offsetTop ?? 0) && rect.bottom <= Math.min((viewport?.offsetTop ?? 0) + (viewport?.height ?? innerHeight), document.querySelector('.phone-navigation')!.getBoundingClientRect().top)
+  })).toBe(true)
+  await page.screenshot({ path: test.info().outputPath(`pin-enlarged-error-${width}-420.png`) })
+  await expect(unlock).toBeEnabled()
+  await pin.fill('184629'); await unlock.click()
+  await expect(continuation).toBeEnabled(); await visible(continuation)
+  await page.getByRole('button', { name: 'Lock profile', exact: true }).click()
+  await expectNoSeriousAccessibilityIssues(page)
+  const final = await records(page)
+  expect(final).toEqual(original)
+  expect(final.profiles[0].wrappedDataKey).toEqual(original.profiles[0].wrappedDataKey)
+  expect(transfers).toBe(0)
+})
+
 async function capture(page: Page, state: string, widths = [390, 768, 1440, 1548]) {
-  for (const width of widths) {
+  for (const width of [...new Set([1440, 1024, 768, 390, 320, ...widths])]) {
     await page.setViewportSize({ width, height: width === 1548 ? 1016 : 900 })
     await page.evaluate(() => scrollTo(0, 0))
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${state} at ${width}`).toBe(true)

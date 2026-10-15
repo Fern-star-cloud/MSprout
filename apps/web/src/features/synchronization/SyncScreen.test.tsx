@@ -33,6 +33,54 @@ beforeEach(() => {
 })
 afterEach(() => { cleanup(); vi.clearAllMocks() })
 
+it('reveals the PIN context above actual navigation after focus and visual viewport changes without unlocking', async () => {
+  unlocked = false
+  const f = fixture(), viewport = new EventTarget()
+  Object.assign(viewport, { offsetTop: 20, height: 400 })
+  const oldViewport = Object.getOwnPropertyDescriptor(window, 'visualViewport')
+  Object.defineProperty(window, 'visualViewport', { configurable: true, value: viewport })
+  let resized!: ResizeObserverCallback
+  const observe = vi.fn(), disconnect = vi.fn()
+  vi.stubGlobal('ResizeObserver', class {
+    constructor(callback: ResizeObserverCallback) { resized = callback }
+    observe = observe
+    disconnect = disconnect
+  })
+  const scroll = vi.spyOn(window, 'scrollBy').mockImplementation(() => {})
+  const nav = document.createElement('nav'); nav.className = 'phone-navigation'
+  nav.getBoundingClientRect = () => new DOMRect(0, 355, 320, 65)
+  document.body.append(nav)
+  try {
+    render(<SyncScreen {...f} />)
+    const pin = await screen.findByLabelText('Existing local PIN')
+    pin.getBoundingClientRect = () => new DOMRect(33, 385, 254, 48)
+    pin.closest('.ui-field')!.getBoundingClientRect = () => new DOMRect(33, 306, 254, 127)
+    fireEvent.focusIn(pin); pin.focus()
+    await waitFor(() => expect(scroll).toHaveBeenCalledWith({ top: 86, behavior: 'instant' }))
+    scroll.mockClear()
+    pin.getBoundingClientRect = () => new DOMRect(33, 25, 254, 48)
+    pin.closest('.ui-field')!.getBoundingClientRect = () => new DOMRect(33, 4, 254, 127)
+    act(() => { viewport.dispatchEvent(new Event('resize')) })
+    await waitFor(() => expect(scroll).toHaveBeenCalledWith({ top: -24, behavior: 'instant' }))
+    scroll.mockClear()
+    nav.getBoundingClientRect = () => new DOMRect(0, 250, 320, 170)
+    pin.getBoundingClientRect = () => new DOMRect(33, 385, 254, 48)
+    pin.closest('.ui-field')!.getBoundingClientRect = () => new DOMRect(33, 306, 254, 127)
+    act(() => { resized([], {} as ResizeObserver) })
+    await waitFor(() => expect(scroll).toHaveBeenCalledWith({ top: 191, behavior: 'instant' }))
+    expect(observe).toHaveBeenCalledWith(nav)
+    expect(document.activeElement).toBe(pin)
+    expect(pin.getAttribute('type')).toBe('password')
+    expect(f.store.unlockProfile).not.toHaveBeenCalled()
+    expect(f.recovery.continue).not.toHaveBeenCalled()
+  } finally {
+    cleanup(); nav.remove(); scroll.mockRestore(); vi.unstubAllGlobals()
+    expect(disconnect).toHaveBeenCalled()
+    if (oldViewport) Object.defineProperty(window, 'visualViewport', oldViewport)
+    else Reflect.deleteProperty(window, 'visualViewport')
+  }
+})
+
 it('prioritizes the existing locked profile and keeps unknown counts distinct from zero', async () => {
   unlocked = false; const f = fixture(); render(<SyncScreen {...f} />)
   await screen.findByRole('heading', { name: 'Profile locked' })
@@ -77,6 +125,9 @@ it('does not reuse completed download styling during a new transfer attempt', as
   await screen.findByRole('heading', { name: 'Synchronization complete' })
   fireEvent.click(screen.getByRole('button', { name: 'Continue synchronization' }))
   await waitFor(() => expect(f.recovery.continue).toHaveBeenCalledOnce())
+  expect(screen.getByRole('status', { name: 'Synchronization in progress. Uploads and downloads are separate; completion is not yet confirmed.' })).toBeTruthy()
+  expect(screen.getByRole('status', { name: 'Synchronization in progress. Uploads and downloads are separate; completion is not yet confirmed.' }).closest('[aria-busy="true"]')).toBeNull()
+  expect(screen.queryByRole('progressbar')).toBeNull()
   expect(screen.getByRole('heading', { name: 'Downloads' }).closest('section')?.classList.contains('sync-tone-success')).toBe(false)
   await act(async () => finish())
 })

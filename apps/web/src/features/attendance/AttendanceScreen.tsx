@@ -347,18 +347,21 @@ export function AttendanceScreen({
     const target = event.target, root = event.currentTarget
     // Never move a pointer target between press and release, which can cancel its click.
     if (pointerFocus.current || !target.closest('.attendance-layout')) return
-    // Native focus scrolling does not account for the sticky actions or navigation.
-    // Inspect after the browser's focus step; scrolling changes no attendance state.
-    queueMicrotask(() => {
-      if (!target.isConnected || document.activeElement !== target) return
+    // WebKit can finish native input-focus scrolling after the first frame.
+    // Check the settled viewport as well as overlays, leaving the outline visible.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (pointerFocus.current || !target.isConnected || document.activeElement !== target) return
       const rect = target.getBoundingClientRect()
+      if (!rect.width || !rect.height) return
+      const viewport = window.visualViewport
+      const top = viewport?.offsetTop ?? 0, bottom = top + (viewport?.height ?? window.innerHeight)
       const overlays = [root.querySelector('.attendance-finalize-bar'), document.querySelector('.phone-navigation')]
-      if (overlays.some(overlay => {
+      if (rect.top < top + 8 || rect.bottom > bottom - 8 || overlays.some(overlay => {
         if (!overlay) return false
         const cover = overlay.getBoundingClientRect()
-        return cover.height > 0 && cover.left < rect.right && cover.right > rect.left && cover.top < rect.bottom && cover.bottom > rect.top
-      })) target.scrollIntoView({ block: 'start', inline: 'nearest' })
-    })
+        return !overlay.contains(target) && cover.height > 0 && cover.left < rect.right && cover.right > rect.left && cover.top < rect.bottom + 8 && cover.bottom > rect.top - 8
+      })) target.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' })
+    }))
   }
   async function confirm() {
     if (!draft || !editable || draft.entries.some(entry => entry.state === 'unmarked') || operating.current) return
@@ -399,9 +402,9 @@ export function AttendanceScreen({
           <div className="attendance-roster-tools"><div className="attendance-search"><label className="sr-only" htmlFor="attendance-search">Search roster</label><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="10" cy="10" r="6" /><path d="m15 15 6 6" /></svg><input id="attendance-search" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search by display name" /></div>
           <div className="attendance-filters" role="group" aria-label="Attendance status filters">{(['all', 'present', 'absent', 'unmarked'] as const).map(value => <Button key={value} variant="secondary" aria-pressed={filter === value} onClick={() => setFilter(value)}>{value[0].toUpperCase() + value.slice(1)}</Button>)}</div></div>
           <ul className="attendance-roster" aria-label="Attendance entries">
-            {visibleEntries.map(entry => <li key={entry.studentId}><img src={avatarForGender(entry.gender)} alt={`${entry.displayName} avatar`} /><div className="attendance-entry-name"><strong>{entry.displayName}</strong><StatusBadge tone={entry.state === 'unmarked' ? 'warning' : 'neutral'}>{entry.state[0].toUpperCase() + entry.state.slice(1)}</StatusBadge></div><div className="attendance-state-controls" role="group" aria-label={`Attendance for ${entry.displayName}`}>
-              <button type="button" className={entry.state === 'present' ? 'is-selected' : 'secondary'} aria-pressed={entry.state === 'present'} aria-label={`Mark ${entry.displayName} present`} disabled={busy || !editable} onClick={() => void save(() => repository.markStudent(profile.id, draft.id, entry.studentId, 'present'))}><span aria-hidden="true">✓ </span>Present</button>
-              <button type="button" className={entry.state === 'absent' ? 'is-selected is-absent' : 'secondary'} aria-pressed={entry.state === 'absent'} aria-label={`Mark ${entry.displayName} absent`} disabled={busy || !editable} onClick={() => void save(() => repository.markStudent(profile.id, draft.id, entry.studentId, 'absent'))}><span aria-hidden="true">× </span>Absent</button>
+            {visibleEntries.map(entry => <li key={entry.studentId}><img src={avatarForGender(entry.gender)} alt={`${entry.displayName} avatar`} /><div className="attendance-entry-name"><strong>{entry.displayName}</strong><StatusBadge tone={entry.state === 'present' ? 'success' : 'neutral'}>{entry.state[0].toUpperCase() + entry.state.slice(1)}</StatusBadge></div><div className="attendance-state-controls" role="group" aria-label={`Attendance for ${entry.displayName}`}>
+              <button type="button" className={entry.state === 'present' ? 'is-selected' : 'secondary'} aria-pressed={entry.state === 'present'} aria-label={`Mark ${entry.displayName} present`} disabled={busy || !editable} onClick={() => void save(() => repository.markStudent(profile.id, draft.id, entry.studentId, 'present'))}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 4 4L19 6" /></svg>Present</button>
+              <button type="button" className={entry.state === 'absent' ? 'is-selected is-absent' : 'secondary'} aria-pressed={entry.state === 'absent'} aria-label={`Mark ${entry.displayName} absent`} disabled={busy || !editable} onClick={() => void save(() => repository.markStudent(profile.id, draft.id, entry.studentId, 'absent'))}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M8 12h8" /></svg>Absent</button>
             </div></li>)}
             {(filter === 'all' || filter === 'present') && guests.filter(guest => guest.displayName.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())).map(guest => <li key={guest.id}><img src={avatarForGender(guest.gender)} alt={`${guest.displayName} avatar`} /><strong>{guest.displayName}</strong><span className="guest-badge">Temporary guest · Present</span></li>)}
           </ul>{visibleEntries.length === 0 && ((filter !== 'all' && filter !== 'present') || !guests.some(guest => guest.displayName.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()))) && <p>No entries match this filter.</p>}
