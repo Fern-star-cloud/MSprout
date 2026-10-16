@@ -1,5 +1,11 @@
 # Roadmap Status
 
+## COMPAT-01 B4-P1 — bounded proofs and proposed implementation design — 2026-10-16
+
+**YELLOW: STAKEHOLDER REVIEW REQUIRED; unstaged/uncommitted/unpushed.** Parent remains B3 `7ace0096d3a8baceaeb698ea47b398a2bbc4ea8f`. [P1 findings, qualification, exact inventory and P2 proposal](../docs/qa/compat-01-b4-p1-recovery-safety-design.md). B4-01 through05 are REPRODUCED in strictly isolated resources; the eight dedicated safety assertions fail as expected, with successful controls, rather than declaring existing recovery safe. No recovery implementation or migration exists. B1–B3 remain preserved GREEN checkpoints; overall COMPAT-01 remains incomplete.
+
+P2 needs separate review of coordination ownership, exact additive schema/contract, expiry/load envelope and conservative uncertainty handling. B5 installed-client transitions, B6 final qualification, Late and Pack06 remain NOT TESTED/unselected. No publication, merge, deployment or protected-data operation. Stop after P1; prior dated milestones below retain their original scope.
+
 ## COMPAT-01 B3 — stakeholder accepted, controlled publication milestone — 2026-10-16
 
 Architecture, implementation and final mobile/desktop/tablet visuals are explicitly accepted. The stakeholder authorizes only the reviewed34 paths (24 modified/ten new), one `feat: add safe attendance compatibility guards B3` commit after B2 `b08c6eea7f9e8fa976456f42ac70c2887b488a11`, and normal `origin/feat/mvp-foundation` push after final safety checks. [Exact inventory, local qualifications, failure closures and limits](../docs/qa/compat-01-b3-server-compatibility.md). Actual SHA, synchronization/preservation and exact-SHA hosted Web/API/Security results resolve through Git and `.git/msprout-compat-b3-20261016/publication-20261016/{commit,final,hosted}.json`. Local acceptance is not hosted GREEN; a failed hosted requirement preserves the commit and stops without an automatic corrective commit.
