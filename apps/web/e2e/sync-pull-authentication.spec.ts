@@ -11,7 +11,7 @@ const test = base.extend<{ pullTransport: { url: string; respond: (handler: (req
     const server = createServer((request, response) => {
       response.setHeader('Access-Control-Allow-Origin', baseURL!)
       response.setHeader('Access-Control-Allow-Credentials', 'true')
-      response.setHeader('Access-Control-Allow-Headers', 'content-type, x-church-id, x-device-id, x-correlation-id, accept')
+      response.setHeader('Access-Control-Allow-Headers', 'content-type, x-church-id, x-device-id, x-correlation-id, x-msprout-attendance-reader, accept')
       if (request.method === 'OPTIONS') { response.writeHead(204); response.end(); return }
       try { handler(request, response) } catch (error) {
         errors.push(error instanceof Error ? error.message : 'Wire assertion failed')
@@ -66,6 +66,7 @@ for (const failPull of [false, true]) {
       expect(headers['origin'] === undefined || headers['origin'] === 'http://127.0.0.1:4173').toBe(true)
       if (!referrer) return wireJson(response, { code: 'unauthenticated', message: 'Authentication is required.' }, 401)
       expect(headers['x-church-id']).toBe(churchId)
+      expect(headers['x-msprout-attendance-reader']).toBe('three-state-v1')
       expect(headers['cookie']?.includes('XSRF-TOKEN=pilot-token')).toBe(true)
       if (pullDenied) return wireJson(response, { code: 'unauthenticated', message: 'Authentication is required.' }, 401)
       expect(referrer).toBe('http://127.0.0.1:4173/')

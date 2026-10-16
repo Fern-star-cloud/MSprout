@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Devices\IssueOfflineAuthorization;
+use App\Domain\Attendance\AttendanceCompatibility;
 use App\Domain\Sync\ApplySyncBatch;
 use App\Domain\Sync\PullChanges;
 use App\Domain\Sync\SyncAuthorization;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 final class SyncController extends Controller
 {
@@ -27,6 +29,7 @@ final class SyncController extends Controller
             'events.*.payload' => ['present', 'array'],
         ]);
         $membership = $authorization->membership($request, $input['device_id']);
+        app(AttendanceCompatibility::class)->declaration($request);
 
         return response()->json([
             'results' => $apply->handle($membership, $input['device_id'], $input['batch_id'], $input['events'], $request->user()),
@@ -49,9 +52,13 @@ final class SyncController extends Controller
         $cursor = filter_var($input['cursor'] ?? '0', FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
         abort_if($cursor === false, 422);
         $membership = $authorization->membership($request, $deviceId);
-        $result = $pull->handle($membership, $deviceId, $cursor, (int) ($input['limit'] ?? 100));
-        $result['lease'] = $issue->handle($membership, $deviceId);
+        app(AttendanceCompatibility::class)->declaration($request);
 
-        return response()->json($result);
+        return DB::transaction(function () use ($pull, $issue, $membership, $deviceId, $cursor, $input): JsonResponse {
+            $result = $pull->handle($membership, $deviceId, $cursor, (int) ($input['limit'] ?? 100));
+            $result['lease'] = $issue->handle($membership, $deviceId);
+
+            return response()->json($result);
+        });
     }
 }

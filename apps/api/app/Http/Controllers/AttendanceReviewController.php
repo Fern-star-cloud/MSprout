@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Attendance\CorrectAttendance;
 use App\Actions\Attendance\ResolveConflict;
 use App\Actions\Guests\ResolveAttendanceGuest;
+use App\Domain\Attendance\AttendanceCompatibility;
 use App\Enums\ChurchRole;
 use App\Models\AttendanceGuest;
 use App\Models\ChurchMembership;
@@ -38,6 +39,8 @@ final class AttendanceReviewController extends Controller
 
             return response()->json(['needs_owner_review' => $needsReview]);
         }
+
+        app(AttendanceCompatibility::class)->declaration(request());
 
         return response()->json(['data' => SyncConflict::query()
             ->where('status', 'open')->orderBy('created_at')->orderBy('id')->limit(100)->get()
@@ -117,6 +120,9 @@ final class AttendanceReviewController extends Controller
 
     private function conflictProjection(SyncConflict $conflict): array
     {
+        app(AttendanceCompatibility::class)->declaration(request());
+        app(AttendanceCompatibility::class)->conflict($conflict);
+
         return [
             'id' => $conflict->id, 'session_id' => $conflict->attendance_session_id,
             'record_id' => $conflict->attendance_record_id, 'field' => $conflict->field,
@@ -150,6 +156,7 @@ final class AttendanceReviewController extends Controller
 
     private function domain(callable $action): JsonResponse
     {
+        app(AttendanceCompatibility::class)->declaration(request());
         try {
             return response()->json($action());
         } catch (DomainException|InvalidArgumentException $exception) {

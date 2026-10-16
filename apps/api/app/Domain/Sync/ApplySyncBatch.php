@@ -2,6 +2,7 @@
 
 namespace App\Domain\Sync;
 
+use App\Domain\Attendance\AttendanceCompatibility;
 use App\Domain\Attendance\DetectAttendanceConflict;
 use App\Domain\Attendance\FinalizeAttendance;
 use App\Domain\Attendance\PublishAttendanceChange;
@@ -25,11 +26,18 @@ use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 final class ApplySyncBatch
 {
     /** @return array<int, array<string, mixed>> */
     public function handle(ChurchMembership $membership, string $deviceId, string $batchId, array $events, User $actor): array
+    {
+        // Compatibility exceptions must unwind this closure before HTTP rendering.
+        return DB::transaction(fn (): array => $this->process($membership, $deviceId, $batchId, $events, $actor));
+    }
+
+    private function process(ChurchMembership $membership, string $deviceId, string $batchId, array $events, User $actor): array
     {
         $lockKeys = collect($events)->flatMap(fn (array $event): array => [
             'event:'.$deviceId.':'.$event['client_event_id'],
@@ -39,12 +47,48 @@ final class ApplySyncBatch
             DB::selectOne('SELECT pg_advisory_xact_lock(hashtextextended(?, 0))', [$lockKey]);
         }
 
+        $this->preflight($membership, $deviceId, $events, $actor);
+
         $results = [];
         foreach ($events as $event) {
             $results[] = DB::transaction(fn (): array => $this->apply($membership, $deviceId, $batchId, $event, $actor));
         }
 
         return $results;
+    }
+
+    private function preflight(ChurchMembership $membership, string $deviceId, array $events, User $actor): void
+    {
+        $compatibility = app(AttendanceCompatibility::class);
+        $policy = new AttendancePolicy;
+        $created = [];
+        foreach ($events as $event) {
+            $ministry = $event['payload']['ministry_id'] ?? null;
+            if ($event['action'] === 'attendance.draft_created' && is_string($ministry)
+                && Str::isUuid($ministry) && $policy->create($actor, $ministry)) {
+                $created[$event['entity_id']] = true;
+            }
+        }
+        foreach ($events as $event) {
+            // Replays (including anti-claim failures) use the unchanged receipt path.
+            if (SyncEvent::query()->where('church_id', $membership->church_id)->where('device_id', $deviceId)
+                ->where('client_event_id', $event['client_event_id'])->exists()) {
+                continue;
+            }
+            $session = AttendanceSession::query()->where('church_id', $membership->church_id)
+                ->whereNull('deleted_at')->lockForUpdate()->find($event['entity_id']);
+            $authorized = $session !== null ? $policy->view($actor, $session) : isset($created[$event['entity_id']]);
+            if (! $authorized) {
+                continue;
+            }
+            if ($session !== null) {
+                $compatibility->session($session);
+            }
+            $state = $event['payload']['state'] ?? null;
+            if (in_array($event['action'], ['attendance.student_marked', 'attendance.bulk_marked'], true) && is_string($state)) {
+                $compatibility->state($state, ['present', 'absent']);
+            }
+        }
     }
 
     /** @return array<string, mixed> */
@@ -147,6 +191,9 @@ final class ApplySyncBatch
             ->lockForUpdate()
             ->first();
         if ($existing !== null) {
+            if ((new AttendancePolicy)->view($actor, $existing)) {
+                app(AttendanceCompatibility::class)->session($existing);
+            }
             throw new SyncResult('conflict', 'version_conflict', $existing->id, (int) $existing->version);
         }
 

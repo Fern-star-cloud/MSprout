@@ -1,7 +1,10 @@
 import { ApiError } from '../../api/client'
+import { attendanceError, attendanceMessage, attendanceReaderHeaders } from '../../api/attendance-compatibility'
 import { safeImportFileErrors } from '../imports/file-validation'
 
 export function safeAuthMessage(error: unknown): string {
+  const compatibility = attendanceMessage(error)
+  if (compatibility) return compatibility
   const status = typeof error === 'object' && error !== null && 'status' in error ? error.status : 0
   if (error instanceof ApiError && status === 409 && error.code === 'already_authenticated') {
     return 'A session is already signed in. Choose Continue signed-in session to check it, or sign out before using another account.'
@@ -26,6 +29,8 @@ export function safeAuthMessage(error: unknown): string {
 async function readResponse(response: Response, importFile = false): Promise<unknown> {
   const payload: unknown = response.status === 204 ? undefined : await response.json().catch(() => undefined)
   if (!response.ok) {
+    const compatibility = attendanceError(payload, response.status)
+    if (compatibility) throw compatibility
     const errors = typeof payload === 'object' && payload !== null && 'field_errors' in payload ? payload.field_errors : undefined
     // Ordinary forms use field names only. Import preview may additionally show
     // reviewed, fixed parser messages, never arbitrary server text.
@@ -66,7 +71,7 @@ export async function authRequest<T = Record<string, unknown>>(
   const platformLogout = path === '/platform/logout' && method === 'POST'
   if (platformLogout) invalidatePlatform(0, 'logout-started')
   const headers: Record<string, string> = {
-    Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-Correlation-Id': crypto.randomUUID(),
+    Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-Correlation-Id': crypto.randomUUID(), ...attendanceReaderHeaders(path),
   }
   const options = { credentials: 'same-origin', cache: 'no-store', redirect: 'error', referrerPolicy: 'origin' } as const
   if (churchId) {
@@ -137,7 +142,7 @@ export async function authDownload(path: string, churchId: string): Promise<Blob
   if (parsed.origin !== (globalThis.location?.origin ?? 'http://localhost') || (path !== '/api/imports/template' && !reportExport)) throw new Error('Invalid download request')
   const response = await fetch(path, {
     method: 'GET', credentials: 'same-origin', cache: 'no-store', redirect: 'error', referrerPolicy: 'origin',
-    headers: { Accept: 'text/csv', 'X-Requested-With': 'XMLHttpRequest', 'X-Correlation-Id': crypto.randomUUID(), 'X-Church-Id': churchId },
+    headers: { Accept: 'text/csv', 'X-Requested-With': 'XMLHttpRequest', 'X-Correlation-Id': crypto.randomUUID(), 'X-Church-Id': churchId, ...attendanceReaderHeaders(path) },
   })
   if (!response.ok) {
     try { await readResponse(response) }

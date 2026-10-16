@@ -101,3 +101,17 @@
 .sync-access-row { padding-top: var(--space-3); border-top: 1px solid var(--color-border); }
 .sync-review:not(.sync-tone-warning) { padding-top: var(--space-3); }
 @media (min-width: 768px) and (max-width: 1023px) { .sync-screen { max-width: var(--form-max); } }
+
+/* Refusal feedback needs readable phone columns, including enlarged text.
+   Measure the Sync content in text-relative units; wider layouts stay intact. */
+@media (max-width: 767px) {
+  .sync-screen[data-compatibility-refusal] { container: sync-refusal / inline-size; }
+  @container sync-refusal (max-width: 22rem) {
+    .sync-profile-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .sync-profile-choice { justify-self: start; max-width: 100%; }
+    .sync-unlock-state { min-width: 0; }
+    .sync-stages, .sync-tools { grid-template-columns: minmax(0, 1fr); }
+    .sync-stage { flex-direction: row; align-items: start; gap: 12px; }
+    .sync-actions { gap: 12px; }
+  }
+}

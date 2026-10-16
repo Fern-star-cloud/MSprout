@@ -205,9 +205,22 @@ it('explains a refused download without declaring authentication failure or losi
   expect(error.textContent).toContain('Downloading could not be completed safely.')
   expect(error.textContent).toContain('Saved local work remains protected.')
   expect(error.textContent).toContain('Previously acknowledged uploads remain accepted.')
+  expect(document.querySelector('.sync-screen')?.hasAttribute('data-compatibility-refusal')).toBe(false)
   expect((button as HTMLButtonElement).disabled).toBe(false)
   expect(f.store.lockProfile).not.toHaveBeenCalled()
   expect(screen.queryByRole('heading', { name: 'Synchronization complete' })).toBeNull()
+})
+it('announces typed compatibility refusal without locking or reporting completion', async () => {
+  const f = fixture(); f.recovery.continue.mockRejectedValue(new ApiError('attendance_compatibility_required', 'Untrusted text', '', 409))
+  render(<SyncScreen {...f} />)
+  const button = await screen.findByRole('button', { name: 'Continue synchronization' })
+  await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false)); fireEvent.click(button)
+  expect((await screen.findByRole('alert')).textContent).toContain('saved local attendance must be preserved')
+  expect(document.querySelector('.sync-screen')?.getAttribute('data-compatibility-refusal')).toBe('true')
+  expect(screen.queryByText('Untrusted text')).toBeNull()
+  expect(f.store.lockProfile).not.toHaveBeenCalled()
+  expect(screen.queryByRole('heading', { name: 'Synchronization complete' })).toBeNull()
+  expect((button as HTMLButtonElement).disabled).toBe(false)
 })
 it('clears protected counts and late success when the profile locks during synchronization', async () => {
   const f = fixture(); let finish!: () => void

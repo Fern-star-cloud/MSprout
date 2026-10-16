@@ -5,6 +5,13 @@ info:
 servers:
   - url: /api
 components:
+  parameters:
+    AttendanceReader:
+      name: X-MSprout-Attendance-Reader
+      in: header
+      required: false
+      description: Missing means three-state-v1. Compatibility information only, never authorization or binary attestation. late-v1 is reserved and unsupported. Empty, list-valued or observable duplicate values are invalid.
+      schema: { type: string, enum: [three-state-v1] }
   schemas:
     ApiError:
       type: object
@@ -26,6 +33,13 @@ components:
             type: array
             items:
               type: string
+    AttendanceCompatibilityError:
+      allOf:
+        - $ref: "#/components/schemas/ApiError"
+        - type: object
+          properties:
+            code: { type: string, enum: [invalid_attendance_reader, unsupported_attendance_reader, attendance_compatibility_required, full_bootstrap_required] }
+      description: Fixed privacy-safe error. No event results, cursor, lease, partial domain data or required_reader. Compatibility refusal never settles an outbox event or triggers bootstrap.
     Health:
       type: object
       required:
@@ -1470,6 +1484,22 @@ components:
       name: X-Readiness-Token
       description: Deployment-only readiness probe token. It is never exposed to browsers or logs.
   responses:
+    AttendanceDeclarationError:
+      description: Malformed/duplicate reader (invalid_attendance_reader), or unsupported reader (unsupported_attendance_reader). No attendance processing effects.
+      headers:
+        Cache-Control: { schema: { type: string, const: "no-store, private" } }
+        X-Correlation-Id: { schema: { type: string, format: uuid } }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AttendanceCompatibilityError" }
+    AttendanceCompatibilityRequired:
+      description: Authorized attendance is incompatible (attendance_compatibility_required); full_bootstrap_required separately identifies existing pull recovery refusal without implementing recovery. No new receipt/domain/audit/feed or refused-request cursor/lease effects. Previously authoritative receipts and earlier successful pages remain preserved.
+      headers:
+        Cache-Control: { schema: { type: string, const: "no-store, private" } }
+        X-Correlation-Id: { schema: { type: string, format: uuid } }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AttendanceCompatibilityError" }
     AuthError:
       description: Safe error envelope. 401 unauthenticated; 403 access or recent-password confirmation required; 410 expired setup; 419 CSRF mismatch; 422 invalid input; 429 rate limit. Responses are no-store.
       content:
@@ -1526,10 +1556,11 @@ paths:
   /sync/push:
     post:
       operationId: pushSyncEvents
-      description: Pushes at most 100 attendance events in stable client order. Active verified membership, matching device authorization, current lease, and current ministry assignment are revalidated. Exact replays are idempotent and payload mismatches cannot claim an earlier receipt.
+      description: Pushes at most 100 attendance events in stable client order. Active verified membership, matching device authorization, current lease, and current ministry assignment are revalidated. Exact replays are idempotent and payload mismatches cannot claim an earlier receipt. Compatibility refusal blocks the whole request without new terminal receipts; safe queued work may remain behind an incompatible event.
       security:
         - ChurchSession: []
       parameters:
+        - $ref: "#/components/parameters/AttendanceReader"
         - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
         - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
       requestBody:
@@ -1538,6 +1569,8 @@ paths:
           application/json:
             schema: { $ref: "#/components/schemas/SyncPushRequest" }
       responses:
+        "400": { $ref: "#/components/responses/AttendanceDeclarationError", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
+        "409": { $ref: "#/components/responses/AttendanceCompatibilityRequired", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
         "200":
           description: One stable result per submitted event. Accepted domain state, audit evidence, feed entry, and replay receipt commit atomically.
           headers:
@@ -1553,18 +1586,21 @@ paths:
   /sync/pull:
     get:
       operationId: pullSyncChanges
-      description: Returns a bounded ordered change-feed page after the supplied cursor. Attendance is assignment-scoped; targeted assignment tombstones remain visible so unauthorized cached data can be purged. A successful page renews the signed device lease.
+      description: Returns a bounded ordered change-feed page after the supplied cursor. Attendance is assignment-scoped; targeted assignment tombstones remain visible so unauthorized cached data can be purged. A successful compatible page atomically records served/scanned progress and renews the signed device lease. Refused pages do neither; authorized filtered gaps remain valid.
       security:
         - ChurchSession: []
       parameters:
+        - $ref: "#/components/parameters/AttendanceReader"
         - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
         - { name: X-Device-Id, in: header, required: true, schema: { type: string, format: uuid } }
         - { name: cursor, in: query, required: false, schema: { type: string, pattern: "^[0-9]+$", default: "0" } }
         - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 100 } }
         - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
       responses:
+        "400": { $ref: "#/components/responses/AttendanceDeclarationError", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
+        "409": { $ref: "#/components/responses/AttendanceCompatibilityRequired", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
         "200":
-          description: Assignment-scoped ordered changes, durable cursor, and renewed lease.
+          description: Assignment-scoped ordered changes, server served/scanned cursor (not durable client acknowledgment), and renewed lease.
           headers:
             Cache-Control: { description: Browser and intermediary storage is forbidden., schema: { type: string, const: "no-store, private" } }
             X-Correlation-Id: { description: Request correlation UUID., schema: { type: string, format: uuid } }
@@ -1581,12 +1617,15 @@ paths:
       description: Online-only date/ministry-filtered attendance totals and up to 100 recent finalized sessions. Owners see tenant-wide results; Teachers are restricted to currently assigned ministries. Unresolved attendance and server or device-pending work do not contribute to finalized totals.
       security: [{ ChurchSession: [] }]
       parameters:
+        - $ref: "#/components/parameters/AttendanceReader"
         - { name: date_from, in: query, required: false, schema: { type: string, format: date } }
         - { name: date_to, in: query, required: false, schema: { type: string, format: date } }
         - { name: ministry_id, in: query, required: false, schema: { type: string, format: uuid } }
         - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
         - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
       responses:
+        "400": { $ref: "#/components/responses/AttendanceDeclarationError", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
+        "409": { $ref: "#/components/responses/AttendanceCompatibilityRequired", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
         "200":
           description: Role-scoped finalized attendance report.
           headers:
@@ -1602,12 +1641,15 @@ paths:
       description: Owner-only audited UTF-8 CSV export of revision-effective finalized attendance. Text cells beginning with spreadsheet formula prefixes are escaped. Birthdates and unresolved or pending attendance are excluded.
       security: [{ ChurchSession: [] }]
       parameters:
+        - $ref: "#/components/parameters/AttendanceReader"
         - { name: date_from, in: query, required: false, schema: { type: string, format: date } }
         - { name: date_to, in: query, required: false, schema: { type: string, format: date } }
         - { name: ministry_id, in: query, required: false, schema: { type: string, format: uuid } }
         - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
         - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
       responses:
+        "400": { $ref: "#/components/responses/AttendanceDeclarationError", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
+        "409": { $ref: "#/components/responses/AttendanceCompatibilityRequired", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
         "200":
           description: Spreadsheet-safe attendance export.
           headers:
@@ -1700,9 +1742,12 @@ paths:
       description: Owners receive their tenant's open attendance conflict evidence. Teachers receive only a boolean Needs Owner Review status and no actor, device, or correlation details.
       security: [{ ChurchSession: [] }]
       parameters:
+        - $ref: "#/components/parameters/AttendanceReader"
         - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
         - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
       responses:
+        "400": { $ref: "#/components/responses/AttendanceDeclarationError", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
+        "409": { $ref: "#/components/responses/AttendanceCompatibilityRequired", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
         "200":
           description: Role-appropriate conflict queue.
           headers:
@@ -1717,10 +1762,13 @@ paths:
       description: Owner-only side-by-side attendance conflict evidence.
       security: [{ ChurchSession: [] }]
       parameters:
+        - $ref: "#/components/parameters/AttendanceReader"
         - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
         - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
         - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
       responses:
+        "400": { $ref: "#/components/responses/AttendanceDeclarationError", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
+        "409": { $ref: "#/components/responses/AttendanceCompatibilityRequired", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
         "200":
           description: Conflict evidence visible to the tenant Owner.
           headers:
@@ -1735,6 +1783,7 @@ paths:
       description: Owner-only online resolution. Appends an attendance revision, preserves the original record, advances the session version, and audits atomically.
       security: [{ ChurchSession: [] }]
       parameters:
+        - $ref: "#/components/parameters/AttendanceReader"
         - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
         - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
         - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
@@ -1750,6 +1799,8 @@ paths:
                 choice: { type: string, enum: [existing, incoming] }
                 reason: { type: string, minLength: 1, maxLength: 500 }
       responses:
+        "400": { $ref: "#/components/responses/AttendanceDeclarationError", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
+        "409": { $ref: "#/components/responses/AttendanceCompatibilityRequired", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
         "200":
           description: Resolved conflict and appended revision.
           headers:
@@ -1764,6 +1815,7 @@ paths:
       description: Owner-only online correction of finalized attendance through an append-only revision; the original record value and actor are not mutated.
       security: [{ ChurchSession: [] }]
       parameters:
+        - $ref: "#/components/parameters/AttendanceReader"
         - { name: session, in: path, required: true, schema: { type: string, format: uuid } }
         - { name: record, in: path, required: true, schema: { type: string, format: uuid } }
         - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
@@ -1780,6 +1832,8 @@ paths:
                 state: { type: string, enum: [present, absent] }
                 reason: { type: string, minLength: 1, maxLength: 500 }
       responses:
+        "400": { $ref: "#/components/responses/AttendanceDeclarationError", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
+        "409": { $ref: "#/components/responses/AttendanceCompatibilityRequired", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
         "200":
           description: Appended attendance correction.
           headers:
@@ -1811,6 +1865,7 @@ paths:
       description: Owner-only promotion of a pending attendance guest into a new student while preserving guest attendance provenance.
       security: [{ ChurchSession: [] }]
       parameters:
+        - $ref: "#/components/parameters/AttendanceReader"
         - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
         - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
         - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
@@ -1820,6 +1875,8 @@ paths:
           application/json:
             schema: { $ref: "#/components/schemas/GuestPromotionInput" }
       responses:
+        "400": { $ref: "#/components/responses/AttendanceDeclarationError", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
+        "409": { $ref: "#/components/responses/AttendanceCompatibilityRequired", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
         "200":
           description: Guest promoted and attendance linked.
           headers:
@@ -1834,6 +1891,7 @@ paths:
       description: Owner-only link of a pending attendance guest to an existing active student while preserving guest attendance provenance.
       security: [{ ChurchSession: [] }]
       parameters:
+        - $ref: "#/components/parameters/AttendanceReader"
         - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
         - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
         - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
@@ -1848,6 +1906,8 @@ paths:
               properties:
                 student_id: { type: string, format: uuid }
       responses:
+        "400": { $ref: "#/components/responses/AttendanceDeclarationError", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
+        "409": { $ref: "#/components/responses/AttendanceCompatibilityRequired", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
         "200":
           description: Guest linked and attendance preserved.
           headers:
@@ -1862,6 +1922,7 @@ paths:
       description: Owner-only duplicate merge that retains both source guest provenance rows.
       security: [{ ChurchSession: [] }]
       parameters:
+        - $ref: "#/components/parameters/AttendanceReader"
         - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
         - { name: X-Church-Id, in: header, required: true, schema: { type: string, format: uuid } }
         - { name: X-Correlation-Id, in: header, required: false, schema: { type: string, format: uuid } }
@@ -1876,6 +1937,8 @@ paths:
               properties:
                 guest_id: { type: string, format: uuid }
       responses:
+        "400": { $ref: "#/components/responses/AttendanceDeclarationError", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
+        "409": { $ref: "#/components/responses/AttendanceCompatibilityRequired", headers: { X-Correlation-Id: { schema: { type: string, format: uuid } } } }
         "200":
           description: Duplicate guest merged into the selected canonical guest.
           headers:

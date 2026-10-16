@@ -2,6 +2,8 @@
 
 namespace App\Domain\Sync;
 
+use App\Domain\Attendance\AttendanceCompatibility;
+use App\Domain\Attendance\AttendanceCompatibilityException;
 use App\Enums\ChurchRole;
 use App\Models\ChangeFeedEntry;
 use App\Models\ChurchMembership;
@@ -45,12 +47,16 @@ final class PullChanges
             'payload' => $entry->payload_json,
         ])->values()->all();
 
+        app(AttendanceCompatibility::class)->changes($changes);
+
         $deviceCursor = DeviceCursor::query()
             ->where('membership_id', $membership->id)
             ->where('device_id', $deviceId)
             ->lockForUpdate()
             ->first();
-        abort_if($deviceCursor?->full_resync_required === true, 409, 'A full device bootstrap is required.');
+        if ($deviceCursor?->full_resync_required === true) {
+            throw new AttendanceCompatibilityException('full_bootstrap_required');
+        }
         if ($deviceCursor === null) {
             DeviceCursor::create([
                 'church_id' => $membership->church_id,

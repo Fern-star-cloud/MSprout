@@ -2,6 +2,7 @@
 
 namespace App\Domain\Reports;
 
+use App\Domain\Attendance\AttendanceCompatibility;
 use App\Enums\ChurchRole;
 use App\Models\ChurchMembership;
 use App\Models\User;
@@ -17,7 +18,8 @@ final class AttendanceSummary
      */
     public function report(User $actor, array $filters): array
     {
-        $finalizedSessions = $this->sessions($actor, $filters, ['finalized', 'revised']);
+        $scope = $this->compatibleScope($actor, $filters);
+        $finalizedSessions = $this->sessions($actor, $filters, ['finalized', 'revised'])->whereIn('attendance_sessions.id', $scope);
         $recordCounts = $this->recordCounts();
         $revisionCounts = DB::table('attendance_revisions')
             ->select('attendance_session_id')->selectRaw('COUNT(*) AS correction_count')
@@ -58,14 +60,15 @@ final class AttendanceSummary
             })->values()->all();
 
         $totals = $this->sessions($actor, $filters, ['finalized', 'revised'])
+            ->whereIn('attendance_sessions.id', $scope)
             ->joinSub($recordCounts, 'record_counts', 'record_counts.attendance_session_id', '=', 'attendance_sessions.id')
             ->selectRaw('COALESCE(SUM(record_counts.present_count), 0) AS present_count')
             ->selectRaw('COALESCE(SUM(record_counts.absent_count), 0) AS absent_count')
             ->first();
         $present = (int) ($totals->present_count ?? 0);
         $absent = (int) ($totals->absent_count ?? 0);
-        $eligibleSessionIds = $this->sessions($actor, $filters, null)->select('attendance_sessions.id');
-        $pending = $this->sessions($actor, $filters, ['draft', 'finalized_pending'])->count();
+        $eligibleSessionIds = $this->sessions($actor, $filters, null)->whereIn('attendance_sessions.id', $scope)->select('attendance_sessions.id');
+        $pending = $this->sessions($actor, $filters, ['draft', 'finalized_pending'])->whereIn('attendance_sessions.id', $scope)->count();
         $conflicts = DB::table('sync_conflicts')->where('church_id', app(TenantContext::class)->churchId())
             ->where('status', 'open')->whereIn('attendance_session_id', clone $eligibleSessionIds)->count();
         $corrections = DB::table('attendance_revisions')->where('church_id', app(TenantContext::class)->churchId())
@@ -95,8 +98,9 @@ final class AttendanceSummary
      */
     public function exportRows(User $actor, array $filters): array
     {
+        $scope = $this->compatibleScope($actor, $filters);
         $effectiveState = $this->effectiveState('attendance_records');
-        $sessionIds = $this->sessions($actor, $filters, ['finalized', 'revised'])->select('attendance_sessions.id');
+        $sessionIds = $this->sessions($actor, $filters, ['finalized', 'revised'])->whereIn('attendance_sessions.id', $scope)->select('attendance_sessions.id');
 
         return DB::table('attendance_records')
             ->join('attendance_sessions', function ($join): void {
@@ -144,6 +148,18 @@ final class AttendanceSummary
      * @param  array{date_from: string, date_to: string, ministry_id: ?string}  $filters
      * @param  array<int, string>|null  $statuses
      */
+    private function compatibleScope(User $actor, array $filters): array
+    {
+        app(AttendanceCompatibility::class)->declaration(request());
+        // Freeze the authorized contributing set and hold session locks until
+        // representation construction completes in the tenant transaction.
+        $ids = $this->sessions($actor, $filters, null)->orderBy('attendance_sessions.id')
+            ->lock('for share of attendance_sessions')->pluck('attendance_sessions.id')->all();
+        app(AttendanceCompatibility::class)->sessions($ids);
+
+        return $ids;
+    }
+
     private function sessions(User $actor, array $filters, ?array $statuses): Builder
     {
         $churchId = app(TenantContext::class)->churchId();

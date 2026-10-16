@@ -1,5 +1,11 @@
 # Technical Decisions
 
+## 2026-10-16 — Stakeholder-approved B3 compatibility contract
+
+The stakeholder explicitly selects optional `X-MSprout-Attendance-Reader`, absent/default/only-supported `three-state-v1`; reserved `late-v1` is rejected. Approves typed400 declaration errors, typed non-settling409 `attendance_compatibility_required`, and separate409 `full_bootstrap_required` classification without recovery. Approves conservative session-level fresh mutation protection, whole-batch refusal (including safe work remaining queued), protected Owner/report/export surfaces and fixed preservation feedback. [Exact implemented candidate and qualification limits](../docs/qa/compat-01-b3-server-compatibility.md).
+
+This decision supersedes the earlier PROPOSED classification only for those exact B3 subjects. It does not approve Late semantics or support, durable acknowledgment, retention/bootstrap reconciliation, installed-client activation/restart or B4–B6 implementation. There is no new capability registry, blanket protocol-v2/426 requirement, API route, storage/encryption version or database migration. The initial implementation hold remained binding until the stakeholder separately approved the complete architecture/implementation/visual results and exact34-path controlled finalization. That explicit approval authorizes one reviewed B3 commit/normal feature push after final checks; it does not authorize later tasks, waive hosted requirements or enlarge governance authority.
+
 ## Approved modernization baseline and DOC-GOV-01 finalization — 2026-10-14
 
 The stakeholder approved the revised Unified Modernization Master Plan as the planning/sequencing baseline and separately approved finalization of DOC-GOV-01 under section 14. [Canonical design](../docs/superpowers/specs/2026-10-14-unified-modernization-design.md), [roadmap](../docs/superpowers/plans/2026-10-14-unified-modernization-roadmap.md) and [supersession register](../docs/history/SUPERSESSION_REGISTER.md) record its boundaries.

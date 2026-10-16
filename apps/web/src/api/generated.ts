@@ -47,7 +47,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Pushes at most 100 attendance events in stable client order. Active verified membership, matching device authorization, current lease, and current ministry assignment are revalidated. Exact replays are idempotent and payload mismatches cannot claim an earlier receipt. */
+        /** @description Pushes at most 100 attendance events in stable client order. Active verified membership, matching device authorization, current lease, and current ministry assignment are revalidated. Exact replays are idempotent and payload mismatches cannot claim an earlier receipt. Compatibility refusal blocks the whole request without new terminal receipts; safe queued work may remain behind an incompatible event. */
         post: operations["pushSyncEvents"];
         delete?: never;
         options?: never;
@@ -62,7 +62,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Returns a bounded ordered change-feed page after the supplied cursor. Attendance is assignment-scoped; targeted assignment tombstones remain visible so unauthorized cached data can be purged. A successful page renews the signed device lease. */
+        /** @description Returns a bounded ordered change-feed page after the supplied cursor. Attendance is assignment-scoped; targeted assignment tombstones remain visible so unauthorized cached data can be purged. A successful compatible page atomically records served/scanned progress and renews the signed device lease. Refused pages do neither; authorized filtered gaps remain valid. */
         get: operations["pullSyncChanges"];
         put?: never;
         post?: never;
@@ -1372,6 +1372,11 @@ export interface components {
                 [key: string]: string[];
             };
         };
+        /** @description Fixed privacy-safe error. No event results, cursor, lease, partial domain data or required_reader. Compatibility refusal never settles an outbox event or triggers bootstrap. */
+        AttendanceCompatibilityError: components["schemas"]["ApiError"] & {
+            /** @enum {string} */
+            code?: "invalid_attendance_reader" | "unsupported_attendance_reader" | "attendance_compatibility_required" | "full_bootstrap_required";
+        };
         Health: {
             /** @enum {string} */
             status: "ok";
@@ -2183,6 +2188,28 @@ export interface components {
         };
     };
     responses: {
+        /** @description Malformed/duplicate reader (invalid_attendance_reader), or unsupported reader (unsupported_attendance_reader). No attendance processing effects. */
+        AttendanceDeclarationError: {
+            headers: {
+                "Cache-Control"?: "no-store, private";
+                "X-Correlation-Id"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["AttendanceCompatibilityError"];
+            };
+        };
+        /** @description Authorized attendance is incompatible (attendance_compatibility_required); full_bootstrap_required separately identifies existing pull recovery refusal without implementing recovery. No new receipt/domain/audit/feed or refused-request cursor/lease effects. Previously authoritative receipts and earlier successful pages remain preserved. */
+        AttendanceCompatibilityRequired: {
+            headers: {
+                "Cache-Control"?: "no-store, private";
+                "X-Correlation-Id"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["AttendanceCompatibilityError"];
+            };
+        };
         /** @description Safe error envelope. 401 unauthenticated; 403 access or recent-password confirmation required; 410 expired setup; 419 CSRF mismatch; 422 invalid input; 429 rate limit. Responses are no-store. */
         AuthError: {
             headers: {
@@ -2209,7 +2236,10 @@ export interface components {
             };
         };
     };
-    parameters: never;
+    parameters: {
+        /** @description Missing means three-state-v1. Compatibility information only, never authorization or binary attestation. late-v1 is reserved and unsupported. Empty, list-valued or observable duplicate values are invalid. */
+        AttendanceReader: "three-state-v1";
+    };
     requestBodies: never;
     headers: never;
     pathItems: never;
@@ -2278,6 +2308,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description Missing means three-state-v1. Compatibility information only, never authorization or binary attestation. late-v1 is reserved and unsupported. Empty, list-valued or observable duplicate values are invalid. */
+                "X-MSprout-Attendance-Reader"?: components["parameters"]["AttendanceReader"];
                 "X-Church-Id": string;
                 "X-Correlation-Id"?: string;
             };
@@ -2303,6 +2335,8 @@ export interface operations {
                     "application/json": components["schemas"]["SyncPushResponse"];
                 };
             };
+            400: components["responses"]["AttendanceDeclarationError"];
+            409: components["responses"]["AttendanceCompatibilityRequired"];
             default: components["responses"]["AuthError"];
         };
     };
@@ -2313,6 +2347,8 @@ export interface operations {
                 limit?: number;
             };
             header: {
+                /** @description Missing means three-state-v1. Compatibility information only, never authorization or binary attestation. late-v1 is reserved and unsupported. Empty, list-valued or observable duplicate values are invalid. */
+                "X-MSprout-Attendance-Reader"?: components["parameters"]["AttendanceReader"];
                 "X-Church-Id": string;
                 "X-Device-Id": string;
                 "X-Correlation-Id"?: string;
@@ -2322,7 +2358,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Assignment-scoped ordered changes, durable cursor, and renewed lease. */
+            /** @description Assignment-scoped ordered changes, server served/scanned cursor (not durable client acknowledgment), and renewed lease. */
             200: {
                 headers: {
                     /** @description Browser and intermediary storage is forbidden. */
@@ -2335,6 +2371,8 @@ export interface operations {
                     "application/json": components["schemas"]["SyncPullResponse"];
                 };
             };
+            400: components["responses"]["AttendanceDeclarationError"];
+            409: components["responses"]["AttendanceCompatibilityRequired"];
             default: components["responses"]["AuthError"];
         };
     };
@@ -2346,6 +2384,8 @@ export interface operations {
                 ministry_id?: string;
             };
             header: {
+                /** @description Missing means three-state-v1. Compatibility information only, never authorization or binary attestation. late-v1 is reserved and unsupported. Empty, list-valued or observable duplicate values are invalid. */
+                "X-MSprout-Attendance-Reader"?: components["parameters"]["AttendanceReader"];
                 "X-Church-Id": string;
                 "X-Correlation-Id"?: string;
             };
@@ -2367,6 +2407,8 @@ export interface operations {
                     "application/json": components["schemas"]["AttendanceReportResponse"];
                 };
             };
+            400: components["responses"]["AttendanceDeclarationError"];
+            409: components["responses"]["AttendanceCompatibilityRequired"];
             default: components["responses"]["AuthError"];
         };
     };
@@ -2378,6 +2420,8 @@ export interface operations {
                 ministry_id?: string;
             };
             header: {
+                /** @description Missing means three-state-v1. Compatibility information only, never authorization or binary attestation. late-v1 is reserved and unsupported. Empty, list-valued or observable duplicate values are invalid. */
+                "X-MSprout-Attendance-Reader"?: components["parameters"]["AttendanceReader"];
                 "X-Church-Id": string;
                 "X-Correlation-Id"?: string;
             };
@@ -2403,6 +2447,8 @@ export interface operations {
                     "text/csv": string;
                 };
             };
+            400: components["responses"]["AttendanceDeclarationError"];
+            409: components["responses"]["AttendanceCompatibilityRequired"];
             default: components["responses"]["AuthError"];
         };
     };
@@ -2526,6 +2572,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description Missing means three-state-v1. Compatibility information only, never authorization or binary attestation. late-v1 is reserved and unsupported. Empty, list-valued or observable duplicate values are invalid. */
+                "X-MSprout-Attendance-Reader"?: components["parameters"]["AttendanceReader"];
                 "X-Church-Id": string;
                 "X-Correlation-Id"?: string;
             };
@@ -2545,6 +2593,8 @@ export interface operations {
                     "application/json": components["schemas"]["ConflictList"];
                 };
             };
+            400: components["responses"]["AttendanceDeclarationError"];
+            409: components["responses"]["AttendanceCompatibilityRequired"];
             default: components["responses"]["AuthError"];
         };
     };
@@ -2552,6 +2602,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description Missing means three-state-v1. Compatibility information only, never authorization or binary attestation. late-v1 is reserved and unsupported. Empty, list-valued or observable duplicate values are invalid. */
+                "X-MSprout-Attendance-Reader"?: components["parameters"]["AttendanceReader"];
                 "X-Church-Id": string;
                 "X-Correlation-Id"?: string;
             };
@@ -2573,6 +2625,8 @@ export interface operations {
                     "application/json": components["schemas"]["AttendanceConflict"];
                 };
             };
+            400: components["responses"]["AttendanceDeclarationError"];
+            409: components["responses"]["AttendanceCompatibilityRequired"];
             default: components["responses"]["AuthError"];
         };
     };
@@ -2580,6 +2634,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description Missing means three-state-v1. Compatibility information only, never authorization or binary attestation. late-v1 is reserved and unsupported. Empty, list-valued or observable duplicate values are invalid. */
+                "X-MSprout-Attendance-Reader"?: components["parameters"]["AttendanceReader"];
                 "X-Church-Id": string;
                 "X-Correlation-Id"?: string;
             };
@@ -2609,6 +2665,8 @@ export interface operations {
                     "application/json": components["schemas"]["ConflictResolutionResult"];
                 };
             };
+            400: components["responses"]["AttendanceDeclarationError"];
+            409: components["responses"]["AttendanceCompatibilityRequired"];
             default: components["responses"]["AuthError"];
         };
     };
@@ -2616,6 +2674,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description Missing means three-state-v1. Compatibility information only, never authorization or binary attestation. late-v1 is reserved and unsupported. Empty, list-valued or observable duplicate values are invalid. */
+                "X-MSprout-Attendance-Reader"?: components["parameters"]["AttendanceReader"];
                 "X-Church-Id": string;
                 "X-Correlation-Id"?: string;
             };
@@ -2646,6 +2706,8 @@ export interface operations {
                     "application/json": components["schemas"]["AttendanceRevisionResult"];
                 };
             };
+            400: components["responses"]["AttendanceDeclarationError"];
+            409: components["responses"]["AttendanceCompatibilityRequired"];
             default: components["responses"]["AuthError"];
         };
     };
@@ -2679,6 +2741,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description Missing means three-state-v1. Compatibility information only, never authorization or binary attestation. late-v1 is reserved and unsupported. Empty, list-valued or observable duplicate values are invalid. */
+                "X-MSprout-Attendance-Reader"?: components["parameters"]["AttendanceReader"];
                 "X-Church-Id": string;
                 "X-Correlation-Id"?: string;
             };
@@ -2704,6 +2768,8 @@ export interface operations {
                     "application/json": components["schemas"]["GuestResolutionResult"];
                 };
             };
+            400: components["responses"]["AttendanceDeclarationError"];
+            409: components["responses"]["AttendanceCompatibilityRequired"];
             default: components["responses"]["AuthError"];
         };
     };
@@ -2711,6 +2777,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description Missing means three-state-v1. Compatibility information only, never authorization or binary attestation. late-v1 is reserved and unsupported. Empty, list-valued or observable duplicate values are invalid. */
+                "X-MSprout-Attendance-Reader"?: components["parameters"]["AttendanceReader"];
                 "X-Church-Id": string;
                 "X-Correlation-Id"?: string;
             };
@@ -2739,6 +2807,8 @@ export interface operations {
                     "application/json": components["schemas"]["GuestResolutionResult"];
                 };
             };
+            400: components["responses"]["AttendanceDeclarationError"];
+            409: components["responses"]["AttendanceCompatibilityRequired"];
             default: components["responses"]["AuthError"];
         };
     };
@@ -2746,6 +2816,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description Missing means three-state-v1. Compatibility information only, never authorization or binary attestation. late-v1 is reserved and unsupported. Empty, list-valued or observable duplicate values are invalid. */
+                "X-MSprout-Attendance-Reader"?: components["parameters"]["AttendanceReader"];
                 "X-Church-Id": string;
                 "X-Correlation-Id"?: string;
             };
@@ -2774,6 +2846,8 @@ export interface operations {
                     "application/json": components["schemas"]["GuestResolutionResult"];
                 };
             };
+            400: components["responses"]["AttendanceDeclarationError"];
+            409: components["responses"]["AttendanceCompatibilityRequired"];
             default: components["responses"]["AuthError"];
         };
     };

@@ -1,5 +1,11 @@
 # Architecture
 
+## COMPAT-01 B3 approved implementation boundaries — 2026-10-16
+
+The [approved B3 implementation](../docs/qa/compat-01-b3-server-compatibility.md) adds an attendance-specific compatibility policy and dedicated HTTP exception, without a registry, general API version, schema or lease-format change. Authorized pull representations are checked before a domain transaction commits served cursor/lease effects; upload compatibility preflight and fresh-event processing share an explicit domain transaction under existing locks. Existing receipts bypass fresh-target inspection and retain actor/hash protections. Owner mutations guard the session before writes. Reports lock/freeze the entire authorized contributing session set before compatibility checks and computation; CSV refusal precedes success audit/streaming.
+
+This records validated implementation; publication and hosted evidence resolve through CURRENT_STATE and the exact task commit/receipts. Compatibility information never grants authority. Server progress still means served/scanned, not durable client acknowledgment; bootstrap/retention and installed upgrades remain B4/B5 concerns. Existing crypto, IndexedDB, event identity, three-state domain, RLS, authorization and worker policy remain unchanged.
+
 ## Verified shared presentation and PWA boundary — 2026-10-12
 
 One existing token/primitives system governs cross-pack presentation. A shared Church/public/Platform update projection consumes the existing unsafe-local-work checker, coalesces deliberate actions and fails closed on storage/activation errors without protected metadata. Production static precache includes manifest and retained SVGs; API/auth/Platform/CSRF/health roots, queries and encoded/normalized variants cannot become navigation-shell successes. Count-only push content and server/session/offline contracts are unchanged. Existing artwork remains exact and maskable/A2/native-brand qualification stays separate. [UI-15 evidence](../docs/qa/ui-15-consistency-pwa-branding-verification.md).

@@ -7,6 +7,7 @@ import { offlineDatabase } from '../../offline/db'
 import type { ProfileRecord } from '../../offline/schema'
 import type { SyncSummary } from '../../sync/sync-client'
 import { SyncDownloadError } from '../../sync/pull-validation'
+import { attendanceMessage } from '../../api/attendance-compatibility'
 import { accountEntry } from '../auth/account-session'
 import { authRequest } from '../auth/transport'
 import { readPreparationAccess } from '../device-profiles/preparation-access'
@@ -44,6 +45,7 @@ export function SyncScreen({ store = profileStore, recovery = syncRecovery, stat
   const [status, setStatus] = useState<SyncStatus>(unknownSyncStatus)
   const [serverReview, setServerReview] = useState<boolean | null>(null)
   const [pin, setPin] = useState(''), [pinError, setPinError] = useState(''), [error, setError] = useState('')
+  const [compatibilityFeedback, setCompatibilityFeedback] = useState<string | null>(null)
   const [message, setMessage] = useState(''), [busy, setBusy] = useState(false)
   const [action, setAction] = useState<'verify' | 'unlock' | 'sync' | 'status' | null>(null)
   const [interrupted, setInterrupted] = useState(false)
@@ -266,10 +268,12 @@ export function SyncScreen({ store = profileStore, recovery = syncRecovery, stat
           if (!current()) return
           setStatus(value)
         }
+        const compatibility = action === 'sync' ? attendanceMessage(cause) : null
+        setCompatibilityFeedback(compatibility)
         setError(action === 'sync'
-          ? cause instanceof SyncDownloadError
+          ? compatibility ?? (cause instanceof SyncDownloadError
             ? 'Downloading could not be completed safely. Saved local work remains protected. Previously acknowledged uploads remain accepted. Retry with this existing profile; keep browser storage if the problem continues.'
-            : 'Synchronization incomplete. Uploaded changes may already be accepted. Verify account access and retry with this existing profile to finish downloads; accepted events will not be recreated.'
+            : 'Synchronization incomplete. Uploaded changes may already be accepted. Verify account access and retry with this existing profile to finish downloads; accepted events will not be recreated.')
           : 'Account access or unlock could not be verified. Keep this profile and browser storage. Check the same account and existing local PIN, then retry.')
         setMessage('')
       }
@@ -316,7 +320,7 @@ export function SyncScreen({ store = profileStore, recovery = syncRecovery, stat
     : visible.pending !== null && visible.pending > 0 ? 'Saved locally; these changes are waiting to upload. Locally finalized attendance is not yet server accepted.'
     : visible.pending === 0 && visible.downloads === 'incomplete' ? 'Your uploads are finished. Continue downloading changes before synchronization is complete.'
     : 'Zero queued uploads alone does not confirm that all downloads were applied.'
-  return <section ref={screen} className="sync-screen" aria-labelledby="sync-title">
+  return <section ref={screen} className="sync-screen" aria-labelledby="sync-title" data-compatibility-refusal={!!error && error === compatibilityFeedback || undefined}>
     <div className="sync-heading"><h1 id="sync-title">Sync &amp; device</h1><p>Saved locally is separate from synchronized.</p></div>
     {!loaded ? <StatusBanner live>Checking existing device profiles…</StatusBanner> : !profiles.length ? <div className="sync-panel"><h2>No device profile available</h2><p>Prepare an encrypted profile after verifying your church access.</p><a href="/account/prepare">Prepare this device</a></div> : <div className="sync-panel">
       <div className="sync-profile-row"><label className="sync-profile-choice"><span className="sr-only">Existing device profile</span><select value={selected} disabled={busy} onChange={event => select(event.target.value)}>{profiles.map((item, index) => <option value={item.id} key={item.id}>Profile {index + 1}</option>)}</select></label><section className="sync-unlock-state"><h3 className="sr-only">Profile unlock</h3><p>{unlocked ? 'Unlocked on this device — authorization checked separately' : 'Locked — encrypted work retained'}</p></section></div>

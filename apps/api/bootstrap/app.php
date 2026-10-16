@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Attendance\AttendanceCompatibilityException;
 use App\Domain\Audit\CorrelationContext;
 use App\Http\Middleware\AuditAuthentication;
 use App\Http\Middleware\AuthResponseHeaders;
@@ -112,6 +113,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 429 => ['rate_limited', 'Too many requests. Please try again later.'],
                 default => ['internal_error', 'An unexpected server error occurred.'],
             };
+
+            if ($exception instanceof AttendanceCompatibilityException) {
+                $code = $exception->errorCode;
+                $message = $exception->getMessage();
+            }
 
             $correlationId = $request->header('X-Correlation-Id');
             $correlationId = Str::isUuid($correlationId) ? $correlationId : (string) Str::uuid();

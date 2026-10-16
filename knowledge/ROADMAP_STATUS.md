@@ -1,5 +1,17 @@
 # Roadmap Status
 
+## COMPAT-01 B3 — stakeholder accepted, controlled publication milestone — 2026-10-16
+
+Architecture, implementation and final mobile/desktop/tablet visuals are explicitly accepted. The stakeholder authorizes only the reviewed34 paths (24 modified/ten new), one `feat: add safe attendance compatibility guards B3` commit after B2 `b08c6eea7f9e8fa976456f42ac70c2887b488a11`, and normal `origin/feat/mvp-foundation` push after final safety checks. [Exact inventory, local qualifications, failure closures and limits](../docs/qa/compat-01-b3-server-compatibility.md). Actual SHA, synchronization/preservation and exact-SHA hosted Web/API/Security results resolve through Git and `.git/msprout-compat-b3-20261016/publication-20261016/{commit,final,hosted}.json`. Local acceptance is not hosted GREEN; a failed hosted requirement preserves the commit and stops without an automatic corrective commit.
+
+B1/B2 remain preserved. **B3 is an internal COMPAT-01 checkpoint, not completion of COMPAT-01. STOP after B3 publication/hosted qualification.** B4 cursor/retention/bootstrap recovery, B5 installed transitions, B6 final review, Late and Pack06 remain untouched and require separate authorization. Installed handoff, retention recovery and actual Late persistence remain NOT TESTED. Earlier hold/status entries below retain their dated historical scope.
+
+## COMPAT-01 B3 — bounded implementation authorized; finalization held — 2026-10-16
+
+B1/B2 remain GREEN; predecessor B2 `b08c6eea7f9e8fa976456f42ac70c2887b488a11`. Stakeholder accepts B3 technical qualification and desktop/tablet presentation, but **holds mobile visual approval**. The separately authorized targeted Sync-refusal follow-up adds only the existing Sync stylesheet to the inventory: **34 paths,24 modified/ten new**. [Exact inventory, initial evidence, mobile correction and limits](../docs/qa/compat-01-b3-server-compatibility.md). Current layout20/20, original focus regressions6/6, component25/25, build/types/lint and focused security qualify the corrected presentation. Original API339/3,769, frontend/contract closures, PWA8 and unaffected gates are retained by effect with failures disclosed. B3 remains unstaged/uncommitted/unpushed; hosted checks NOT RUN. Mobile visual approval and separate finalization authorization remain required; no reviewed file count authorizes staging or GREEN delivery.
+
+No B4 acknowledgment/retention/bootstrap recovery, B5 installed transition, B6 final qualification, ATT-LATE-01 or Pack06 implementation. Late domain/counting/guest/bulk/color/activation/restart decisions are not approved by this task. Separate B3 finalization authorization is required before staging, commit or push.
+
 ## 2026-10-16 — COMPAT-01 B2 accepted and authorized for controlled finalization
 
 Stakeholder accepts B2 reader/preservation behavior and actual desktop/tablet/phone recovery visuals. Exact19 paths (12 modified/seven new), subject **`fix: reject unsupported synchronization pages safely B2`**, parent B1 `1cd96b31b50d0b61c2bc96f3178f2f2821b45367`, existing `feat/mvp-foundation` branch. [Accepted scope, full validation and preserved failed-attempt ledger](../docs/qa/compat-01-b2-reader-validation.md). Actual SHA/manifest/publication resolve through Git and ignored `.git/msprout-compat-b2-20261016/publication-20261016/commit.json`/`final.json`; exact-SHA Web/API/Security outcomes through `hosted.json`. Pending at commit preparation is not passed; B2 GREEN requires all required hosted successes and Git synchronization.

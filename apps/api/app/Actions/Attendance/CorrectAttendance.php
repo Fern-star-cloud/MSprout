@@ -2,6 +2,7 @@
 
 namespace App\Actions\Attendance;
 
+use App\Domain\Attendance\AttendanceCompatibility;
 use App\Domain\Attendance\PublishAttendanceChange;
 use App\Domain\Audit\AuditEntry;
 use App\Domain\Audit\AuditWriter;
@@ -36,6 +37,7 @@ final class CorrectAttendance
             $churchId = app(TenantContext::class)->churchId();
             DB::selectOne('SELECT pg_advisory_xact_lock(hashtextextended(?, 0))', ['record:'.$sessionId]);
             $session = AttendanceSession::query()->where('church_id', $churchId)->lockForUpdate()->findOrFail($sessionId);
+            app(AttendanceCompatibility::class)->session($session);
             if (! in_array($session->status, [AttendanceSessionStatus::Finalized, AttendanceSessionStatus::Revised], true)) {
                 throw new DomainException('Only finalized attendance can be corrected.');
             }

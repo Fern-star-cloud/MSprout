@@ -2,6 +2,7 @@
 
 namespace App\Actions\Attendance;
 
+use App\Domain\Attendance\AttendanceCompatibility;
 use App\Domain\Attendance\PublishAttendanceChange;
 use App\Domain\Audit\AuditEntry;
 use App\Domain\Audit\AuditWriter;
@@ -38,6 +39,8 @@ final class ResolveConflict
             }
             $record = AttendanceRecord::query()->where('church_id', $churchId)->lockForUpdate()->findOrFail($conflict->attendance_record_id);
             $session = AttendanceSession::query()->where('church_id', $churchId)->lockForUpdate()->findOrFail($conflict->attendance_session_id);
+            app(AttendanceCompatibility::class)->conflict($conflict);
+            app(AttendanceCompatibility::class)->session($session);
             $before = $this->effectiveState($record);
             $after = (string) $conflict->{$choice.'_value'}['state'];
             $revision = AttendanceRevision::create([

@@ -3,6 +3,7 @@
 namespace App\Actions\Guests;
 
 use App\Actions\Students\NormalizeStudentInput;
+use App\Domain\Attendance\AttendanceCompatibility;
 use App\Domain\Attendance\PublishAttendanceChange;
 use App\Domain\Audit\AuditEntry;
 use App\Domain\Audit\AuditWriter;
@@ -44,6 +45,7 @@ final class ResolveAttendanceGuest
                 throw new DomainException('This guest is no longer pending.');
             }
             $session = AttendanceSession::query()->where('church_id', $churchId)->lockForUpdate()->findOrFail($guest->attendance_session_id);
+            app(AttendanceCompatibility::class)->session($session);
 
             if ($resolution === 'merge') {
                 $targetId = $input['guest_id'] ?? null;

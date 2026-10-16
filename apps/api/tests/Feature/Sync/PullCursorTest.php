@@ -28,16 +28,18 @@ function grantPullDevice(string $membershipId, string $churchId, string $deviceI
 
 function feedEntry(object $test, string $ministryId, string $action = 'upsert', ?string $membershipId = null): int
 {
+    $entityId = (string) Str::uuid();
+
     return (int) DB::connection('pgsql_migration')->table('change_feed')->insertGetId([
         'id' => (string) Str::uuid(),
         'church_id' => $test->church->id,
         'ministry_id' => $ministryId,
         'target_membership_id' => $membershipId,
         'entity_type' => $membershipId ? 'ministry_assignment' : 'attendance_session',
-        'entity_id' => (string) Str::uuid(),
+        'entity_id' => $entityId,
         'entity_version' => 1,
         'action' => $action,
-        'payload_json' => json_encode($membershipId ? ['ministry_id' => $ministryId] : ['status' => 'draft', 'records' => []], JSON_THROW_ON_ERROR),
+        'payload_json' => json_encode($membershipId ? ['ministry_id' => $ministryId] : ['id' => $entityId, 'ministry_id' => $ministryId, 'attendance_date' => now()->toDateString(), 'version' => 1, 'status' => 'draft', 'records' => [], 'guests' => []], JSON_THROW_ON_ERROR),
         'created_at' => now(),
     ], 'sequence');
 }

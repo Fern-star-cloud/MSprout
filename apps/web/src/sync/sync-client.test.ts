@@ -67,6 +67,21 @@ describe('profile synchronization client', () => {
 
   afterEach(async () => { await db.delete(); vi.useRealTimers() })
 
+  it.each(['attendance_compatibility_required', 'full_bootstrap_required'])('preserves pending identities and cursor on typed %s without retry or authentication invalidation', async code => {
+    const events = await db.outboxEvents.toArray()
+    const cursor = await db.serverCursors.toArray()
+    const original = (await db.profiles.get(profileId))!
+    const fetcher = vi.fn(async () => Response.json({ code, message: 'Untrusted payload', correlation_id: deviceId }, { status: 409 }))
+    const client = new SyncClient(db, codec, { fetcher })
+    await expect(client.syncProfile(profileId)).rejects.toMatchObject({ code, status: 409 })
+    expect(fetcher).toHaveBeenCalledTimes(1)
+    expect((fetcher.mock.calls[0] as unknown as [string, RequestInit])[1].headers).toMatchObject({ 'X-MSprout-Attendance-Reader': 'three-state-v1' })
+    expect(await db.outboxEvents.toArray()).toEqual(events)
+    expect(await db.serverCursors.toArray()).toEqual(cursor)
+    expect(await db.conflicts.count()).toBe(0)
+    expect(await db.profiles.get(profileId)).toEqual({ ...original, syncNeedsPull: true })
+  })
+
   it('refuses an unsupported state even without a local draft, without applying the cursor or lease', async () => {
     await db.outboxEvents.clear()
     const fetcher = vi.fn(async () => Response.json({

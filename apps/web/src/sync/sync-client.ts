@@ -4,6 +4,7 @@ import { assertLeaseMatchesProfile } from '../offline/lease'
 import { profileStore } from '../offline/profile-store'
 import type { AttendanceDraft, LocalAttendanceEvent } from '../features/attendance/domain'
 import { ProfileOutbox, type OutboxCodec, type SyncEventResult } from './outbox'
+import { attendanceError, attendanceReaderHeaders } from '../api/attendance-compatibility'
 import { SyncDownloadError, validatePullPage, type PullPage } from './pull-validation'
 
 export interface SyncProfileAccess extends OutboxCodec {
@@ -174,6 +175,7 @@ export class SyncClient {
           redirect: 'error',
           headers: {
             Accept: 'application/json',
+            ...attendanceReaderHeaders(url),
             'X-Church-Id': profile.churchId!,
             ...(csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {}),
             ...init.headers,
@@ -192,6 +194,8 @@ export class SyncClient {
           throw new Error('Authenticate online as this profile before synchronizing.')
         }
         if (!response.ok) {
+          const compatibility = attendanceError(await response.json().catch(() => undefined), response.status)
+          if (compatibility) throw compatibility
           if (response.status !== 429 && response.status < 500) throw new Error('Synchronization was rejected by the server.')
           throw new RetryableSyncError()
         }
