@@ -1,5 +1,5 @@
 import { expect, test, type Page, type BrowserContext, type Locator } from '@playwright/test'
-import { bootstrap, churchId, ministryId, json, mockCsrf, prepareProfile, addProfile, outboxCount, expectNoSeriousAccessibilityIssues } from './support'
+import { bootstrap, churchId, ministryId, studentIds, json, mockCsrf, prepareProfile, addProfile, outboxCount, expectNoSeriousAccessibilityIssues } from './support'
 
 // This synthetic API fixture must remain intercepted; service-worker fetches can
 // bypass Playwright routes in WebKit. Offline/SW behavior has its own real-PWA tests.
@@ -366,11 +366,15 @@ test('downloaded needs-review sessions remain visible with no queued or quaranti
   await setup(context)
   await addSavedAttendance(page)
   const original = await records(page), draftId = original.attendanceDrafts[0].id
+  const attendanceDate = await page.getByLabel('Attendance date', { exact: true }).inputValue()
   await context.route('**/api/sync/push', route => {
     const events = (route.request().postDataJSON() as { events: Array<{ client_event_id: string }> }).events
     return json(route, { results: events.map(event => ({ ...event, status: 'accepted', version: 1 })) })
   })
-  await context.route('**/api/sync/pull**', route => json(route, { changes: [{ sequence: '4', entity_type: 'attendance_session', entity_id: draftId, version: 2, action: 'upsert', ministry_id: ministryId, payload: { records: [], status: 'needs_review' } }], page: { next_cursor: '4', has_more: false }, lease: bootstrap('11', undefined, route.request().headers()['x-device-id']).lease }))
+  await context.route('**/api/sync/pull**', route => json(route, { changes: [{ sequence: '4', entity_type: 'attendance_session', entity_id: draftId, version: 2, action: 'upsert', ministry_id: ministryId,
+    payload: { id: draftId, ministry_id: ministryId, attendance_date: attendanceDate, version: 2, status: 'needs_review', guests: [],
+      records: studentIds.map((id, index) => ({ id: `00000000-0000-4000-8000-00000000040${index}`, student_id: id, state: index === 0 ? 'present' : 'unmarked', version: 1 })) },
+  }], page: { next_cursor: '4', has_more: false }, lease: bootstrap('11', undefined, route.request().headers()['x-device-id']).lease }))
   await openAndUnlock(page); await page.getByRole('button', { name: 'Continue synchronization' }).click()
   await expect(page.getByRole('heading', { name: 'Transfers complete — review remains' })).toBeVisible()
   await expect(page.getByText('1 downloaded session needs review')).toBeVisible()

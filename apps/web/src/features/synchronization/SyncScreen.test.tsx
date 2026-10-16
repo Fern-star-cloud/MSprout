@@ -6,6 +6,7 @@ import { ApiError } from '../../api/client'
 import { ProfilePinError, type LocalProfileStore } from '../../offline/profile-store'
 import type { ProfileRecord } from '../../offline/schema'
 import { SyncScreen } from './SyncScreen'
+import { SyncDownloadError } from '../../sync/pull-validation'
 import { readPreparationAccess } from '../device-profiles/preparation-access'
 import { authRequest } from '../auth/transport'
 
@@ -193,6 +194,19 @@ it('reports uncertain accepted outcomes and preserves retry after a lost respons
   await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false)); fireEvent.click(button)
   await screen.findByText(/Uploaded changes may already be accepted/)
   expect(screen.queryByText('2 server accepted')).toBeNull()
+  expect(screen.queryByRole('heading', { name: 'Synchronization complete' })).toBeNull()
+})
+it('explains a refused download without declaring authentication failure or losing retry', async () => {
+  const f = fixture(); f.recovery.continue.mockRejectedValue(new SyncDownloadError())
+  render(<SyncScreen {...f} />)
+  const button = await screen.findByRole('button', { name: 'Continue synchronization' })
+  await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false)); fireEvent.click(button)
+  const error = await screen.findByRole('alert')
+  expect(error.textContent).toContain('Downloading could not be completed safely.')
+  expect(error.textContent).toContain('Saved local work remains protected.')
+  expect(error.textContent).toContain('Previously acknowledged uploads remain accepted.')
+  expect((button as HTMLButtonElement).disabled).toBe(false)
+  expect(f.store.lockProfile).not.toHaveBeenCalled()
   expect(screen.queryByRole('heading', { name: 'Synchronization complete' })).toBeNull()
 })
 it('clears protected counts and late success when the profile locks during synchronization', async () => {

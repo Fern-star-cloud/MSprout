@@ -1,9 +1,10 @@
-import type { EncryptedEnvelope, OfflineLease, ProfileRecord } from '../offline/schema'
+import type { EncryptedEnvelope, ProfileRecord } from '../offline/schema'
 import { offlineDatabase, type OfflineDatabase } from '../offline/db'
 import { assertLeaseMatchesProfile } from '../offline/lease'
 import { profileStore } from '../offline/profile-store'
-import type { AttendanceDraft, AttendanceState, LocalAttendanceEvent } from '../features/attendance/domain'
+import type { AttendanceDraft, LocalAttendanceEvent } from '../features/attendance/domain'
 import { ProfileOutbox, type OutboxCodec, type SyncEventResult } from './outbox'
+import { SyncDownloadError, validatePullPage, type PullPage } from './pull-validation'
 
 export interface SyncProfileAccess extends OutboxCodec {
   isUnlocked(profileId: string): boolean
@@ -20,22 +21,7 @@ export interface SyncSummary {
   nextCursor: string
 }
 
-interface SyncChange {
-  sequence: string
-  entity_type: 'attendance_session' | 'ministry_assignment'
-  entity_id: string
-  version: number
-  action: 'upsert' | 'tombstone'
-  ministry_id: string | null
-  payload: Record<string, unknown> | null
-}
-
 interface PushResponse { results: SyncEventResult[] }
-interface PullResponse {
-  changes: SyncChange[]
-  page: { next_cursor: string; has_more: boolean }
-  lease: OfflineLease
-}
 
 interface ClientOptions {
   fetcher?: typeof fetch
@@ -52,10 +38,6 @@ const defaultAccess: SyncProfileAccess = {
   authorizationRenewed: async (profileId) => { await profileStore.readEncryptedAuthorization(profileId) },
   encrypt: (profileId, purpose, value) => profileStore.encryptLocalPayload(profileId, purpose, value),
   decrypt: (profileId, purpose, envelope) => profileStore.decryptLocalPayload(profileId, purpose, envelope),
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 export class SyncClient {
@@ -145,11 +127,11 @@ export class SyncClient {
     let cursor = (await this.db.serverCursors.get(profileId))?.cursor ?? '0'
     let hasMore: boolean
     do {
-      const response = await this.request<PullResponse>(`/api/sync/pull?cursor=${encodeURIComponent(cursor)}&limit=100`, profile, {
+      const data = await this.request<unknown>(`/api/sync/pull?cursor=${encodeURIComponent(cursor)}&limit=100`, profile, {
         method: 'GET',
         headers: { 'X-Device-Id': profile.deviceId },
       }, assertAccess)
-      this.validatePull(response, cursor)
+      const response = validatePullPage(data, cursor, profile, this.now())
       await this.applyPull(profile, response, assertAccess, assertUnlocked)
       summary.pulled += response.changes.length
       cursor = response.page.next_cursor
@@ -241,26 +223,13 @@ export class SyncClient {
     return read()
   }
 
-  private validatePull(response: PullResponse, previousCursor: string): void {
-    if (!Array.isArray(response.changes) || !isObject(response.page) || typeof response.page.next_cursor !== 'string'
-      || typeof response.page.has_more !== 'boolean' || !/^\d+$/.test(response.page.next_cursor)
-      || BigInt(response.page.next_cursor) < BigInt(previousCursor) || !isObject(response.lease)) {
-      throw new Error('The synchronization pull response is invalid.')
-    }
-    let sequence = BigInt(previousCursor)
-    for (const change of response.changes) {
-      if (!/^\d+$/.test(change.sequence) || BigInt(change.sequence) <= sequence) throw new Error('Synchronization changes are not ordered.')
-      sequence = BigInt(change.sequence)
-    }
-    if (sequence > BigInt(response.page.next_cursor)) throw new Error('The synchronization cursor precedes a returned change.')
-    if (response.page.has_more && BigInt(response.page.next_cursor) === BigInt(previousCursor)) {
-      throw new Error('The synchronization cursor must advance when more pages remain.')
-    }
-  }
-
-  private async applyPull(profile: ProfileRecord, response: PullResponse, assertAccess: () => Promise<void>, assertUnlocked: () => void): Promise<void> {
+  private async applyPull(profile: ProfileRecord, response: PullPage, assertAccess: () => Promise<void>, assertUnlocked: () => void): Promise<void> {
     await assertAccess()
     assertLeaseMatchesProfile(profile, response.lease)
+    const assertPageCurrent = () => {
+      assertUnlocked()
+      if (Date.parse(response.lease.expires_at) <= this.now().getTime()) throw new SyncDownloadError('The returned offline authorization has expired.')
+    }
     const now = this.now().toISOString()
     const draftPuts: Array<{ profileId: string; id: string; encrypted: EncryptedEnvelope; updatedAt: string }> = []
     const draftDeletes: Array<[string, string]> = []
@@ -274,31 +243,28 @@ export class SyncClient {
     for (const change of response.changes) {
       if (change.entity_type === 'attendance_session' && change.action === 'upsert') {
         const stored = await this.db.attendanceDrafts.get([profile.id, change.entity_id])
-        if (!stored || !isObject(change.payload) || !Array.isArray(change.payload.records)) continue
+        if (!stored) continue // Semantic validation already covered unmaterialized sessions.
         const draft = await this.access.decrypt<AttendanceDraft>(profile.id, `attendance-draft:${change.entity_id}`, stored.encrypted)
-        const states = new Map((change.payload.records as Array<Record<string, unknown>>).map(record => [record.student_id, record.state]))
+        if (draft.id !== change.entity_id || draft.profileId !== profile.id || draft.churchId !== profile.churchId
+          || draft.ministryId !== change.ministry_id || draft.attendanceDate !== change.payload.attendance_date) throw new SyncDownloadError('The saved session binding could not be verified.')
+        const states = new Map(change.payload.records.map(record => [record.student_id, record.state]))
+        // Guest promotion can legitimately add server records outside the
+        // original local roster. Validate every record but retain that projection.
+        if (draft.entries.some(entry => !states.has(entry.studentId))) {
+          throw new SyncDownloadError('The saved roster could not be reconciled with this page.')
+        }
         for (const entry of draft.entries) {
           const state = states.get(entry.studentId)
-          if (state === 'unmarked' || state === 'present' || state === 'absent') entry.state = state as AttendanceState
+          if (state !== undefined) entry.state = state
         }
-        if (Array.isArray(change.payload.guests)) {
-          draft.guests = (change.payload.guests as Array<Record<string, unknown>>).flatMap((guest) => {
-            if (typeof guest.id !== 'string' || typeof guest.display_name !== 'string'
-              || !['male', 'female', 'unspecified'].includes(String(guest.gender))
-              || !['pending', 'promoted', 'linked', 'merged'].includes(String(guest.status))) return []
-            return [{
-              id: guest.id,
-              displayName: guest.display_name,
-              gender: guest.gender as 'male' | 'female' | 'unspecified',
-              state: 'present' as const,
-              status: guest.status as 'pending' | 'promoted' | 'linked' | 'merged',
-            }]
-          })
-        } else {
-          draft.guests ??= []
-        }
-        const status = change.payload.status
-        if (status === 'draft' || status === 'finalized' || status === 'needs_review' || status === 'revised') draft.status = status
+        draft.guests = change.payload.guests.map(guest => ({
+          id: guest.id,
+          displayName: guest.display_name,
+          gender: guest.gender,
+          state: guest.state,
+          status: guest.status,
+        }))
+        draft.status = change.payload.status
         draft.version = change.version
         draft.updatedAt = now
         draftPuts.push({
@@ -343,7 +309,7 @@ export class SyncClient {
     await this.db.writeForProfile(profile.id, [this.db.encryptedBlobs, this.db.attendanceDrafts, this.db.outboxEvents, this.db.conflicts, this.db.serverCursors], async () => {
       // Crypto/lease checks completed before the transaction; check the key remains
       // present without introducing crypto waits into the IndexedDB transaction.
-      assertUnlocked()
+      assertPageCurrent()
       if (draftPuts.length > 0) await this.db.attendanceDrafts.bulkPut(draftPuts)
       if (draftDeletes.length > 0) await this.db.attendanceDrafts.bulkDelete(draftDeletes)
       if (outboxDeletes.length > 0) await this.db.outboxEvents.bulkDelete(outboxDeletes)
@@ -357,7 +323,7 @@ export class SyncClient {
         leaseSignature: response.lease.signature,
         requiresReauthentication: false,
       })
-      assertUnlocked()
+      assertPageCurrent()
     })
     await this.access.authorizationRenewed?.(profile.id)
   }

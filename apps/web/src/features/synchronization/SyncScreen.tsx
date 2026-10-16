@@ -6,6 +6,7 @@ import { ProfilePinError, profileStore, type LocalProfileStore } from '../../off
 import { offlineDatabase } from '../../offline/db'
 import type { ProfileRecord } from '../../offline/schema'
 import type { SyncSummary } from '../../sync/sync-client'
+import { SyncDownloadError } from '../../sync/pull-validation'
 import { accountEntry } from '../auth/account-session'
 import { authRequest } from '../auth/transport'
 import { readPreparationAccess } from '../device-profiles/preparation-access'
@@ -266,7 +267,9 @@ export function SyncScreen({ store = profileStore, recovery = syncRecovery, stat
           setStatus(value)
         }
         setError(action === 'sync'
-          ? 'Synchronization incomplete. Uploaded changes may already be accepted. Verify account access and retry with this existing profile to finish downloads; accepted events will not be recreated.'
+          ? cause instanceof SyncDownloadError
+            ? 'Downloading could not be completed safely. Saved local work remains protected. Previously acknowledged uploads remain accepted. Retry with this existing profile; keep browser storage if the problem continues.'
+            : 'Synchronization incomplete. Uploaded changes may already be accepted. Verify account access and retry with this existing profile to finish downloads; accepted events will not be recreated.'
           : 'Account access or unlock could not be verified. Keep this profile and browser storage. Check the same account and existing local PIN, then retry.')
         setMessage('')
       }

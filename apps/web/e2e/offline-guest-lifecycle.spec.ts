@@ -93,7 +93,7 @@ test('a hidden page locks the key, clears stale attendance controls, and preserv
   if (!await page.getByLabel('Local PIN', { exact: true }).count()) await page.getByRole('button', { name: 'Use profile 1' }).click()
   await page.getByLabel('Local PIN', { exact: true }).fill('184629')
   await expect(page.getByLabel('Local PIN', { exact: true })).toHaveAttribute('type', 'password')
-  await page.getByRole('button', { name: 'Use profile 1' }).click()
+  await page.getByRole('button', { name: 'Unlock Profile 1', exact: true }).click()
   await page.getByRole('button', { name: 'Resume attendance' }).click()
   await expect(page.getByText(/1 pending/)).toBeVisible()
   await page.getByRole('button', { name: 'Add temporary guest' }).click()

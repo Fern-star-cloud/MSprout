@@ -37,6 +37,9 @@ describe('profile synchronization client', () => {
   let eventIds: string[]
 
   beforeEach(async () => {
+    // Keep the original fourteen-day lease fixture meaningful as calendar time moves.
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-09-29T00:00:00Z'))
     db = createOfflineDatabase(`sync-${crypto.randomUUID()}`)
     const profile: ProfileRecord = {
       id: profileId, actorId, churchId, deviceId, createdAt: '2026-09-29T00:00:00Z',
@@ -62,7 +65,23 @@ describe('profile synchronization client', () => {
     }
   })
 
-  afterEach(async () => { await db.delete() })
+  afterEach(async () => { await db.delete(); vi.useRealTimers() })
+
+  it('refuses an unsupported state even without a local draft, without applying the cursor or lease', async () => {
+    await db.outboxEvents.clear()
+    const fetcher = vi.fn(async () => Response.json({
+      changes: [{ sequence: '4', entity_type: 'attendance_session', entity_id: '00000000-0000-4000-8000-000000000200',
+        version: 2, action: 'upsert', ministry_id: '00000000-0000-4000-8000-000000000300',
+        payload: { id: '00000000-0000-4000-8000-000000000200', ministry_id: '00000000-0000-4000-8000-000000000300',
+          attendance_date: '2026-09-29', status: 'draft', version: 2, guests: [], records: [{
+            id: '00000000-0000-4000-8000-000000000400', student_id: '00000000-0000-4000-8000-000000000500', state: 'late', version: 1,
+          }] } }], page: { next_cursor: '4', has_more: false }, lease: lease(),
+    }))
+    await expect(new SyncClient(db, codec, { fetcher }).syncProfile(profileId)).rejects.toThrow('safely')
+    expect((await db.serverCursors.get(profileId))?.cursor).toBe('0')
+    expect(await db.encryptedBlobs.get([profileId, 'authorization'])).toBeUndefined()
+    expect((await db.profiles.get(profileId))?.syncNeedsPull).toBe(true)
+  })
 
   it('reconciles a lost accepted response using the same events and never recreates acknowledged work', async () => {
     const accepted = new Set<string>()
@@ -249,7 +268,8 @@ describe('profile synchronization client', () => {
         changes: [{
           sequence: '1', entity_type: 'attendance_session', entity_id: sessionId, version: 3,
           action: 'upsert', ministry_id: draft.ministryId,
-          payload: { status: 'draft', records: [], guests: [{
+          payload: { id: sessionId, ministry_id: draft.ministryId, attendance_date: draft.attendanceDate,
+            version: 3, status: 'draft', records: [], guests: [{
             id: guestId, display_name: 'Guest Child', gender: 'female', state: 'present', status: 'linked',
             resolved_student_id: '00000000-0000-4000-8000-000000000600', merged_into_guest_id: null,
           }] },

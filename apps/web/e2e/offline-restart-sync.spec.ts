@@ -62,7 +62,7 @@ test('offline attendance survives browser closure and converges exactly once aft
   await context.setOffline(true)
   if (!await reopened.getByLabel('Local PIN', { exact: true }).count()) await reopened.getByRole('button', { name: 'Use profile 1' }).click()
   await reopened.getByLabel('Local PIN').fill('184629')
-  await reopened.getByRole('button', { name: 'Use profile 1' }).click()
+  await reopened.getByRole('button', { name: 'Unlock Profile 1', exact: true }).click()
   await reopened.getByRole('button', { name: 'Resume attendance' }).click()
   await expect(reopened.getByText(/Pending Sync/)).toBeVisible()
   expect(await outboxCount(reopened)).toBe(12)

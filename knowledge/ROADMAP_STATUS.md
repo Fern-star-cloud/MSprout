@@ -1,5 +1,23 @@
 # Roadmap Status
 
+## 2026-10-16 — COMPAT-01 B2 accepted and authorized for controlled finalization
+
+Stakeholder accepts B2 reader/preservation behavior and actual desktop/tablet/phone recovery visuals. Exact19 paths (12 modified/seven new), subject **`fix: reject unsupported synchronization pages safely B2`**, parent B1 `1cd96b31b50d0b61c2bc96f3178f2f2821b45367`, existing `feat/mvp-foundation` branch. [Accepted scope, full validation and preserved failed-attempt ledger](../docs/qa/compat-01-b2-reader-validation.md). Actual SHA/manifest/publication resolve through Git and ignored `.git/msprout-compat-b2-20261016/publication-20261016/commit.json`/`final.json`; exact-SHA Web/API/Security outcomes through `hosted.json`. Pending at commit preparation is not passed; B2 GREEN requires all required hosted successes and Git synchronization.
+
+Accepted local results remain808 frontend/81 files,100 focused included,306 API/3,626 assertions,58 browser cases through documented closures,16 distinct reader observations,8 real PWA,4 B1 integrity and applicable type/lint/build/contract/audit/security proof. Finalization updates four approval/status records plus one EOF-only fixture whitespace correction caught by the staged gate; tokens/values/assertions remain unchanged and affected whitespace/lint/secret checks are repeated. Preserve initial failures, raw Windows CRLF limitation and two unchanged parser warnings. The19-path manifest supersedes the inaccurate24-file count.
+
+**STOP after B2**, including a required hosted failure. B2 is defensive unknown-state refusal, not complete Late support or overall COMPAT-01 completion. Genuine installed-client handoff/retention recovery remain **NOT TESTED**; compatibility/error/mutation/cursor/recovery/restart choices remain **PROPOSED**. B3–B6, ATT-LATE-01, Pack06 and production/merge/deployment/data work are not selected. Earlier review-stage holds below remain historical and are superseded only for this separately approved finalization.
+
+## 2026-10-16 — COMPAT-01 B2 selected; unstaged review candidate
+
+B1 predecessor `1cd96b31b50d0b61c2bc96f3178f2f2821b45367` is committed/pushed and exact-SHA Web/API/Security passed. **B2 only** is authorized: complete current-producer pull-page validation, fail-closed atomic application, encrypted original-work/cursor preservation, and accessible truthful refusal/retry. [B2 exact19-path inventory, qualification and remaining proof gaps](../docs/qa/compat-01-b2-reader-validation.md). HEAD remains B1; no B2 publication or hosted result. Mandatory separate review/finalization hold: no staging, commit or push.
+
+B2 technical qualification/final review complete:frontend808, focused100, reader16 distinct build/engine/width observations, real PWA8, B1 integrity4, applicable local/security gates and58 browser regressions through documented focused closures. Initial frontend/API/browser failures and valid closure evidence remain explicit. Zero BLOCKING/SHOULD FIX within B2; exact19 paths remain unstaged for stakeholder review. This is not overall COMPAT-01 completion or GREEN delivery.
+
+Final resumed API aggregate306/3,626 passes in the existing isolated PHP8.3.35 container with unchanged source/assertions; earlier native/mounted failures remain historical evidence. The interruption's24-path count is reconciled to Git's actual19 paths (12 modified/seven new), matching the retained receipt. No B2 finalization authorization is implied.
+
+No B3–B6, Late, UX-09/Pack06 or later task begins. Compatibility declaration/protocol/error policy, mutation/retention/cursor recovery and restart decisions remain PROPOSED; genuine installed-client transitions and retention recovery remain NOT TESTED. B2 does not constitute overall COMPAT-01 completion or a Late-capable release. Historical milestones below remain intact.
+
 ## COMPAT-01 B1 accepted and authorized for controlled finalization — 2026-10-16
 
 Stakeholder approval closes B1 review and authorizes one ten-path commit/push: **test: establish frozen legacy compatibility harness B1**, parent/frozen legacy9c30def911bb59ae02ecfd3fa291607f141b8c68. [Accepted scope and evidence](../docs/qa/compat-01-b1-frozen-legacy-harness.md). Exact commit and post-push Web/API/Security outcomes resolve through Git and ignored `.git/msprout-compat-b1-20261016/publication-20261016/final.json`/`hosted.json`; hosted pending at commit preparation is not a pass. B1 GREEN requires all hosted checks and synchronized Git; it is not overall COMPAT-01 completion.
