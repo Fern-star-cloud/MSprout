@@ -4,6 +4,8 @@ const webkitExecutablePath = process.env.PLAYWRIGHT_WEBKIT_EXECUTABLE_PATH
 
 export default defineConfig({
   testDir: './e2e',
+  // Frozen-build qualification has its own guarded, isolated configuration.
+  testIgnore: '**/compatibility/**',
   fullyParallel: false,
   timeout: 90_000,
   workers: 2,

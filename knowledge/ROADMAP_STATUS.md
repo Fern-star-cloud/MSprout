@@ -1,5 +1,17 @@
 # Roadmap Status
 
+## COMPAT-01 B1 accepted and authorized for controlled finalization — 2026-10-16
+
+Stakeholder approval closes B1 review and authorizes one ten-path commit/push: **test: establish frozen legacy compatibility harness B1**, parent/frozen legacy9c30def911bb59ae02ecfd3fa291607f141b8c68. [Accepted scope and evidence](../docs/qa/compat-01-b1-frozen-legacy-harness.md). Exact commit and post-push Web/API/Security outcomes resolve through Git and ignored `.git/msprout-compat-b1-20261016/publication-20261016/final.json`/`hosted.json`; hosted pending at commit preparation is not a pass. B1 GREEN requires all hosted checks and synchronized Git; it is not overall COMPAT-01 completion.
+
+B2–B6 are not selected. Genuine old/new application interoperability, retention recovery and installed-device qualification remain NOT TESTED. No capability/error protocol, mutation/cursor/recovery design, forced update or Late activation is approved. STOP after B1, including if a required hosted check fails; no automatic second commit or next task. Earlier review holds are preserved history.
+
+## COMPAT-01 B1 selected; unstaged review candidate — 2026-10-16
+
+UX-F3 GREEN predecessor is `9c30def911bb59ae02ecfd3fa291607f141b8c68`. Stakeholder accepts Stage A and selects B1 only: freeze actual committed three-state assets and qualify isolated encrypted-work preservation infrastructure. [B1 evidence and ten-path inventory](../docs/qa/compat-01-b1-frozen-legacy-harness.md) records matching two-build/16-asset hashes, Chrome/native WebKit preservation workflows and explicit proof gaps. Candidate remains unstaged/uncommitted/unpushed; separate B1 finalization authorization is required. No new hosted qualification or production activation.
+
+B2–B6, capability/error protocol, cursor/retention/bootstrap design, forced restart and Late remain unapproved for implementation. Future capable-reader transition, retention recovery and physical installed-device proof are NOT TESTED. No subsequent roadmap task is started. Prior completion records below remain historical evidence.
+
 ## UX-F3 accepted milestone and task stop — 2026-10-16
 
 **Implementation, technical qualification and stakeholder visual acceptance COMPLETE**, including both F3-FINAL-01/F3-FINAL-02; exact17-path controlled finalization separately authorized. Task identity: **feat: unify preparation sync and attendance UX-F3**, parent UX-F2 c09e40f4ec5ec08cf63eb0c509ee17f1d5b17061. [Accepted review, inventory, preserved timing failures and evidence](../docs/qa/ux-f3-device-workflows-review.md). Git and the publication-20261016 receipt resolve the exact commit/push/hosted results; GREEN delivery requires synchronized Git and successful Web/API/Security checks. Earlier holds are preserved history, not current permission limits for this approved candidate.
