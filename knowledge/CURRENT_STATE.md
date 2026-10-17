@@ -1,5 +1,16 @@
 # Current State
 
+## COMPAT-01 B4-P2-1A — isolated foundations; stakeholder review hold — 2026-10-17
+
+**YELLOW: STAKEHOLDER REVIEW REQUIRED.** Published parent is B4-P1 GREEN `739e321124411fc1aee1c4198e4a8faa5295d1b8` on `feat/mvp-foundation`; exact-SHA Web/API/Security passed at publication. Earlier P1 review holds below are historical. Stakeholder conditionally accepted P2-D01–D06 but authorized only P2-1A. [Current foundation report](../docs/qa/compat-01-b4-p2-1a-foundations.md) records the exact12-path unstaged candidate, isolation, constraints, qualification and limits.
+
+One additive migration and an unintegrated FOR NO KEY UPDATE helper provide conservative metadata and storage protections. Existing devices remain unknown; no church baseline is initialized. No existing mutation, retention, contract, client/storage, encryption or worker policy is changed. Fresh guarded PostgreSQL18 qualification:41 focused tests/209 assertions and339 ordinary API tests/3,769 assertions PASS; no database suite targeted protected development. Final security/reference/preservation receipts remain ignored under `.git/msprout-compat-b4-p2-1a-20261016/`. Existing browser work was not opened. The final safeguard refuses both initial and subsequent applied credit against inactive, terminal, deadline-expired or mismatched origins while preserving unchanged historical evidence.
+
+All five B4-P1 recovery defects remain open and its eight failing assertions remain preserved. Helper ordering is not application-wide integration; future caller ordering, maintenance/audit restructuring, snapshot limits/lifetime, actual recovery and installed-client transition remain separately gated. Four hours remains an experimental candidate. **DO NOT stage, commit or push.** No P2-1B/P2-2/P2-3/P2-4, B5/B6, Late, packs, merge or deployment.
+
+RC-01 and RC-02 both reproduced before correction. New device receipt coverage is restricted to unknown, and recorded coverage starts cannot move backward. Focused41/209 and changed-input OWASP27/2 pass; fresh post-RC API aggregate339/3769 also passes. RC evidence and preserved pre-review receipts are under `.git/msprout-compat-b4-p2-1a-20261016/rc-review-20261017/`. The helper remains authenticated-member-only; P2-1B must separately address signed-proof pre-membership invitations, trusted maintenance and existing Owner assurance. No protocol or flow integration is authorized.
+
+
 ## COMPAT-01 B4-P1 — isolated safety proofs; stakeholder review required — 2026-10-16
 
 **YELLOW: STAKEHOLDER REVIEW REQUIRED.** Current committed HEAD remains B3 GREEN `7ace0096d3a8baceaeb698ea47b398a2bbc4ea8f` on `feat/mvp-foundation`. The stakeholder selected B4-P1 test-only execution after approving the recovery direction. [P1 evidence, exact design and boundaries](../docs/qa/compat-01-b4-p1-recovery-safety-design.md). All five baseline defects are reproduced: missing-history false completion; served/unapplied pruning; expired-receipt reclassification; allocation/commit inversion; stale downloaded projection overwriting a newer draft while preserving its original pending event. Chrome155/native WebKit26.6 establish the three client cases; independent restricted-runtime PostgreSQL18 workers establish the server cases. Ordinary attendance edit CAS remains a passing control.

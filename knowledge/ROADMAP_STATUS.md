@@ -1,5 +1,14 @@
 # Roadmap Status
 
+## COMPAT-01 B4-P2-1A — foundation candidate; review required — 2026-10-17
+
+**YELLOW; unstaged/uncommitted/unpushed.** Parent B4-P1 `739e321124411fc1aee1c4198e4a8faa5295d1b8` is published GREEN. Conditional architecture approval selects P2-1A only. [Exact12-path report and safety limits](../docs/qa/compat-01-b4-p2-1a-foundations.md): additive uninitialized metadata, restricted immutable storage and unintegrated church coordination;41/209 focused and339/3769 ordinary API qualification PASS in a separate guarded cluster. Existing production callers and policies remain unchanged.
+
+Overall COMPAT-01 remains incomplete; modernization remains5/15 GREEN(33.3%). The five P1 defects are not repaired. P2-1B integration, maintenance restructuring, later snapshots/client recovery, B5/B6, Late and packs remain unselected. Stop for stakeholder review; separate finalization/publication authorization required. Prior holds below retain their historical scope.
+
+RC-01 and RC-02 both reproduced before correction. New device receipt coverage is restricted to unknown, and recorded coverage starts cannot move backward. Focused41/209 and changed-input OWASP27/2 pass; fresh post-RC API aggregate339/3769 also passes. RC evidence and preserved pre-review receipts are under `.git/msprout-compat-b4-p2-1a-20261016/rc-review-20261017/`. The helper remains authenticated-member-only; P2-1B must separately address signed-proof pre-membership invitations, trusted maintenance and existing Owner assurance. No protocol or flow integration is authorized.
+
+
 ## COMPAT-01 B4-P1 — bounded proofs and proposed implementation design — 2026-10-16
 
 **YELLOW: STAKEHOLDER REVIEW REQUIRED; unstaged/uncommitted/unpushed.** Parent remains B3 `7ace0096d3a8baceaeb698ea47b398a2bbc4ea8f`. [P1 findings, qualification, exact inventory and P2 proposal](../docs/qa/compat-01-b4-p1-recovery-safety-design.md). B4-01 through05 are REPRODUCED in strictly isolated resources; the eight dedicated safety assertions fail as expected, with successful controls, rather than declaring existing recovery safe. No recovery implementation or migration exists. B1–B3 remain preserved GREEN checkpoints; overall COMPAT-01 remains incomplete.
