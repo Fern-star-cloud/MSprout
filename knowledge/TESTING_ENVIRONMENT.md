@@ -1,5 +1,25 @@
 # Testing Environment
 
+## COMPAT-01 B4-P2-1B-A — guarded publication evidence — 2026-10-17
+
+[Accepted A report](../docs/qa/compat-01-b4-p2-1b-a-dormant-publication.md) retains the original runs and failure ledger. At publication preparation all 15 reviewed hashes match `qualification-final.json`; executable/test/harness inputs remain sealed. Retain combined 81/418, affected 41/213, identity 1/1 and API 339/3,769 plus unchanged style/build/contract/security guarantees by recorded input impact. No expensive suite is rerun solely for publication. Two unchanged OWASP TSX parser warnings and the raw Windows-CRLF contract limitation remain disclosed.
+
+Final documentation-only status additions receive fresh reference/anchor/structure/whitespace and Gitleaks checks; exact staged blobs are compared with reviewed bytes after documented Git line-ending normalization. The independent PG18 guard and READ ONLY catalog inspection reconfirm runtime/PUBLIC execution denial, unchanged legacy rights and no seeded progress. A separate preservation-only observer compares all 39 protected development-table fingerprints/runtime-role attributes, without Laravel/test bootstrap. No database qualification targets development. Publication receipts live under ignored `.git/msprout-compat-b4-p2-1b-a-20261017/publication/`; actual final source seals, preservation and exact-SHA hosted conclusions are recorded there.
+
+No new browser/installed-client test, production migration, activation, cutover or recovery completeness is claimed. Subsequent authority/integration stages require separate stakeholder authorization.
+
+
+## COMPAT-01 B4-P2-1B-A — independent PostgreSQL publication proof — 2026-10-17
+
+[Commands and guarded runner](../scripts/compatibility/publication/README.md); [complete report, inventory and failure ledger](../docs/qa/compat-01-b4-p2-1b-a-dormant-publication.md). Published pin is `0c984f8cb9c13cc2088efb08c2df62cceda8e73f`; the historical P2-1A runner/pin/worker/tests are unchanged. A new PG18 container/network/volume, database `pa_8bf440074c_test`, setup/runtime identities and generated credentials/APP_KEY are independent. System identifier `7697431057611870253` differs from protected development. Affirmative guard precedes role-rotating bootstrap; private environments/browser profiles are absent. Fixtures additionally re-probe identity and reject foreign Laravel connection configuration before their writes. Five environment negatives plus wrong-root refusal pass.
+
+Fresh results: combined 81/418 focused PASS, including unchanged41 P2-1A cases; after fixture-only hardening, new 41/213 PASS and a strengthened replaced-transaction/same-church probe 1/1 PASS. 82 distinct focused cases, without summing overlapping runs or concealing initial failures. Ordinary API 339/3,769 PASS in 312.23s. The later edits affect new Compatibility fixtures only, outside ordinary suite discovery, so that API aggregate and unchanged P2-1A cases retain valid input/effect guarantees. No backend suites ran concurrently.
+
+Fresh full PHP syntax/Pint and affected closure, Node syntax/ESLint, Composer strict validation/audit, pnpm audit and native structure pass. OWASP full application scan has zero findings over 487 targets, with the two unchanged TSX PartialParsing warnings; a neutral-path, hash-mapped 10-source trust-boundary scan covers test/helper paths excluded by default scanning and has zero findings/errors. The final identity-test addition receives a separate one-source scan. Final source-secret, reference/whitespace and preservation results resolve through the report and ignored `.git/msprout-compat-b4-p2-1b-a-20261017/` receipts.
+
+Frontend/browser/PWA/type/lint/build and LF contract proof are retained by unchanged inputs, not newly run. The Windows raw-CRLF contract limitation remains unchanged. No installed-client test, recovery completion or production migration is claimed. Protected 39-table/runtime-role fingerprints are read-only matched; encrypted browser work is unopened. A has no new hosted SHA; no stage/commit/push is authorized.
+
+
 ## COMPAT-01 B4-P2-1A — independent PostgreSQL foundation qualification — 2026-10-17
 
 [Stage evidence and exact limits](../docs/qa/compat-01-b4-p2-1a-foundations.md); [guarded reproduction commands](../scripts/compatibility/foundations/README.md). Existing Node24 and Docker create a unique internal PostgreSQL18 cluster/volume and setup/runtime roles. Verify `bootstrap.php --probe` before any repository bootstrap. Only a generated empty fixture environment is permitted; no private environment is copied. Workers inherit initialized restricted credentials and never rerun bootstrap. Run database suites serially.

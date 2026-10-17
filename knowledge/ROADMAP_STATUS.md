@@ -1,5 +1,21 @@
 # Roadmap Status
 
+## COMPAT-01 B4-P2-1B-A — accepted A-only publication milestone — 2026-10-17
+
+Stakeholder separately authorizes exactly the reviewed 15 paths, one `feat: establish B4-P2-1B-A dormant publication foundations` commit from `0c984f8cb9c13cc2088efb08c2df62cceda8e73f`, and a normal feature push after final gates. [Accepted candidate, inventory and remaining dependencies](../docs/qa/compat-01-b4-p2-1b-a-dormant-publication.md). The dated holds below remain historical. Actual publication/hosted status resolves through Git and the ignored A publication receipts identified in CURRENT_STATE; no predecessor check substitutes for exact-SHA evidence.
+
+Only documentation status is reconciled during finalization. Reviewed code/test seals and valid qualification remain unchanged. A GREEN publication requires clean synchronized Git and successful hosted Web/API/Security checks. This milestone does not close B4-01–B4-05 or overall COMPAT-01. **STOP after A**; C/B/D/E, recovery activation, metadata initialization, grant withdrawal, genesis, B5/B6, Late and packs remain unauthorized.
+
+
+## COMPAT-01 B4-P2-1B-A — A-only construction qualified; publication held — 2026-10-17
+
+Published P2-1A checkpoint: `0c984f8cb9c13cc2088efb08c2df62cceda8e73f` (Web/API/Security passed). Stakeholder selected only dormant coordination/publication construction, not caller integration or activation. [Current A evidence and exact 15 paths](../docs/qa/compat-01-b4-p2-1b-a-dormant-publication.md) record an unstaged candidate and explicit publication hold: **YELLOW: STAKEHOLDER REVIEW REQUIRED**.
+
+Qualified source provides primary gate ordering, fresh actor/member checks, live transaction context and a metadata/epoch/tenant-guarded atomic SQL append. Ordinary runtime cannot EXECUTE; legacy producers/grants remain functional. Isolated combined 81/418, final affected new tests41/213 and strengthened identity 1/1 pass; API 339/3,769 passes. 82 distinct focused cases are covered across those runs, not a claimed clean82-case aggregate. All failed attempts remain disclosed. No new hosted commit/results exist.
+
+All B4-01–B4-05 defects remain open. C authority/session assurance, B mutation integration, D maintenance/audit and E full contention/drainage/cutover/genesis qualification remain unimplemented and require separate authorization. A→C→B→D→E is conditionally viable only with intermediate activation disabled. No P2-2/P2-3/P2-4, B5/B6, Late or Pack06 starts. Earlier dated stop/publication records below retain their historical scope.
+
+
 ## COMPAT-01 B4-P2-1A — foundation candidate; review required — 2026-10-17
 
 **YELLOW; unstaged/uncommitted/unpushed.** Parent B4-P1 `739e321124411fc1aee1c4198e4a8faa5295d1b8` is published GREEN. Conditional architecture approval selects P2-1A only. [Exact12-path report and safety limits](../docs/qa/compat-01-b4-p2-1a-foundations.md): additive uninitialized metadata, restricted immutable storage and unintegrated church coordination;41/209 focused and339/3769 ordinary API qualification PASS in a separate guarded cluster. Existing production callers and policies remain unchanged.

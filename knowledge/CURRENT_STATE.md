@@ -1,5 +1,25 @@
 # Current State
 
+## COMPAT-01 B4-P2-1B-A — accepted guarded publication — 2026-10-17
+
+The stakeholder reviewed and conditionally approved the exact 15-path A candidate for one commit, subject `feat: establish B4-P2-1B-A dormant publication foundations`, and a normal push to `origin/feat/mvp-foundation`. Required parent is published P2-1A GREEN `0c984f8cb9c13cc2088efb08c2df62cceda8e73f`. [Accepted A scope, qualification and limits](../docs/qa/compat-01-b4-p2-1b-a-dormant-publication.md). Earlier A/P2-1A review holds below are preserved history and are superseded only for this expressly approved publication.
+
+Executable source and tests match the final qualification seals. Retain combined 81/418, affected 41/213, strengthened identity 1/1 and API 339/3,769 with their original failed attempts and effect-based boundaries. Finalization adjusts only this report/current-knowledge status; no implementation change, data migration or additional grant is authorized. Final references, secrets, staged content and read-only preservation receive fresh checks. Exact resulting SHA, Git synchronization and hosted Web/API/Security outcomes resolve through Git and ignored `.git/msprout-compat-b4-p2-1b-a-20261017/publication/{commit,hosted-latest,finalization}.json`. Predecessor passes cannot qualify the new SHA; GREEN delivery requires all required new checks to succeed.
+
+The publisher remains dormant: no production caller or ordinary-runtime/PUBLIC EXECUTE, no actual progress initialization, no legacy privilege withdrawal. Session/account assurance, signed-invitation/system authority and C/B/D/E integration remain separately gated; all five B4 defects remain open. **STOP after A publication qualification.** No later stage, activation, genesis, Late, packs, merge or deployment is authorized.
+
+
+## COMPAT-01 B4-P2-1B-A — dormant publisher; review hold — 2026-10-17
+
+**YELLOW: STAKEHOLDER REVIEW REQUIRED.** Selected scope is A only. Published predecessor is P2-1A GREEN `0c984f8cb9c13cc2088efb08c2df62cceda8e73f` on `feat/mvp-foundation`; exact-SHA Web/API CI 38985585560 and Security 38985585671 passed. The earlier P2-1A prepublication holds below are historical. [A report, exact 15-path inventory, proof limits and failure ledger](../docs/qa/compat-01-b4-p2-1b-a-dormant-publication.md).
+
+This unstaged candidate strengthens the unintegrated authenticated-member helper, issues a callback/PDO/PostgreSQL-transaction/church-bound context, and constructs an owner-only SQL append boundary. SQL requires qualified initialized progress and matching epoch, preserves existing representation and atomic feed/head outcome, and refuses adverse sequence caching. Normal runtime EXECUTE is denied; existing producers and their direct grants remain unchanged. No actual church baseline is initialized, no public API/client/storage behavior changes, and all five B4 defects remain open.
+
+Fresh isolated PostgreSQL18 evidence: initial combined 81 tests/418 assertions PASS (including unchanged41 P2-1A cases), final new-test guard closure 41/213 PASS, then strengthened same-scope/replaced-transaction probe 1/1 PASS; 82 distinct focused cases through these disclosed runs. Ordinary API 339/3,769 PASS. Original failed attempts, guard refusals, scans and read-only preservation receipts remain under ignored `.git/msprout-compat-b4-p2-1b-a-20261017/`. Retained browser/frontend/PWA guarantees have unchanged executable inputs; no fresh browser or installed-client qualification is claimed.
+
+Global account changes after the fresh check and deleted-session liveness remain explicit C dependencies; affected activation is disabled. A→C→B→D→E is a conditional construction order, with authority, all-writer integration, maintenance/audit semantics, drainage/privilege withdrawal and genesis qualification still separately gated. **DO NOT stage, commit, push, activate or start B/C/D/E.** No recovery completion, Late, packs, merge or deployment. Historical bodies and approval records below are preserved.
+
+
 ## COMPAT-01 B4-P2-1A — isolated foundations; stakeholder review hold — 2026-10-17
 
 **YELLOW: STAKEHOLDER REVIEW REQUIRED.** Published parent is B4-P1 GREEN `739e321124411fc1aee1c4198e4a8faa5295d1b8` on `feat/mvp-foundation`; exact-SHA Web/API/Security passed at publication. Earlier P1 review holds below are historical. Stakeholder conditionally accepted P2-D01–D06 but authorized only P2-1A. [Current foundation report](../docs/qa/compat-01-b4-p2-1a-foundations.md) records the exact12-path unstaged candidate, isolation, constraints, qualification and limits.
