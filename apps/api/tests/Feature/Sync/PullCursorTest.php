@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function (): void {
@@ -81,7 +82,7 @@ it('filters attendance to current assignments while delivering targeted revocati
     $teacherDevice = (string) Str::uuid();
     grantPullDevice($membership->id, $this->church->id, $teacherDevice);
     $teacher = User::findOrFail($teacher->id);
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()]);
 
     $response = $this->withHeader('X-Device-Id', $teacherDevice)
         ->getJson('/api/sync/pull?cursor=0&limit=100')

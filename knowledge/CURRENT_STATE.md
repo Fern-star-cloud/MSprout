@@ -1,5 +1,24 @@
 # Current State
 
+## Stakeholder-approved C publication — 2026-10-18
+
+The stakeholder completed consolidated C1–C4 source review and explicitly authorized guarded publication of exactly76 files (47 modified,29 new) from parent `8017e3b44e5211bcf1dac3b5a78e8ee37cec192f`, with commit subject `feat: integrate B4-P2-1B-C authority safeguards`. The earlier dated review hold below remains an accurate historical record; this later approval supersedes that hold only for this specific C publication.
+
+All76 candidate bytes matched the reviewed ZIP and final qualification seals before these status notices. Executable, test, migration and configuration inputs remain unchanged. Retain API422 tests/4,306 assertions, frontend813/82 files, actual browser4/4, PWA8/8 and the documented contract/style/build/dependency/security passes, including original failures, two unchanged OWASP TSX parser warnings and the raw Windows CRLF limitation. Finalization changes only this notice and the equivalent notices in the existing C report/current-state/roadmap/testing files; fresh reference, whitespace, secret and staged-content validation applies.
+
+The exact resulting commit, inventory, normal push synchronization, protected-resource checks and exact-SHA hosted Web/API/Security results resolve through Git and ignored `.git/msprout-compat-b4-p2-1b-c-20261017/publication/{commit,synchronization,hosted-latest,finalization}.json`. Publication is GREEN only after clean synchronized Git, required hosted successes and preservation verification; a pending or failed result is not a pass. No predecessor hosted result qualifies the C commit.
+
+Publisher activation, protected database migration and deployment remain prohibited. The normalized-email migration requires a separately approved target collision preflight. All five original B4 defects remain open; B/D/E and all later implementation remain separately unauthorized. **STOP after C publication verification.** No additional commit, merge, deployment, activation or next-stage implementation is authorized.
+
+## COMPAT-01 B4-P2-1B-C — integrated implementation qualified; publication held — 2026-10-17
+
+**YELLOW: FULL IMPLEMENTATION COMPLETE, STAKEHOLDER REVIEW REQUIRED.** C1–C4 are one unstaged candidate on published A parent `8017e3b44e5211bcf1dac3b5a78e8ee37cec192f`. [Consolidated C report, exact76-path inventory and failure ledger](../docs/qa/compat-01-b4-p2-1b-c-authority-integration.md). Fresh final API/C/recovery aggregate422 tests/4,306 assertions, frontend813/82 files, actual API-backed Chrome/WebKit browser4/4 and real PWA8/8 PASS. Original243-pass/96-failure API run, frontend interruptions, browser Resume-action failure and their actual closures remain recorded; no historical failed run is called a pass.
+
+Implemented deterministic global User/database-session fencing, fresh real member authority, signed-invitation coordination with collision-refusing normalized-email uniqueness, and explicit restricted trusted-system purposes. No authorization-generation schema or feed conversion. Protected target email collisions remain UNKNOWN; migration deployment requires separate preflight/approval. Type/lint/build/Pint/contracts/dependency/security gates pass with two unchanged OWASP TSX parser warnings and the historical raw Windows CRLF limitation disclosed. Final0 BLOCKING/0 SHOULD FIX C findings; local receipts and seals remain ignored under `.git/msprout-compat-b4-p2-1b-c-20261017/`.
+
+All39 protected development-table fingerprints/runtime-role attributes,42 protected files,11 stashes,10 backups,32 frozen assets/two manifests, main and other worktrees are preserved. Staging empty; no C commit/push or candidate hosted results. Publisher remains dormant; no protected migration or deployment. B/D/E and all five original B4 defects remain outstanding. **STOP: do not stage, commit, push, activate or begin another stage without separate stakeholder authorization.** Earlier dated approvals/holds below remain historical.
+
+
 ## COMPAT-01 B4-P2-1B-A — accepted guarded publication — 2026-10-17
 
 The stakeholder reviewed and conditionally approved the exact 15-path A candidate for one commit, subject `feat: establish B4-P2-1B-A dormant publication foundations`, and a normal push to `origin/feat/mvp-foundation`. Required parent is published P2-1A GREEN `0c984f8cb9c13cc2088efb08c2df62cceda8e73f`. [Accepted A scope, qualification and limits](../docs/qa/compat-01-b4-p2-1b-a-dormant-publication.md). Earlier A/P2-1A review holds below are preserved history and are superseded only for this expressly approved publication.

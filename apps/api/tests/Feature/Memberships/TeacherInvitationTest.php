@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function () {
@@ -23,7 +24,7 @@ it('creates a normalized Teacher invitation without exposing its token and accep
     $row = DB::connection('pgsql_migration')->table('invitations')->first();
     expect($row->token_hash)->toBe(hash('sha256', $proof['token']))->not->toBe($proof['token']);
     expect($row->email)->toBe($teacher->email);
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()])->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertOk();
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()])->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertOk();
     $this->getJson('/api/me')->assertJsonPath('assignments.ministry_ids.0', $ministry);
     $this->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertStatus(410);
 });
@@ -34,7 +35,7 @@ it('denies Teacher administration and scopes ministry visibility to active assig
     $visible = MembershipScenario::ministry($this->church->id);
     $hidden = MembershipScenario::ministry($this->church->id);
     $this->putJson('/api/teachers/'.$membership->id.'/assignments', ['ministry_ids' => [$visible]])->assertOk();
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()]);
     $this->getJson('/api/teachers')->assertForbidden();
     $this->postJson('/api/teacher-invitations', ['email' => 'invite@example.test', 'ministry_ids' => [$visible]])->assertForbidden();
     $this->putJson('/api/teachers/'.$membership->id.'/assignments', ['ministry_ids' => [$hidden]])->assertForbidden();
@@ -61,16 +62,16 @@ it('rejects altered expired revoked and cross email invitation proofs', function
     $teacher = User::factory()->create();
     $id = $this->postJson('/api/teacher-invitations', ['email' => $teacher->email, 'ministry_ids' => [MembershipScenario::ministry($this->church->id)]])->assertCreated()->json('id');
     $proof = MembershipScenario::proof();
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()]);
     foreach (['token' => Str::random(64), 'church_id' => (string) Str::uuid(), 'signature' => str_repeat('0', 64)] as $key => $value) {
         $this->postJson('/api/teacher-invitations/accept', array_replace($proof, [$key => $value, 'email' => $teacher->email]))->assertStatus(410);
     }
     $this->postJson('/api/teacher-invitations/accept', $proof + ['email' => 'unrelated@example.test'])->assertStatus(410);
     $other = User::factory()->create();
-    $this->actingAs($other, 'web')->withSession(['password_hash_web' => $other->getAuthPassword()])->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertForbidden();
-    $this->actingAs($this->owner, 'web')->withSession(['password_hash_web' => $this->owner->getAuthPassword()])->deleteJson('/api/teacher-invitations/'.$id)->assertNoContent();
+    PersistedChurchSession::authenticate($this, $other, 'web')->withPersistedSession(['password_hash_web' => $other->getAuthPassword()])->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertForbidden();
+    PersistedChurchSession::authenticate($this, $this->owner, 'web')->withPersistedSession(['password_hash_web' => $this->owner->getAuthPassword()])->deleteJson('/api/teacher-invitations/'.$id)->assertNoContent();
     $this->getJson('/api/teacher-invitations')->assertJsonPath('data.0.status', 'revoked');
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()])->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertStatus(410);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()])->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertStatus(410);
     $this->travel(8)->days();
     $this->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertStatus(410);
 });
@@ -87,5 +88,5 @@ it('revokes sessions assignments push subscriptions and offline leases without e
     }
     expect($db->table('audit_events')->count())->toBe(2);
     $teacher = User::findOrFail($teacher->id);
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()])->getJson('/api/me')->assertForbidden();
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()])->getJson('/api/me')->assertForbidden();
 });

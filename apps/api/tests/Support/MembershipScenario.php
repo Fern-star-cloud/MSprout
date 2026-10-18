@@ -20,7 +20,7 @@ final class MembershipScenario
         $test->password = Str::password(32);
         $test->secret = (new Google2FA)->generateSecretKey();
         $owner->forceFill(['password' => Hash::make($test->password), 'two_factor_secret' => Fortify::currentEncrypter()->encrypt($test->secret), 'two_factor_confirmed_at' => now()])->save();
-        $test->actingAs($owner)->withHeader('Origin', config('app.url'))->withHeader('X-Church-Id', $church->id)->withSession(['church_mfa_user_id' => $owner->id]);
+        PersistedChurchSession::authenticate($test, $owner)->withHeader('Origin', config('app.url'))->withHeader('X-Church-Id', $church->id)->withPersistedSession(['church_mfa_user_id' => $owner->id]);
 
         return [$owner, $church, $membership];
     }

@@ -12,6 +12,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function () {
@@ -233,7 +234,7 @@ it('denies Teachers all import capabilities', function () {
     ], ['Accept' => 'application/json'])->assertOk()->json('id');
     [$teacher] = ChurchScenario::teacher($this->church);
     $teacher = User::findOrFail($teacher->id);
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()]);
     $this->getJson("/api/imports/{$batch}")->assertForbidden();
     $this->getJson('/api/imports/template')->assertForbidden();
     $this->post('/api/imports/students/preview', ['file' => studentCsv('No,Access,,,,')], ['Accept' => 'application/json'])

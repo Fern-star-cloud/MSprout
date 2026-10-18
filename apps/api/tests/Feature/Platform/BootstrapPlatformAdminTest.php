@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function (): void {
@@ -66,7 +67,7 @@ it('rejects a second active sage.dev bootstrap', function (): void {
 it('does not accept a church user session on platform routes', function (): void {
     $user = User::factory()->create();
 
-    $this->actingAs($user)
+    PersistedChurchSession::authenticate($this, $user)
         ->getJson('/platform/me')
         ->assertUnauthorized();
 });

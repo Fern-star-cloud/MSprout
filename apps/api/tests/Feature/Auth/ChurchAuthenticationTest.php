@@ -6,10 +6,12 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\Fortify;
 use PragmaRX\Google2FA\Google2FA;
 use Tests\Support\ChurchScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function (): void {
     PostgresTestDatabase::refresh();
+    $this->useDatabaseCookieSessionBrowser();
 });
 
 it('requires a church session for account metadata', function (): void {
@@ -46,7 +48,7 @@ it('rejects unverified church users before resolving tenant access', function ()
     $user = User::query()->findOrFail($owner->id);
     $user->forceFill(['email_verified_at' => null])->save();
 
-    $this->actingAs($user)
+    PersistedChurchSession::authenticate($this, $user)
         ->withHeader('X-Church-Id', $church->id)
         ->getJson('/api/me')
         ->assertForbidden();
@@ -55,7 +57,7 @@ it('rejects unverified church users before resolving tenant access', function ()
 it('returns a safe verification denial for API reads regardless of the accept header', function (string $accept): void {
     $user = User::factory()->unverified()->create();
 
-    $response = $this->actingAs($user, 'web')
+    $response = PersistedChurchSession::authenticate($this, $user, 'web')
         ->get('/api/church-applications/current', ['Accept' => $accept]);
 
     $response->assertForbidden()
@@ -66,7 +68,7 @@ it('returns a safe verification denial for API reads regardless of the accept he
 })->with(['text/html', '*/*', 'application/json']);
 
 it('allows verified applicant API reads without requiring a JSON accept header', function (): void {
-    $this->actingAs(User::factory()->create(), 'web')
+    PersistedChurchSession::authenticate($this, User::factory()->create(), 'web')
         ->get('/api/church-applications/current', ['Accept' => 'text/html'])
         ->assertOk()
         ->assertExactJson(['application' => null]);
@@ -77,7 +79,7 @@ it('returns only allowlisted account and current membership metadata', function 
     [$teacher] = ChurchScenario::teacher($church);
     $teacher = User::query()->findOrFail($teacher->id);
 
-    $this->actingAs($teacher)
+    PersistedChurchSession::authenticate($this, $teacher)
         ->withHeader('X-Church-Id', $church->id)
         ->getJson('/api/me')
         ->assertOk()
@@ -112,7 +114,7 @@ it('requires MFA assurance in the current Owner session', function (): void {
         'two_factor_confirmed_at' => now(),
     ])->save();
 
-    $this->actingAs($owner)->withHeader('X-Church-Id', $church->id)
+    PersistedChurchSession::authenticate($this, $owner)->withHeader('X-Church-Id', $church->id)
         ->getJson('/api/me')->assertForbidden();
     $this->postJson('/logout')->assertNoContent();
     $this->postJson('/login', ['email' => $owner->email, 'password' => $password])

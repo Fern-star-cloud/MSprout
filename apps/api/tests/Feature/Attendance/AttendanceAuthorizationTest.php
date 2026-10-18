@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function (): void {
@@ -30,7 +31,7 @@ beforeEach(function (): void {
 });
 
 it('allows an assigned Teacher to create and edit only a draft in the assigned ministry', function (): void {
-    $this->actingAs($this->teacher, 'web');
+    PersistedChurchSession::authenticate($this, $this->teacher, 'web');
 
     $permissions = app(TenantContext::class)->run($this->church->id, function (): array {
         $session = AttendanceSession::create([
@@ -67,7 +68,7 @@ it('allows the Owner attendance access while hiding another church session at th
         'created_at' => now(),
         'updated_at' => now(),
     ]);
-    $this->actingAs($this->owner, 'web');
+    PersistedChurchSession::authenticate($this, $this->owner, 'web');
 
     $result = app(TenantContext::class)->run($this->church->id, fn (): array => [
         (new AttendancePolicy)->create($this->owner, $this->assignedMinistry),
@@ -80,7 +81,7 @@ it('allows the Owner attendance access while hiding another church session at th
 it('forces tenant RLS and denies cross-church attendance writes to the restricted runtime role', function (): void {
     [, $foreignChurch] = ChurchScenario::owner();
     $foreignMinistry = MembershipScenario::ministry($foreignChurch->id);
-    $this->actingAs($this->owner, 'web');
+    PersistedChurchSession::authenticate($this, $this->owner, 'web');
 
     expect(fn () => app(TenantContext::class)->run($this->church->id, fn () => AttendanceSession::create([
         'church_id' => $foreignChurch->id,
@@ -176,7 +177,7 @@ it('hides every guest conflict and revision row from another church at the runti
         'revised_at' => now(), 'created_at' => now(), 'updated_at' => now(),
     ]);
 
-    $this->actingAs($this->owner, 'web');
+    PersistedChurchSession::authenticate($this, $this->owner, 'web');
     $visible = app(TenantContext::class)->run($this->church->id, fn (): array => [
         DB::table('attendance_guests')->where('id', $guestId)->exists(),
         DB::table('sync_conflicts')->where('id', $conflictId)->exists(),

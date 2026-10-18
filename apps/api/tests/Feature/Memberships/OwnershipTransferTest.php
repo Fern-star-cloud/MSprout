@@ -2,6 +2,7 @@
 
 use App\Actions\Memberships\RecordMembershipAudit;
 use App\Models\User;
+use App\Support\Auth\DatabaseSessionAuthority;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -9,6 +10,7 @@ use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
 use PragmaRX\Google2FA\Google2FA;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function () {
@@ -94,7 +96,7 @@ it('rejects inactive targets and requires the promoted Owner to establish MFA', 
     MembershipScenario::deviceAccess($this->target);
     $this->postJson('/api/ownership-transfer', $payload)->assertNoContent();
     $user = User::findOrFail($this->target->user_id);
-    $this->actingAs($user, 'web')->withSession(['password_hash_web' => $user->password])->getJson('/api/me')->assertForbidden();
+    PersistedChurchSession::authenticate($this, $user, 'web')->withPersistedSession(['password_hash_web' => $user->password])->getJson('/api/me')->assertForbidden();
     expect(DB::connection('pgsql_migration')->table('offline_authorizations')->whereNull('revoked_at')->count())->toBe(0);
 });
 
@@ -102,12 +104,18 @@ it('rolls back both roles when required audit persistence fails', function () {
     MembershipScenario::deviceAccess($this->membership);
     MembershipScenario::deviceAccess($this->target);
     $rememberToken = $this->owner->getRememberToken();
+    $sessionIdentities = fn () => DB::table('sessions')->whereIn('user_id', [$this->owner->id, $this->target->user_id])->orderBy('id')->get()->map(fn ($row) => [
+        'id_digest' => hash('sha256', $row->id), 'actor' => $row->user_id,
+        'authority_digest' => hash('sha256', json_encode(DatabaseSessionAuthority::securityClaims($row->payload === '' ? [] : json_decode(base64_decode($row->payload), true)))),
+    ])->all();
+    $sessionsBefore = $sessionIdentities();
     $this->mock(RecordMembershipAudit::class)->shouldReceive('handle')->andThrow(new RuntimeException('audit unavailable'));
     $this->postJson('/api/ownership-transfer', ['target_membership_id' => $this->target->id, 'password' => $this->password, 'code' => (new Google2FA)->getCurrentOtp($this->secret)])->assertStatus(500);
     $rows = DB::connection('pgsql_migration')->table('church_memberships')->where('church_id', $this->church->id);
     expect((clone $rows)->where('role', 'owner')->pluck('id')->all())->toBe([$this->membership->id]);
     expect((clone $rows)->where('id', $this->target->id)->value('role'))->toBe('teacher');
-    expect(DB::table('sessions')->whereIn('user_id', [$this->owner->id, $this->target->user_id])->count())->toBe(2);
+    // Normal HTTP bookkeeping may change; every session identity and authority must survive rollback.
+    expect($sessionIdentities())->toBe($sessionsBefore);
     expect($this->owner->fresh()->getRememberToken())->toBe($rememberToken);
     foreach (['offline_authorizations', 'push_subscriptions'] as $table) {
         expect(DB::connection('pgsql_migration')->table($table)->whereNull('revoked_at')->count())->toBe(2);

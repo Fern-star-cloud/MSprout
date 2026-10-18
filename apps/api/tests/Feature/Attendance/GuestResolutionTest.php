@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function (): void {
@@ -41,13 +42,13 @@ it('accepts only minimal offline guest data and keeps its original actor and loc
 
     [$teacher] = ChurchScenario::teacher($this->church);
     $teacher = User::findOrFail($teacher->id);
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()]);
     $this->postJson('/api/attendance-guests/'.$guestId.'/promote', [
         'first_name' => 'Guest', 'last_name' => 'Child', 'gender' => 'female',
     ])->assertForbidden();
     $this->getJson('/api/attendance-guests')->assertForbidden();
 
-    $this->actingAs($this->owner, 'web')->withSession([
+    PersistedChurchSession::authenticate($this, $this->owner, 'web')->withPersistedSession([
         'church_mfa_user_id' => $this->owner->id,
         'password_hash_web' => $this->owner->getAuthPassword(),
     ]);
@@ -132,7 +133,7 @@ it('rejects cross-session merging and all Teacher guest actions while preserving
     $this->postJson('/api/attendance-guests/'.$guest.'/merge', ['guest_id' => $target])->assertUnprocessable();
     [$teacher] = ChurchScenario::teacher($this->church);
     $teacher = User::findOrFail($teacher->id);
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()]);
     $this->getJson('/api/attendance-guests')->assertForbidden();
     foreach (['promote' => ['first_name' => 'First', 'last_name' => 'Guest'], 'link' => ['student_id' => $target], 'merge' => ['guest_id' => $target]] as $action => $input) {
         $this->postJson('/api/attendance-guests/'.$guest.'/'.$action, $input)->assertForbidden();

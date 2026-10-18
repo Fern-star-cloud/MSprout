@@ -4,6 +4,7 @@ namespace App\Actions\Fortify;
 
 use App\Models\User;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -32,14 +33,21 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             ],
         ])->validateWithBag('updateProfileInformation');
 
-        if ($input['email'] !== $user->email &&
-            $user instanceof MustVerifyEmail) {
-            $this->updateVerifiedUser($user, $input);
-        } else {
-            $user->forceFill([
-                'name' => $input['name'],
-                'email' => $input['email'],
-            ])->save();
+        try {
+            if ($input['email'] !== $user->email &&
+                $user instanceof MustVerifyEmail) {
+                $this->updateVerifiedUser($user, $input);
+            } else {
+                $user->forceFill([
+                    'name' => $input['name'],
+                    'email' => $input['email'],
+                ])->save();
+            }
+        } catch (UniqueConstraintViolationException $exception) {
+            if (! str_contains($exception->getMessage(), 'users_normalized_email_unique')) {
+                throw $exception;
+            }
+            throw ValidationException::withMessages(['email' => 'The email has already been taken.'])->errorBag('updateProfileInformation');
         }
     }
 

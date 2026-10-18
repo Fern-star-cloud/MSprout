@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function (): void {
@@ -118,10 +119,10 @@ it('maps either choice exactly and rejects a repeated resolution without changin
 
 it('denies missing assurance and foreign Owner reads and decisions without side effects', function (): void {
     $id = ui11Conflict($this);
-    $this->withSession(['church_mfa_user_id' => null])->getJson('/api/sync-conflicts')->assertForbidden();
+    $this->withPersistedSession(['church_mfa_user_id' => null])->getJson('/api/sync-conflicts')->assertForbidden();
     $this->postJson('/api/sync-conflicts/'.$id.'/resolve', ['choice' => 'incoming', 'reason' => 'Verified.'])->assertForbidden();
     [$foreign, $church] = MembershipScenario::owner($this);
-    $this->withSession(['password_hash_web' => $foreign->getAuthPassword()]);
+    $this->withPersistedSession(['password_hash_web' => $foreign->getAuthPassword()]);
     $this->withHeader('X-Church-Id', $church->id)->getJson('/api/sync-conflicts/'.$id)->assertNotFound();
     $this->postJson('/api/sync-conflicts/'.$id.'/resolve', ['choice' => 'incoming', 'reason' => 'Verified.'])->assertNotFound();
     expect($foreign->id)->not->toBe($this->owner->id);
@@ -188,11 +189,11 @@ it('allows only the Owner to inspect and resolve a conflict through an immutable
 
     [$unassignedTeacher] = ChurchScenario::teacher($this->church);
     $unassignedTeacher = User::findOrFail($unassignedTeacher->id);
-    $this->actingAs($unassignedTeacher, 'web')->withSession(['password_hash_web' => $unassignedTeacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($this, $unassignedTeacher, 'web')->withPersistedSession(['password_hash_web' => $unassignedTeacher->getAuthPassword()]);
     $this->getJson('/api/sync-conflicts')->assertOk()
         ->assertExactJson(['needs_owner_review' => false]);
 
-    $this->actingAs($this->teacher, 'web')->withSession(['password_hash_web' => $this->teacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($this, $this->teacher, 'web')->withPersistedSession(['password_hash_web' => $this->teacher->getAuthPassword()]);
     $this->getJson('/api/sync-conflicts')->assertOk()
         ->assertExactJson(['needs_owner_review' => true]);
     $this->getJson('/api/sync-conflicts/'.$conflictId)->assertForbidden();
@@ -200,7 +201,7 @@ it('allows only the Owner to inspect and resolve a conflict through an immutable
         'choice' => 'incoming', 'reason' => 'Confirmed against the signed paper roster.',
     ])->assertForbidden();
 
-    $this->actingAs($this->owner, 'web')->withSession([
+    PersistedChurchSession::authenticate($this, $this->owner, 'web')->withPersistedSession([
         'church_mfa_user_id' => $this->owner->id,
         'password_hash_web' => $this->owner->getAuthPassword(),
     ]);
@@ -264,7 +265,7 @@ it('keeps a session in review until every conflict is resolved and preserves its
     ])])->assertOk()->assertJsonPath('results.0.status', 'conflict');
 
     $conflicts = DB::connection('pgsql_migration')->table('sync_conflicts')->orderBy('created_at')->orderBy('id')->pluck('id');
-    $this->actingAs($this->owner, 'web')->withSession([
+    PersistedChurchSession::authenticate($this, $this->owner, 'web')->withPersistedSession([
         'church_mfa_user_id' => $this->owner->id,
         'password_hash_web' => $this->owner->getAuthPassword(),
     ]);

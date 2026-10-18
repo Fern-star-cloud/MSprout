@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function () {
@@ -51,6 +52,12 @@ it('keeps expired or altered proofs unavailable before identity checks or accoun
         $this->body['token'] = str_repeat('0', 64);
     }
     $this->postJson('/api/teacher-invitations/accept', $this->body)->assertStatus(410);
+    if ($failure === 'expired') {
+        // Eight days also expires the real session. Establish a fresh authenticated
+        // fixture solely for the subsequent explicit logout/anonymous-proof control.
+        PersistedChurchSession::authenticate($this, $this->owner)
+            ->withPersistedSession(['church_mfa_user_id' => $this->owner->id]);
+    }
     $this->postJson('/logout')->assertNoContent();
     $this->postJson('/api/teacher-invitations/accept', $this->body)->assertStatus(410);
     expect(User::where('email', $this->email)->exists())->toBeFalse();

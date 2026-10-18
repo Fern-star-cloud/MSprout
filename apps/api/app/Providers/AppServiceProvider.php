@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Domain\Audit\CorrelationContext;
+use App\Domain\Sync\ChurchCoordination;
 use App\Support\Auth\GuardAwareDatabaseSessionHandler;
+use App\Support\Auth\UserAuthorityLocks;
 use App\Support\Captcha\CaptchaVerifier;
 use App\Support\Captcha\TurnstileVerifier;
 use App\Support\Notifications\PushSender;
@@ -26,6 +28,8 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(CorrelationContext::class);
         $this->app->singleton(TenantContext::class);
+        $this->app->scoped(UserAuthorityLocks::class);
+        $this->app->scoped(ChurchCoordination::class);
         $this->app->bind(CaptchaVerifier::class, TurnstileVerifier::class);
         $this->app->bind(PushSender::class, WebPushSender::class);
     }

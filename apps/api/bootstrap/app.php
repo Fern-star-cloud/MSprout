@@ -5,6 +5,7 @@ use App\Domain\Audit\CorrelationContext;
 use App\Http\Middleware\AuditAuthentication;
 use App\Http\Middleware\AuthResponseHeaders;
 use App\Http\Middleware\CorrelationId;
+use App\Http\Middleware\FenceChurchAuthentication;
 use App\Http\Middleware\RejectAuthenticatedJsonLogin;
 use App\Http\Middleware\RequireConfirmedOwnerMfa;
 use App\Http\Middleware\RequireVerifiedApiEmail;
@@ -46,7 +47,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(null);
         $middleware->prepend(CorrelationId::class);
         $middleware->append(AuthResponseHeaders::class);
-        $middleware->web(append: [AuditAuthentication::class]);
+        $middleware->web(append: [AuditAuthentication::class, FenceChurchAuthentication::class]);
+        $middleware->api(append: [FenceChurchAuthentication::class]);
 
         $middleware->alias([
             'guest' => RejectAuthenticatedJsonLogin::class,

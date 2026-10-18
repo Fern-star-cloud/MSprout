@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function () {
@@ -40,7 +41,7 @@ it('returns an empty authorized scope for an unassigned Teacher without leaking 
     MembershipScenario::ministry($this->church->id);
     [$teacher] = ChurchScenario::teacher($this->church);
     $teacher = User::findOrFail($teacher->id);
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()]);
 
     $this->getJson('/api/offline/bootstrap?device_id='.$this->deviceId)->assertOk()
         ->assertJsonPath('actor.id', (string) $teacher->id)
@@ -69,7 +70,7 @@ it('issues a signed 14-day lease with only an assigned Teacher roster projection
         'ministry_id' => $assigned, 'assigned_by' => $this->owner->id, 'created_at' => now(), 'updated_at' => now(),
     ]);
     $teacher = User::findOrFail($teacher->id);
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()]);
 
     $response = $this->getJson('/api/offline/bootstrap?device_id='.$this->deviceId)
         ->assertOk()->assertJsonPath('actor.id', (string) $teacher->id)
@@ -121,7 +122,7 @@ it('rejects unauthenticated, malformed, inactive, and cross-tenant bootstrap req
     auth()->guard('web')->logout();
     $this->getJson('/api/offline/bootstrap?device_id='.$this->deviceId)->assertUnauthorized();
 
-    $this->actingAs($this->owner, 'web')->withHeader('X-Church-Id', $this->church->id)->withSession(['church_mfa_user_id' => $this->owner->id]);
+    PersistedChurchSession::authenticate($this, $this->owner, 'web')->withHeader('X-Church-Id', $this->church->id)->withPersistedSession(['church_mfa_user_id' => $this->owner->id]);
     $this->getJson('/api/offline/bootstrap?device_id=not-a-uuid')->assertUnprocessable();
     [, $foreignChurch] = ChurchScenario::owner();
     $this->withHeader('X-Church-Id', $foreignChurch->id)
@@ -130,7 +131,7 @@ it('rejects unauthenticated, malformed, inactive, and cross-tenant bootstrap req
     [$teacher, $teacherMembership] = ChurchScenario::teacher($this->church);
     $teacher = User::findOrFail($teacher->id);
     DB::connection('pgsql_migration')->table('church_memberships')->where('id', $teacherMembership->id)->update(['status' => 'revoked']);
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()]);
     $this->withHeader('X-Church-Id', $this->church->id)
         ->getJson('/api/offline/bootstrap?device_id='.$this->deviceId)->assertForbidden();
 });

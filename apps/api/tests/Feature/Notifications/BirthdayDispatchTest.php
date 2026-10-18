@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function (): void {
@@ -79,8 +80,8 @@ it('returns church-wide Owner birthdays and assignment-scoped Teacher birthdays 
         'assigned_by' => $this->owner->id, 'created_at' => now(), 'updated_at' => now(),
     ]);
     $teacher = User::findOrFail($teacher->id);
-    $this->actingAs($teacher, 'web')->withHeader('X-Church-Id', $this->church->id)
-        ->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withHeader('X-Church-Id', $this->church->id)
+        ->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()]);
 
     $this->getJson('/api/birthdays/today')->assertOk()
         ->assertJsonPath('data.role', 'teacher')

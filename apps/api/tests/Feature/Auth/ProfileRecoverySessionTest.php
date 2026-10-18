@@ -8,6 +8,7 @@ use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function (): void {
     PostgresTestDatabase::refresh();
+    $this->useDatabaseCookieSessionBrowser();
     config(['session.driver' => 'database']);
     app('session')->forgetDrivers();
     app()->forgetInstance('session.store');

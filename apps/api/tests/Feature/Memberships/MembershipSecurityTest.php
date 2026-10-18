@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function () {
@@ -73,7 +74,7 @@ it('supersedes duplicate pending invitations without revealing account existence
     $new = MembershipScenario::proof();
     expect(DB::connection('pgsql_migration')->table('invitations')->where('id', $first->json('id'))->value('revoked_at'))->not->toBeNull();
     $this->postJson('/api/teacher-invitations', ['email' => 'unknown@example.test', 'ministry_ids' => [$ministry]])->assertCreated()->assertJsonStructure(array_keys($first->json()));
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->password]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->password]);
     $this->postJson('/api/teacher-invitations/accept', $old + ['email' => $teacher->email])->assertStatus(410);
     $this->travel(8)->days();
     $this->postJson('/api/teacher-invitations/accept', $new + ['email' => $teacher->email])->assertStatus(410);
@@ -83,7 +84,7 @@ it('rejects unverified users cross church headers and real CSRF failures', funct
     $teacher = User::factory()->unverified()->create();
     $this->postJson('/api/teacher-invitations', ['email' => $teacher->email, 'ministry_ids' => [MembershipScenario::ministry($this->church->id)]])->assertCreated();
     $proof = MembershipScenario::proof();
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->password]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->password]);
     $this->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertForbidden();
     $teacher->markEmailAsVerified();
     $this->withHeader('X-Church-Id', (string) Str::uuid())->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertStatus(410);
@@ -96,12 +97,12 @@ it('rolls back invitation acceptance and revocation if audit persistence fails',
     $this->postJson('/api/teacher-invitations', ['email' => $teacher->email, 'ministry_ids' => [MembershipScenario::ministry($this->church->id)]])->assertCreated();
     $proof = MembershipScenario::proof();
     $this->mock(RecordMembershipAudit::class)->shouldReceive('handle')->andThrow(new RuntimeException('unavailable'));
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->password])->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertStatus(500);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->password])->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertStatus(500);
     expect(DB::connection('pgsql_migration')->table('invitations')->value('accepted_at'))->toBeNull();
     expect(DB::connection('pgsql_migration')->table('church_memberships')->where('user_id', $teacher->id)->count())->toBe(0);
     [, $member] = ChurchScenario::teacher($this->church);
     MembershipScenario::deviceAccess($member);
-    $this->actingAs($this->owner, 'web')->withSession(['password_hash_web' => $this->owner->password])->deleteJson('/api/teachers/'.$member->id)->assertStatus(500);
+    PersistedChurchSession::authenticate($this, $this->owner, 'web')->withPersistedSession(['password_hash_web' => $this->owner->password])->deleteJson('/api/teachers/'.$member->id)->assertStatus(500);
     expect(DB::connection('pgsql_migration')->table('church_memberships')->where('id', $member->id)->value('status'))->toBe('active');
     expect(DB::connection('pgsql_migration')->table('offline_authorizations')->whereNull('revoked_at')->count())->toBe(1);
 });
@@ -167,7 +168,7 @@ it('blocks cross tenant writes and foreign parent assignments at the database la
 });
 
 it('blocks platform identities and Owner sessions without current MFA', function () {
-    $this->withSession(['church_mfa_user_id' => null])->getJson('/api/teachers')->assertForbidden();
+    $this->withPersistedSession(['church_mfa_user_id' => null])->getJson('/api/teachers')->assertForbidden();
     $this->postJson('/logout')->assertNoContent();
     $this->actingAs(PlatformAdmin::factory()->active()->create(), 'platform')->getJson('/api/teachers')->assertUnauthorized();
 });
@@ -186,7 +187,7 @@ it('normalizes the acceptance email and rechecks verified identity under lock', 
     $teacher = User::factory()->create();
     $this->postJson('/api/teacher-invitations', ['email' => $teacher->email, 'ministry_ids' => [MembershipScenario::ministry($this->church->id)]])->assertCreated();
     $proof = MembershipScenario::proof();
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->password]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->password]);
     // A concurrent account update must not leave the earlier in-memory identity trusted.
     User::whereKey($teacher->id)->update(['email_verified_at' => null]);
     $this->postJson('/api/teacher-invitations/accept', $proof + ['email' => $teacher->email])->assertForbidden();

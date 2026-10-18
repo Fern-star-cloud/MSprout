@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use Symfony\Component\Process\Process;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function (): void {
@@ -207,7 +208,7 @@ it('retains authorization-filtered gaps without disclosing hidden incompatible p
         'id' => (string) Str::uuid(), 'church_id' => $this->church->id, 'membership_id' => $membership->id,
         'device_id' => $this->device, 'expires_at' => now()->addDays(10),
     ]);
-    $this->actingAs(User::findOrFail($teacher->id), 'web');
+    PersistedChurchSession::authenticate($this, User::findOrFail($teacher->id), 'web');
     $this->getJson('/api/sync/pull')->assertOk()->assertJsonCount(0, 'changes');
     expect(DB::connection('pgsql_migration')->table('device_cursors')->where('membership_id', $membership->id)->value('cursor'))->toBeGreaterThan(0);
 });

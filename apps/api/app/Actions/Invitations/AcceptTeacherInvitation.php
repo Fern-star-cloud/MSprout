@@ -4,44 +4,24 @@ namespace App\Actions\Invitations;
 
 use App\Actions\Memberships\ManageTeachers;
 use App\Actions\Memberships\RecordMembershipAudit;
-use App\Models\Church;
+use App\Domain\Sync\SignedInvitationCoordination;
 use App\Models\ChurchMembership;
-use App\Models\Invitation;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 final class AcceptTeacherInvitation
 {
-    public function handle(array $input): string
+    public function handle(#[\SensitiveParameter] array $input): string
     {
-        app(InvitationProof::class)->verify($input);
-
-        return DB::transaction(function () use ($input) {
-            // The verified signature is the authority for this narrow pre-membership RLS scope.
-            // No caller-selected header can grant invitation acceptance in another church.
-            $previous = DB::selectOne("SELECT current_setting('app.current_church_id', true) AS id")->id;
-            DB::selectOne("SELECT set_config('app.current_church_id', ?, true)", [$input['church_id']]);
-            try {
-                abort_unless(Church::whereKey($input['church_id'])->where('status', 'active')->lockForUpdate()->first(), 410);
-                $invitation = Invitation::where('church_id', $input['church_id'])->lockForUpdate()->find($input['invitation_id']);
-                $email = Str::lower(trim($input['email']));
-                abort_unless($invitation && ! $invitation->accepted_at && ! $invitation->revoked_at
-                    && $invitation->expires_at->isFuture() && hash_equals($invitation->token_hash, hash('sha256', $input['token']))
-                    && hash_equals($invitation->email, $email), 410);
-                $user = Auth::guard('web')->user();
-                if ($user) {
-                    $user = User::query()->lockForUpdate()->findOrFail($user->id);
-                    // A valid unused proof does not authorize a different or unverified identity.
-                    // Keep the proof usable; this is an access denial, not token expiry.
-                    abort_unless($user->hasVerifiedEmail() && hash_equals(Str::lower(trim($user->email)), $email), 403);
-                } else {
-                    // Possession of the emailed signed proof verifies this specific address.
-                    // Existing identities must sign in; never reset their credentials from an invitation.
-                    abort_if(User::whereRaw('lower(email) = ?', [$email])->exists(), 422);
+        $authority = VerifiedInvitationAuthority::verify($input);
+        try {
+            return app(SignedInvitationCoordination::class)->run(request(), $authority, function ($invitation, $user) use ($input, $authority): string {
+                if ($user === null) {
+                    abort_if(User::whereRaw('lower(btrim(email)) = ?', [$authority->email()])->exists(), 422);
                     abort_unless(isset($input['name'], $input['password']), 422);
-                    $user = User::create(['name' => trim($input['name']), 'email' => $email, 'password' => $input['password']]);
+                    $user = User::create(['name' => trim($input['name']), 'email' => $authority->email(), 'password' => $input['password']]);
                     $user->forceFill(['email_verified_at' => now()])->save();
                 }
                 $membership = ChurchMembership::where('church_id', $invitation->church_id)->where('user_id', $user->id)->lockForUpdate()->first();
@@ -53,9 +33,13 @@ final class AcceptTeacherInvitation
                 app(RecordMembershipAudit::class)->handle($invitation->church_id, $user->id, 'invitation.accepted', $invitation->id);
 
                 return $invitation->church_id;
-            } finally {
-                DB::selectOne("SELECT set_config('app.current_church_id', ?, true)", [$previous ?? '']);
+            });
+        } catch (UniqueConstraintViolationException $exception) {
+            if (! str_contains($exception->getMessage(), 'users_normalized_email_unique') && ! str_contains($exception->getMessage(), 'users_email_unique')) {
+                throw $exception;
             }
-        });
+            // The owning invitation transaction has already rolled back, including scope.
+            throw ValidationException::withMessages(['email' => 'Sign in to the existing account before accepting this invitation.']);
+        }
     }
 }

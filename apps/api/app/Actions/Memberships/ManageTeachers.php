@@ -2,6 +2,7 @@
 
 namespace App\Actions\Memberships;
 
+use App\Domain\Sync\ChurchCoordination;
 use App\Models\ChangeFeedEntry;
 use App\Models\Church;
 use App\Models\ChurchMembership;
@@ -15,8 +16,9 @@ final class ManageTeachers
 {
     public function owner(): ChurchMembership
     {
+        app(ChurchCoordination::class)->assertMemberAuthority();
         $churchId = app(TenantContext::class)->churchId();
-        abort_unless(Church::query()->whereKey($churchId)->where('status', 'active')->lockForUpdate()->first(), 403);
+        abort_unless(Church::query()->whereKey($churchId)->where('status', 'active')->lock('FOR NO KEY UPDATE')->first(), 403);
         abort_unless((new ChurchMembershipPolicy)->manage(Auth::user()), 403);
 
         return ChurchMembership::query()->where('church_id', $churchId)->where('user_id', Auth::id())->lockForUpdate()->firstOrFail();

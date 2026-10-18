@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(fn () => PostgresTestDatabase::refresh());
@@ -40,15 +41,15 @@ it('allows Teachers only their own permitted activity', function () {
             DB::connection('pgsql_migration')->table('audit_events')->insert($row->getAttributes());
         }
     }
-    $this->actingAs($teacher, 'web')->withHeader('X-Church-Id', $church->id)->getJson('/api/audit-events')->assertOk()->assertJsonCount(2, 'data')->assertJsonPath('scope', 'own');
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withHeader('X-Church-Id', $church->id)->getJson('/api/audit-events')->assertOk()->assertJsonCount(2, 'data')->assertJsonPath('scope', 'own');
     $this->getJson('/platform/audit-events')->assertUnauthorized();
 });
 
 it('isolates platform viewers and denies applicants missing MFA and guests', function () {
     $this->getJson('/api/audit-events')->assertUnauthorized();
-    $this->actingAs(User::factory()->create(), 'web')->getJson('/api/audit-events')->assertForbidden();
+    PersistedChurchSession::authenticate($this, User::factory()->create(), 'web')->getJson('/api/audit-events')->assertForbidden();
     $this->getJson('/platform/audit-events')->assertUnauthorized();
     AuditEvent::factory()->create();
     $this->actingAs(PlatformAdmin::factory()->active()->create(['handle' => 'sage.dev']), 'platform')->getJson('/platform/audit-events')->assertForbidden();
-    $this->withSession(['platform.mfa' => true])->getJson('/platform/audit-events')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('scope', 'platform');
+    $this->withPersistedSession(['platform.mfa' => true])->getJson('/platform/audit-events')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('scope', 'platform');
 });

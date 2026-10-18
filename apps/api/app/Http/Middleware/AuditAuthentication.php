@@ -6,6 +6,7 @@ use App\Domain\Audit\AuditEntry;
 use App\Domain\Audit\AuditWriter;
 use App\Domain\Audit\RecordDeniedAttempt;
 use App\Domain\Audit\SecurityEventWriter;
+use App\Support\Auth\AuthenticatedSessionWritePermit;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -66,6 +67,7 @@ final class AuditAuthentication
 
     private function restore(Request $request, $guard, $user, array $session): void
     {
+        $request->attributes->remove(AuthenticatedSessionWritePermit::ATTRIBUTE);
         $request->session()->replace($session);
         $guard->forgetUser();
         if ($user !== null) {

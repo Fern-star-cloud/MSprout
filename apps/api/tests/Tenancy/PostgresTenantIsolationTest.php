@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
+use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 use Tests\TestCase;
 
@@ -16,7 +18,7 @@ uses(TestCase::class);
 beforeEach(function (): void {
     PostgresTestDatabase::refresh();
 
-    Route::middleware(['auth', 'tenant.resolve', 'tenant.transaction'])
+    Route::middleware(['web', 'auth', 'tenant.resolve', 'tenant.transaction'])
         ->prefix('api/_test/tenant-memberships')
         ->group(function (): void {
             Route::get('/{membership}', fn (string $membership) => response()->json(
@@ -79,7 +81,7 @@ it('blocks direct cross-church reads', function (): void {
     [$ownerA, $churchA] = ChurchScenario::owner();
     [, $churchB] = ChurchScenario::owner();
     [, $membershipB] = ChurchScenario::teacher($churchB);
-    $this->actingAs($ownerA);
+    PersistedChurchSession::authenticate($this, $ownerA);
 
     $visible = app(TenantContext::class)->run(
         $churchA->id,
@@ -93,7 +95,7 @@ it('blocks direct cross-church inserts', function (): void {
     [$ownerA, $churchA] = ChurchScenario::owner();
     [, $churchB] = ChurchScenario::owner();
     $newUser = ChurchScenario::user();
-    $this->actingAs($ownerA);
+    PersistedChurchSession::authenticate($this, $ownerA);
 
     expect(fn () => app(TenantContext::class)->run($churchA->id, fn () => ChurchMembership::query()->create([
         'id' => (string) Str::uuid(),
@@ -108,7 +110,7 @@ it('blocks direct cross-church updates and deletes', function (): void {
     [$ownerA, $churchA] = ChurchScenario::owner();
     [, $churchB] = ChurchScenario::owner();
     [, $membershipB] = ChurchScenario::teacher($churchB);
-    $this->actingAs($ownerA);
+    PersistedChurchSession::authenticate($this, $ownerA);
 
     $results = app(TenantContext::class)->run($churchA->id, fn (): array => [
         ChurchMembership::query()->whereKey($membershipB->id)->update(['status' => 'inactive']),
@@ -121,7 +123,7 @@ it('blocks direct cross-church updates and deletes', function (): void {
 it('allows direct same-church inserts updates and deletes', function (): void {
     [$owner, $church] = ChurchScenario::owner();
     $newUser = ChurchScenario::user();
-    $this->actingAs($owner);
+    PersistedChurchSession::authenticate($this, $owner);
     $membershipId = (string) Str::uuid();
 
     $results = app(TenantContext::class)->run($church->id, function () use ($church, $newUser, $membershipId): array {
@@ -197,21 +199,21 @@ it('rejects missing invalid unauthorized and stale HTTP tenant context', functio
         ->update(['status' => 'inactive', 'updated_at' => now()]);
     $target = (string) Str::uuid();
 
-    $this->actingAs($owner)->getJson("/api/_test/tenant-memberships/{$target}")->assertForbidden();
-    $this->actingAs($owner)->withHeader('X-Church-Id', 'invalid')
+    PersistedChurchSession::authenticate($this, $owner)->getJson("/api/_test/tenant-memberships/{$target}")->assertForbidden();
+    PersistedChurchSession::authenticate($this, $owner)->withHeader('X-Church-Id', 'invalid')
         ->getJson("/api/_test/tenant-memberships/{$target}")->assertForbidden();
-    $this->actingAs($outsider)->withHeader('X-Church-Id', $church->id)
+    PersistedChurchSession::authenticate($this, $outsider)->withHeader('X-Church-Id', $church->id)
         ->getJson("/api/_test/tenant-memberships/{$target}")->assertForbidden();
-    $this->actingAs($teacher)->withHeader('X-Church-Id', $church->id)
+    PersistedChurchSession::authenticate($this, $teacher)->withHeader('X-Church-Id', $church->id)
         ->getJson("/api/_test/tenant-memberships/{$target}")->assertForbidden();
 });
 
 it('blocks HTTP cross-church reads inserts updates and deletes', function (): void {
-    [$ownerA, $churchA] = ChurchScenario::owner();
+    [$ownerA, $churchA] = MembershipScenario::owner($this);
     [, $churchB] = ChurchScenario::owner();
     [, $membershipB] = ChurchScenario::teacher($churchB);
     $newUser = ChurchScenario::user();
-    $request = $this->actingAs($ownerA)->withHeader('X-Church-Id', $churchA->id);
+    $request = PersistedChurchSession::authenticate($this, $ownerA)->withHeader('X-Church-Id', $churchA->id);
 
     $request->getJson('/api/_test/tenant-memberships/'.$membershipB->id)->assertNotFound();
     $request->postJson('/api/_test/tenant-memberships', [
@@ -227,9 +229,9 @@ it('blocks HTTP cross-church reads inserts updates and deletes', function (): vo
 });
 
 it('allows authorized same-church HTTP access', function (): void {
-    [$owner, $church, $membership] = ChurchScenario::owner();
+    [$owner, $church, $membership] = MembershipScenario::owner($this);
 
-    $this->actingAs($owner)
+    PersistedChurchSession::authenticate($this, $owner)
         ->withHeader('X-Church-Id', $church->id)
         ->getJson('/api/_test/tenant-memberships/'.$membership->id)
         ->assertOk()

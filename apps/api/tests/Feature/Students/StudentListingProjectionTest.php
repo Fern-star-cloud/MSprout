@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function () {
@@ -66,7 +67,7 @@ function listingTeacher($test, array $ministries, string $status = 'active'): vo
         ]);
     }
     $teacher = User::findOrFail($teacher->id);
-    $test->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($test, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()]);
 }
 
 it('bounds enrollment query growth and preserves the complete legacy response for :dataset', function (bool $owner, int $size) {

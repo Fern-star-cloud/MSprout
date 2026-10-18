@@ -8,10 +8,12 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Fortify;
 use PragmaRX\Google2FA\Google2FA;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function () {
     PostgresTestDatabase::refresh();
+    $this->useDatabaseCookieSessionBrowser();
 });
 
 it('keeps cookie names and scopes independent across alternating HTTP requests', function () {
@@ -27,7 +29,7 @@ it('keeps cookie names and scopes independent across alternating HTTP requests',
 it('verifies email through a signed frontend invitation and rejects tampering', function () {
     Notification::fake();
     $user = User::factory()->unverified()->create();
-    $this->actingAs($user)->postJson('/email/verification-notification')->assertStatus(202);
+    PersistedChurchSession::authenticate($this, $user)->postJson('/email/verification-notification')->assertStatus(202);
     Notification::assertSentTo($user, VerifyEmail::class, function ($notification) use ($user) {
         $url = $notification->toMail($user)->actionUrl;
         expect(str_contains($url, '/account/verify-email#'))->toBeTrue();

@@ -3,6 +3,7 @@
 use App\Models\PlatformAdmin;
 use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function (): void {
@@ -44,7 +45,7 @@ it('limits sanitized aggregate health metrics to the active sage.dev session', f
     $this->getJson('/platform/system-health')->assertUnauthorized();
 
     $admin = PlatformAdmin::factory()->active()->create(['handle' => 'sage.dev']);
-    $response = $this->actingAs($admin, 'platform')->withSession(['platform.mfa' => true])
+    $response = $this->actingAs($admin, 'platform')->withPersistedSession(['platform.mfa' => true])
         ->getJson('/platform/system-health')
         ->assertOk()
         ->assertJsonStructure([
@@ -62,7 +63,7 @@ it('limits sanitized aggregate health metrics to the active sage.dev session', f
 });
 
 it('does not borrow church authentication or weaken platform assurance for health and audit', function (): void {
-    $this->actingAs(User::factory()->create(), 'web');
+    PersistedChurchSession::authenticate($this, User::factory()->create(), 'web');
     foreach (['/platform/system-health', '/platform/audit-events'] as $path) {
         $this->getJson($path)->assertUnauthorized();
     }
@@ -71,7 +72,7 @@ it('does not borrow church authentication or weaken platform assurance for healt
     foreach (['/platform/system-health', '/platform/audit-events'] as $path) {
         $this->getJson($path)->assertForbidden();
     }
-    $this->withSession(['platform.mfa' => true]);
+    $this->withPersistedSession(['platform.mfa' => true]);
     $this->getJson('/platform/system-health')->assertOk();
     $this->getJson('/health/ready')->assertUnauthorized();
     $actor->forceFill(['status' => 'disabled'])->save();

@@ -1,0 +1,23 @@
+# B4-P2-1B-C authority qualification
+
+Run only from the repository root on the authorized C parent `8017e3b44e5211bcf1dac3b5a78e8ee37cec192f` and feature branch. This is an explicit isolated test harness, never an application bootstrap.
+
+`node scripts/compatibility/authority/run.mjs prepare` creates a new labelled PostgreSQL18 cluster, internal network, volume, unique setup/runtime identities and independent key. It checks cluster identity, mounts and absence of published database ports against protected development. It copies public source and an existing read-only dependency archive; no environment, browser profile or protected database is copied. Preserve previous environments and evidence. Never repeat prepare to overwrite a run.
+
+`node scripts/compatibility/authority/run.mjs test` runs the ordinary API suites. Explicit paths under `apps/api/tests/Compatibility` select the new C and unchanged recovery schema proofs. Database suites must run sequentially. The runner rechecks the bootstrap guard and exact API path allowlist before copying current public inputs; every attempt retains paired source hashes, result JSON and raw output under ignored `.git/msprout-compat-b4-p2-1b-c-20261017/`.
+
+The affirmative guard precedes credential-rotating test bootstrap. It verifies C-only target names, loopback, absent connection strings/private dotenv and the independently recorded server identity. Workers inherit only initialized isolated credentials, re-probe the guard, and never rotate roles or migrate. New fixtures also validate both Laravel database connection configurations before writing. No helper is a production entry point.
+
+The C worker uses IPC and PostgreSQL-observed waits. Test-only SQL triggers and advisory barriers are created exclusively by the isolated migration role and cleaned between scenarios. Deliberate deadlocks invert approved locking only in the negative fixture; errors remain visible and a separate whole-operation retry is required. No timeout is increased or assertion skipped. The SMTP fixture listens only on disposable loopback, discards raw proof mail and exposes only a protocol barrier; it never sends externally or records raw mail/tokens. Independent browser cookies model independent sessions; concurrent responses for the same session can necessarily wait on safe session persistence.
+
+The original A/P2-1A harnesses and proofs remain historical and unchanged. Their synthetic session/worker adapters are not evidence of C session authority. C uses persisted sessions, real cookie flows, fresh scoped Fortify controllers, actual domain HTTP entry points and fresh capability tests. The unchanged recovery schema tests run through the C guard.
+
+No production publisher call, EXECUTE grant, progress initialization, maintenance conversion, cutover, recovery protocol or Late state is introduced. See [the consolidated C report](../../../docs/qa/compat-01-b4-p2-1b-c-authority-integration.md). Publication remains held pending stakeholder review.
+
+## Qualified commands and browser boundary
+
+Final integrated qualification selects `tests/Unit tests/Feature tests/Tenancy` plus the seven C Compatibility test files and unchanged `RecoveryFoundationSchemaTest.php`; final422 tests/4,306 assertions pass. Do not run a backend suite concurrently with the C browser probe. Reuse valid sealed results rather than rerunning migrations for reassurance.
+
+After preparing current public API inputs through the guarded runner, the separate `apps/web/playwright.authority.config.ts` runs four390/1440px Chrome/WebKit cases. Set process-scoped `COMPAT_C_API` to the exact API container in the ignored C environment receipt, `COMPAT_C_ASSETS` to the sealed disposable build below that C evidence root, and `COMPAT_C_OUTPUT` to a fresh direct-child output directory there. Use the installed Playwright runner from apps/web, and the documented native WebKit executable when needed. The config refuses foreign targets/symlink output and uses one worker/no retries; existing Playwright configuration is unchanged.
+
+The loopback bridge invokes only the independently guarded C PHP probe. Each request boots fresh scoped application services and uses genuine cookies, CSRF and restricted database authority. Fixtures and browser contexts are disposable; private credentials remain in process IPC and traces/raw HTTP are disabled. The bridge awaits probe exit before another test may reset this isolated database. New pending work, actual acknowledgments, access denial and encrypted-record equality remain assertions. The four browser and eight independent PWA cases pass; screenshots/results stay ignored. No production browser/profile or maintenance entry point is used.

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Domain\Sync\ChurchCoordination;
 use App\Support\Tenancy\TenantContext;
 use Closure;
 use Illuminate\Http\Request;
@@ -21,7 +22,11 @@ final readonly class TenantDatabaseTransaction
 
         return $this->tenantContext->run(
             $churchId,
-            fn (): Response => $next($request),
+            // Account navigation is fenced by its global User/session boundary;
+            // it does not need the exclusive church operation queue.
+            fn (): Response => $request->is('api/me')
+                ? $next($request)
+                : app(ChurchCoordination::class)->run($request, fn (): Response => $next($request)),
         );
     }
 }

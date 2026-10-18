@@ -13,6 +13,7 @@ final readonly class CoordinatedChurchTransaction
         public string $churchId,
         public int $backendPid,
         public string $transactionId,
+        public string $authorityKind = 'member',
     ) {}
 
     public function assertUsable(): void

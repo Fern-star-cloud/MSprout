@@ -17,6 +17,7 @@ use Illuminate\Support\Str;
 use PragmaRX\Google2FA\Google2FA;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function () {
@@ -35,21 +36,29 @@ it('rolls back every membership action when the canonical writer fails', functio
     MembershipScenario::deviceAccess($membership);
     $db = DB::connection('pgsql_migration');
     $tables = ['church_memberships', 'invitations', 'teacher_ministry_assignments', 'offline_authorizations', 'push_subscriptions', 'sessions', 'audit_events'];
+    if ($action === 'accept') {
+        // Authentication is fixture setup, before the domain rollback snapshot.
+        PersistedChurchSession::authenticate($this, $invitee, 'web')
+            ->withPersistedSession(['password_hash_web' => $invitee->password]);
+    }
+    $snapshot = fn ($table) => $table === 'sessions'
+        ? json_encode(PersistedChurchSession::identitySnapshot())
+        : hash('sha256', json_encode($db->table($table)->orderBy('id')->get()));
     $before = [];
     foreach ($tables as $table) {
-        $before[$table] = json_encode($db->table($table)->orderBy('id')->get());
+        $before[$table] = $snapshot($table);
     }
     $this->mock(AuditWriter::class)->shouldReceive('record')->andThrow(new RuntimeException('private-marker'));
     match ($action) {
         'invite' => $this->postJson('/api/teacher-invitations', ['email' => $invitee->email, 'ministry_ids' => [$ministry]])->assertStatus(500),
-        'accept' => $this->actingAs($invitee, 'web')->withSession(['password_hash_web' => $invitee->password])->postJson('/api/teacher-invitations/accept', $proof + ['email' => $invitee->email])->assertStatus(500),
+        'accept' => $this->postJson('/api/teacher-invitations/accept', $proof + ['email' => $invitee->email])->assertStatus(500),
         'revoke-invitation' => $this->deleteJson('/api/teacher-invitations/'.$id)->assertStatus(500),
         'assign' => $this->putJson('/api/teachers/'.$membership->id.'/assignments', ['ministry_ids' => [$ministry]])->assertStatus(500),
         'revoke' => $this->deleteJson('/api/teachers/'.$membership->id)->assertStatus(500),
         'transfer' => $this->postJson('/api/ownership-transfer', ['target_membership_id' => $membership->id, 'password' => $this->password, 'code' => (new Google2FA)->getCurrentOtp($this->secret)])->assertStatus(500),
     };
     foreach ($tables as $table) {
-        expect(json_encode($db->table($table)->orderBy('id')->get()))->toBe($before[$table]);
+        expect($snapshot($table))->toBe($before[$table]);
     }
 })->with(['invite', 'accept', 'revoke-invitation', 'assign', 'revoke', 'transfer']);
 
@@ -57,7 +66,7 @@ it('rolls back application decisions when the canonical writer fails', function 
     $user = User::factory()->create();
     $application = ChurchApplication::create(['user_id' => $user->id, 'church_name' => 'Test', 'city' => 'Test', 'timezone' => 'Asia/Manila', 'status' => 'pending', 'duplicate_key' => hash('sha256', Str::random())]);
     $this->mock(AuditWriter::class)->shouldReceive('record')->andThrow(new RuntimeException('private-marker'));
-    $this->actingAs(PlatformAdmin::factory()->active()->create(['handle' => 'sage.dev']), 'platform')->withSession(['platform.mfa' => true])
+    $this->actingAs(PlatformAdmin::factory()->active()->create(['handle' => 'sage.dev']), 'platform')->withPersistedSession(['platform.mfa' => true])
         ->postJson('/platform/applications/'.$application->id.'/'.$decision, $decision === 'approve' ? [] : ['category' => 'other', 'reason' => 'Test decision'])->assertStatus(500);
     expect($application->fresh()->status->value)->toBe('pending');
     expect(DB::connection('pgsql_migration')->table('churches')->count())->toBe(0);
@@ -71,7 +80,7 @@ it('rolls back MFA enrollment confirmation disable and recovery regeneration whe
         $user->forceFill(['two_factor_secret' => encrypt($secret), 'two_factor_recovery_codes' => encrypt(json_encode(['test-recovery'])), 'two_factor_confirmed_at' => $operation === 'confirm' ? null : now()])->save();
     }
     $before = hash('sha256', json_encode($user->fresh()->getAttributes()));
-    $this->actingAs($user, 'web')->withSession(['auth.password_confirmed_at' => time()]);
+    PersistedChurchSession::authenticate($this, $user, 'web')->withPersistedSession(['auth.password_confirmed_at' => time()]);
     $this->mock(SecurityEventWriter::class)->shouldReceive('record')->andThrow(new RuntimeException('private-marker'));
     match ($operation) {
         'enroll' => $this->postJson('/user/two-factor-authentication')->assertStatus(500),
@@ -116,7 +125,7 @@ it('attributes generic access denial to an authenticated actor', function () {
     $user = User::factory()->create();
     $id = (string) Str::uuid();
 
-    $this->actingAs($user, 'web')->withHeader('X-Correlation-Id', $id)
+    PersistedChurchSession::authenticate($this, $user, 'web')->withHeader('X-Correlation-Id', $id)
         ->getJson('/api/audit-events')->assertForbidden();
 
     $event = DB::table('security_events')->where('correlation_id', $id)->sole();

@@ -5,10 +5,12 @@ use App\Models\PlatformAdmin;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Notification;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function () {
     PostgresTestDatabase::refresh();
+    $this->useDatabaseCookieSessionBrowser();
 });
 
 it('returns generic recovery responses and frontend reset links', function () {
@@ -26,7 +28,7 @@ it('returns generic recovery responses and frontend reset links', function () {
 
 it('exposes enrollment state with no workspace discovery for unverified users and disables registration', function () {
     $user = User::factory()->unverified()->create();
-    $this->actingAs($user)->getJson('/auth/session')
+    PersistedChurchSession::authenticate($this, $user)->getJson('/auth/session')
         ->assertExactJson(['id' => $user->id, 'email_verified' => false, 'mfa_confirmed' => false, 'workspaces' => []]);
     $this->postJson('/register', [])->assertNotFound();
 });

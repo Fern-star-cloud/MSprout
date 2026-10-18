@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function (): void {
@@ -153,7 +154,7 @@ it('rejects a mismatched replay and prevents another actor from claiming the rec
     ]);
     grantSyncDevice($membership->id, $this->church->id, $this->deviceId);
     $teacher = User::findOrFail($teacher->id);
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()]);
 
     pushSyncEvent($this, [$event])->assertOk()
         ->assertJsonPath('results.0.status', 'rejected')
@@ -211,7 +212,7 @@ it('records version conflicts and rejects stale membership or device authorizati
     $teacherDevice = (string) Str::uuid();
     grantSyncDevice($membership->id, $this->church->id, $teacherDevice);
     $teacher = User::findOrFail($teacher->id);
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()]);
     DB::connection('pgsql_migration')->table('church_memberships')->where('id', $membership->id)->update(['status' => 'revoked']);
     $this->deviceId = $teacherDevice;
     pushSyncEvent($this, [$unauthorized])->assertForbidden();

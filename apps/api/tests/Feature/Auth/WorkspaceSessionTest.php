@@ -6,16 +6,18 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function (): void {
     PostgresTestDatabase::refresh();
+    $this->useDatabaseCookieSessionBrowser();
 });
 
 it('discovers only the authenticated verified actor active workspaces without a tenant header', function (): void {
     [$owner, $church] = ChurchScenario::owner();
     ChurchScenario::owner();
-    $response = $this->actingAs(User::findOrFail($owner->id), 'web')
+    $response = PersistedChurchSession::authenticate($this, User::findOrFail($owner->id), 'web')
         ->getJson('/auth/session?user_id=999&church=untrusted');
 
     $response->assertOk()->assertJsonCount(1, 'workspaces')
@@ -36,7 +38,7 @@ it('discovers multiple teacher memberships in stable church id order and drops r
         'id' => (string) Str::uuid(), 'church_id' => $second->id, 'user_id' => $teacher->id,
         'role' => 'teacher', 'status' => 'active', 'created_at' => now(), 'updated_at' => now(),
     ]);
-    $this->actingAs(User::findOrFail($teacher->id), 'web');
+    PersistedChurchSession::authenticate($this, User::findOrFail($teacher->id), 'web');
     $rows = $this->getJson('/auth/session')->assertOk()->assertJsonCount(2, 'workspaces')->json('workspaces');
     $expected = [$first->id, $second->id];
     sort($expected);
@@ -49,19 +51,19 @@ it('discovers multiple teacher memberships in stable church id order and drops r
 });
 
 it('returns no workspace authority for an applicant or unverified actor', function (): void {
-    $this->actingAs(User::factory()->create(), 'web')->getJson('/auth/session')
+    PersistedChurchSession::authenticate($this, User::factory()->create(), 'web')->getJson('/auth/session')
         ->assertOk()->assertJsonPath('workspaces', []);
     [$owner] = ChurchScenario::owner();
     $user = User::findOrFail($owner->id);
     $user->forceFill(['email_verified_at' => null])->save();
-    $this->actingAs($user, 'web')->getJson('/auth/session')
+    PersistedChurchSession::authenticate($this, $user, 'web')->getJson('/auth/session')
         ->assertOk()->assertJsonPath('email_verified', false)->assertJsonPath('workspaces', []);
 });
 
 it('keeps discovery separate from operational MFA and cross tenant authorization', function (): void {
     [$owner, $church] = ChurchScenario::owner();
     [, $other] = ChurchScenario::owner();
-    $this->actingAs(User::findOrFail($owner->id), 'web')->getJson('/auth/session')->assertOk();
+    PersistedChurchSession::authenticate($this, User::findOrFail($owner->id), 'web')->getJson('/auth/session')->assertOk();
     $this->getJson('/api/me', ['X-Church-Id' => $church->id])->assertForbidden();
     foreach (['/api/me', '/api/students', '/api/ministries', '/api/attendance-reports', '/api/imports/template', '/api/sync-conflicts', '/api/birthdays/today'] as $path) {
         $this->getJson($path, ['X-Church-Id' => $other->id])->assertForbidden();
@@ -72,7 +74,7 @@ it('denies forged tenant requests for a Teacher whose own tenant preflight succe
     [, $church] = ChurchScenario::owner();
     [, $other] = ChurchScenario::owner();
     [$teacher] = ChurchScenario::teacher($church);
-    $this->actingAs(User::findOrFail($teacher->id), 'web')
+    PersistedChurchSession::authenticate($this, User::findOrFail($teacher->id), 'web')
         ->getJson('/api/me', ['X-Church-Id' => $church->id])->assertOk();
     foreach (['/api/me', '/api/students', '/api/ministries', '/api/attendance-reports', '/api/imports/template', '/api/sync-conflicts', '/api/birthdays/today'] as $path) {
         $this->getJson($path, ['X-Church-Id' => $other->id])->assertForbidden();
@@ -82,7 +84,7 @@ it('denies forged tenant requests for a Teacher whose own tenant preflight succe
 it('rejects missing and logged out church sessions and ignores platform guard authority', function (): void {
     $this->getJson('/auth/session')->assertUnauthorized();
     $user = User::factory()->create();
-    $this->actingAs($user, 'web')->getJson('/auth/session')->assertOk();
+    PersistedChurchSession::authenticate($this, $user, 'web')->getJson('/auth/session')->assertOk();
     $this->postJson('/logout')->assertNoContent();
     $this->getJson('/auth/session')->assertUnauthorized();
     $this->actingAs(PlatformAdmin::factory()->create(['status' => 'active']), 'platform')
@@ -104,5 +106,5 @@ it('restricts the discovery capability while preserving forced tenant RLS', func
 
 it('recreates the discovery function safely during isolated schema refresh', function (): void {
     expect(Artisan::call('migrate:fresh', ['--database' => 'pgsql_migration', '--force' => true]))->toBe(0);
-    $this->actingAs(User::factory()->create(), 'web')->getJson('/auth/session')->assertOk()->assertJsonPath('workspaces', []);
+    PersistedChurchSession::authenticate($this, User::factory()->create(), 'web')->getJson('/auth/session')->assertOk()->assertJsonPath('workspaces', []);
 });

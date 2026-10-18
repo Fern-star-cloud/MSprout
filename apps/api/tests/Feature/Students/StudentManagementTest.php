@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function () {
@@ -104,7 +105,7 @@ it('allows Teachers assigned roster reads but denies writes and hides full birth
     User::findOrFail($teacher->id);
     $this->putJson('/api/teachers/'.$membership->id.'/assignments', ['ministry_ids' => [$ministry]])->assertOk();
     $teacher = User::findOrFail($teacher->id);
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()]);
     $response = $this->getJson('/api/students')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.birth_month_day', '08-20')->assertJsonPath('data.0.ministry_ids.0', $ministry);
     expect($response->json('data.0'))->not->toHaveKey('date_of_birth');
     expect($response->json('data.0.ministry_ids'))->not->toContain($unassignedMinistry);

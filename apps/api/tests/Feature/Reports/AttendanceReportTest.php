@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
 use Tests\Support\MembershipScenario;
+use Tests\Support\PersistedChurchSession;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(function (): void {
@@ -115,7 +116,7 @@ it('limits Teachers to current assigned ministry sessions and denies export', fu
     $visible = reportSession($this, '2026-09-20', 'finalized', [$student => 'present']);
     reportSession($this, '2026-09-21', 'finalized', [$student => 'absent'], $otherMinistry);
 
-    $this->actingAs($teacher, 'web')->withHeader('X-Church-Id', $this->church->id);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withHeader('X-Church-Id', $this->church->id);
     $this->getJson('/api/attendance-reports?date_from=2026-09-01&date_to=2026-09-30')
         ->assertOk()
         ->assertJsonPath('data.role', 'teacher')
@@ -225,7 +226,7 @@ it('keeps recorded attendance and append-only evidence unchanged through repeate
 });
 
 it('denies unassured Owner report and export without producing an export audit', function (): void {
-    $this->withSession(['church_mfa_user_id' => null]);
+    $this->withPersistedSession(['church_mfa_user_id' => null]);
     $this->getJson('/api/attendance-reports')->assertForbidden();
     $this->get('/api/attendance-reports/export')->assertForbidden();
     expect(DB::connection('pgsql_migration')->table('audit_events')->where('action', 'attendance.report.exported')->count())->toBe(0);
@@ -242,7 +243,7 @@ it('removes revoked Teacher assignment history and continues to deny CSV export'
     $student = reportStudent($this, 'Revocation Fixture');
     reportSession($this, '2026-09-20', 'finalized', [$student => 'present']);
     $teacher = User::findOrFail($teacher->id);
-    $this->actingAs($teacher, 'web')->withSession(['password_hash_web' => $teacher->getAuthPassword()]);
+    PersistedChurchSession::authenticate($this, $teacher, 'web')->withPersistedSession(['password_hash_web' => $teacher->getAuthPassword()]);
     $query = '?date_from=2026-09-01&date_to=2026-09-30';
     $this->getJson('/api/attendance-reports'.$query)->assertOk()->assertJsonPath('data.summary.present_count', 1);
     $db->table('teacher_ministry_assignments')->where('id', $assignment)->update(['revoked_at' => now()]);
