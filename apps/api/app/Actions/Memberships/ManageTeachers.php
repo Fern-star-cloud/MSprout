@@ -3,7 +3,7 @@
 namespace App\Actions\Memberships;
 
 use App\Domain\Sync\ChurchCoordination;
-use App\Models\ChangeFeedEntry;
+use App\Domain\Sync\CoordinatedChangePublisher;
 use App\Models\Church;
 use App\Models\ChurchMembership;
 use App\Models\TeacherMinistryAssignment;
@@ -42,7 +42,7 @@ final class ManageTeachers
             ->whereNull('revoked_at')->whereNotIn('ministry_id', $ids)->lockForUpdate()->get();
         foreach ($revoked as $assignment) {
             $assignment->forceFill(['revoked_at' => now()])->save();
-            ChangeFeedEntry::create([
+            app(CoordinatedChangePublisher::class)->publish([
                 'church_id' => $membership->church_id,
                 'ministry_id' => $assignment->ministry_id,
                 'target_membership_id' => $membership->id,

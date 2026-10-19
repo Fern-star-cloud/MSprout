@@ -1,0 +1,15 @@
+# B4-P2-1B B+D+E isolated integration qualification
+
+Use the new runner from the repository root on published C parent `c5e30e1f3b392a154ac5c64aa39b3ca96c6e6361`. `node scripts/compatibility/integration/run.mjs prepare` creates one new independent PostgreSQL18 cluster, internal network, volume and unique setup/runtime identities; preserve prior evidence/resources. The PC-prefixed guard contract is reused with newly generated identities so published C tests run unchanged. No old C database or private environment is reused.
+
+`node scripts/compatibility/integration/run.mjs test <explicit test paths>` records every input seal, original failure and result. No parallel backend suites. Guard verification precedes role rotation/migrations and workers independently recheck connection identity. Only this disposable environment permits grant changes, admission seals and isolated activation. Production activation remains disabled and protected migration/cutover is prohibited.
+
+B+D+E is an unstaged stakeholder-review candidate. [The consolidated report](../../../docs/qa/compat-01-b4-p2-1b-bde-integration.md) records actual results, original failures and remaining recovery dependencies. Setup alone is not PASS or publication permission. All staging/commit/push remains held. Production activation is blocked on separately authorized snapshots, client reconstruction and end-to-end recovery; the device fence must not be removed as an operational workaround.
+
+## Independent maintenance-process qualification
+
+The BDE-SEC-01 additive migration revokes all seven PUBLIC/runtime cleanup grants. The test bootstrap creates an independent restricted disposable maintenance LOGIN; test-only `MaintenanceScenario` authenticates it without SET ROLE. Production never switches a web process to a privileged connection.
+
+Run `node scripts/compatibility/integration/process-isolation.mjs` sequentially with database suites. It independently checks the exact existing cluster/system/container/volume/network and guard before rotating only disposable credentials. It starts four unprivileged private-PID containers with public source/dependencies and explicit environments: ordinary web, actual maintenance entrypoint, web with a mistakenly mounted secret (rejected), and worker missing its secret (rejected). Web cannot mount/read worker credentials, inspect its PID namespace, use SET ROLE or read password catalogs. The maintenance service has no HTTP listener, shared queue, owner credential or Docker socket. Its HTTP kernel also refuses requests.
+
+Generated environment/secret fixtures, logs and receipts stay ignored beneath the existing evidence directory. Never copy them into a source review package. Preserve exited fixture containers/evidence; the script grants no protected operation or cleanup authority. Target deployment credentials/isolation remain separately unqualified operational prerequisites in the [runbook](../../../docs/operations/coordinated-publication.md#maintenance-identity-and-process-isolation).

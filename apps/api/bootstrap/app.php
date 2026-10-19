@@ -7,6 +7,7 @@ use App\Http\Middleware\AuthResponseHeaders;
 use App\Http\Middleware\CorrelationId;
 use App\Http\Middleware\FenceChurchAuthentication;
 use App\Http\Middleware\RejectAuthenticatedJsonLogin;
+use App\Http\Middleware\RejectMaintenanceHttp;
 use App\Http\Middleware\RequireConfirmedOwnerMfa;
 use App\Http\Middleware\RequireVerifiedApiEmail;
 use App\Http\Middleware\ResolveChurchMembership;
@@ -45,7 +46,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
         $middleware->redirectGuestsTo(null);
-        $middleware->prepend(CorrelationId::class);
+        $middleware->prepend([CorrelationId::class, RejectMaintenanceHttp::class]);
         $middleware->append(AuthResponseHeaders::class);
         $middleware->web(append: [AuditAuthentication::class, FenceChurchAuthentication::class]);
         $middleware->api(append: [FenceChurchAuthentication::class]);

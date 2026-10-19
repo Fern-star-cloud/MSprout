@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Devices\IssueOfflineAuthorization;
+use App\Domain\Sync\PublicationMode;
 use App\Enums\ChurchRole;
 use App\Models\ChangeFeedEntry;
 use App\Models\Church;
@@ -28,6 +29,7 @@ final class OfflineBootstrapController extends Controller
             ->where('user_id', $request->user()->id)
             ->where('status', 'active')
             ->firstOrFail();
+        app(PublicationMode::class)->requireDeviceRecovery();
 
         $ministryQuery = Ministry::query()
             ->where('church_id', $churchId)

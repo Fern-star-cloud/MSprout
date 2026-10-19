@@ -2,11 +2,11 @@
 
 namespace App\Domain\Attendance;
 
+use App\Domain\Sync\CoordinatedChangePublisher;
 use App\Models\AttendanceGuest;
 use App\Models\AttendanceRecord;
 use App\Models\AttendanceRevision;
 use App\Models\AttendanceSession;
-use App\Models\ChangeFeedEntry;
 
 final class PublishAttendanceChange
 {
@@ -32,7 +32,7 @@ final class PublishAttendanceChange
             ->orderBy('id')
             ->get();
 
-        ChangeFeedEntry::create([
+        app(CoordinatedChangePublisher::class)->publish([
             'church_id' => $session->church_id,
             'ministry_id' => $session->ministry_id,
             'entity_type' => 'attendance_session',

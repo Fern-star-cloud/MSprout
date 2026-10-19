@@ -87,6 +87,22 @@ $admin->exec(
     $admin->quote($runtimePassword),
 );
 
+// Independent disposable maintenance principal; no inherited runtime membership.
+$maintenanceUsername = $runtimeUsername.'_maintenance';
+if (strlen($maintenanceUsername) > 63 || in_array($maintenanceUsername, [$adminUsername, $developmentRuntimeUsername], true)) {
+    throw new RuntimeException('Unsafe test maintenance identity.');
+}
+$maintenanceRole = $quoteIdentifier($maintenanceUsername);
+$maintenancePassword = bin2hex(random_bytes(32));
+$roleStatement->execute(['role' => $maintenanceUsername]);
+if (! (bool) $roleStatement->fetchColumn()) {
+    $admin->exec("CREATE ROLE {$maintenanceRole} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS NOREPLICATION");
+}
+$admin->exec("ALTER ROLE {$maintenanceRole} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS NOREPLICATION PASSWORD ".$admin->quote($maintenancePassword));
+$setEnvironment('DB_MAINTENANCE_USERNAME', $maintenanceUsername);
+$setEnvironment('DB_TEST_MAINTENANCE_USERNAME', $maintenanceUsername);
+$setEnvironment('DB_TEST_MAINTENANCE_PASSWORD', $maintenancePassword);
+
 $databaseStatement = $admin->prepare('SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = :database)');
 $databaseStatement->execute(['database' => $testDatabase]);
 

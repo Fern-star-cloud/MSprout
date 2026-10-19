@@ -22,7 +22,12 @@ final readonly class TrustedSystemCoordination
         }
         $role = DB::selectOne('SELECT current_user AS name, rolsuper, rolbypassrls, rolcreatedb, rolcreaterole, rolinherit FROM pg_roles WHERE rolname=current_user');
         $table = DB::selectOne("SELECT relrowsecurity, relforcerowsecurity, relowner=current_user::regrole AS owns FROM pg_class WHERE oid='public.churches'::regclass");
-        if ($role->name !== config('database.runtime_role') || $role->rolsuper || $role->rolbypassrls
+        $cleanup = in_array($purpose, [TrustedSystemPurpose::RetentionCleanup, TrustedSystemPurpose::RevokedDeviceCleanup], true);
+        if ($cleanup) {
+            app(MaintenanceCoordinator::class)->assertWorker();
+        }
+        $expected = $cleanup ? config('maintenance.role') : config('database.runtime_role');
+        if ($role->name !== $expected || $role->rolsuper || $role->rolbypassrls
             || $role->rolcreatedb || $role->rolcreaterole || $role->rolinherit
             || $table->owns || ! $table->relrowsecurity || ! $table->relforcerowsecurity) {
             throw new LogicException('Trusted coordination requires the restricted forced-RLS runtime.');

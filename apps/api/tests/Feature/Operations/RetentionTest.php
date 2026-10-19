@@ -4,9 +4,12 @@ use App\Jobs\PruneOperationalData;
 use App\Jobs\PurgeRevokedDeviceData;
 use App\Models\ChurchApplication;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Tests\Support\MaintenanceScenario;
 use Tests\Support\MembershipScenario;
 use Tests\Support\PostgresTestDatabase;
 
@@ -101,14 +104,20 @@ it('applies bounded retention while preserving audit evidence and cursor safety'
         'correlation_id' => (string) Str::uuid(),
     ]);
 
-    app()->call([new PurgeRevokedDeviceData, 'handle']);
-    app()->call([new PruneOperationalData, 'handle']);
+    // Model the real queue worker: no borrowed human guard/session authority.
+    app('session.store')->flush();
+    Auth::forgetGuards();
+    app()->instance('request', Request::create('http://localhost'));
+    MaintenanceScenario::run(function (): void {
+        app()->call([new PurgeRevokedDeviceData, 'handle']);
+        app()->call([new PruneOperationalData, 'handle']);
+    });
 
     expect($db->table('operational_events')->count())->toBe(1)
         ->and($db->table('security_events')->count())->toBe(1)
         ->and($db->table('sync_events')->count())->toBe(1)
         ->and($db->table('audit_events')->where('id', $auditId)->exists())->toBeTrue()
-        ->and($db->table('change_feed')->where('sequence', $oldFeed)->exists())->toBeFalse()
+        ->and($db->table('change_feed')->where('sequence', $oldFeed)->exists())->toBeTrue()
         ->and($db->table('change_feed')->where('sequence', $protectedFeed)->exists())->toBeTrue()
         ->and($db->table('device_cursors')->where('device_id', $expiredDevice)->value('full_resync_required'))->toBeTrue()
         ->and($db->table('offline_authorizations')->where('device_id', $purgedDevice)->exists())->toBeFalse()
@@ -126,7 +135,7 @@ it('keeps retention privileges behind narrow database functions', function (): v
         expect((bool) $db->scalar('SELECT has_table_privilege(?, ?, ?)', [$runtimeRole, $table, 'DELETE']))->toBeFalse();
     }
 
-    expect((bool) $db->scalar("SELECT has_function_privilege(?, 'prune_operational_data(timestamptz,timestamptz,timestamptz,timestamptz)', 'EXECUTE')", [$runtimeRole]))->toBeTrue()
+    expect((bool) $db->scalar("SELECT has_function_privilege(?, 'prune_operational_data(timestamptz,timestamptz,timestamptz,timestamptz)', 'EXECUTE')", [$runtimeRole]))->toBeFalse()
         ->and((bool) $db->scalar('SELECT has_table_privilege(?, ?, ?)', [$runtimeRole, 'system_heartbeats', 'SELECT']))->toBeTrue()
         ->and((bool) $db->scalar("SELECT has_function_privilege('public', 'prune_operational_data(timestamptz,timestamptz,timestamptz,timestamptz)', 'EXECUTE')"))->toBeFalse();
 });

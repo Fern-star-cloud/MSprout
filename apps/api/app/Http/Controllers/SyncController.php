@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Devices\IssueOfflineAuthorization;
 use App\Domain\Attendance\AttendanceCompatibility;
 use App\Domain\Sync\ApplySyncBatch;
+use App\Domain\Sync\PublicationMode;
 use App\Domain\Sync\PullChanges;
 use App\Domain\Sync\SyncAuthorization;
 use Illuminate\Http\JsonResponse;
@@ -30,6 +31,7 @@ final class SyncController extends Controller
         ]);
         $membership = $authorization->membership($request, $input['device_id']);
         app(AttendanceCompatibility::class)->declaration($request);
+        app(PublicationMode::class)->requireDeviceRecovery();
 
         return response()->json([
             'results' => $apply->handle($membership, $input['device_id'], $input['batch_id'], $input['events'], $request->user()),
@@ -53,6 +55,7 @@ final class SyncController extends Controller
         abort_if($cursor === false, 422);
         $membership = $authorization->membership($request, $deviceId);
         app(AttendanceCompatibility::class)->declaration($request);
+        app(PublicationMode::class)->requireDeviceRecovery();
 
         return DB::transaction(function () use ($pull, $issue, $membership, $deviceId, $cursor, $input): JsonResponse {
             $result = $pull->handle($membership, $deviceId, $cursor, (int) ($input['limit'] ?? 100));

@@ -162,6 +162,16 @@ final class ChurchCoordination
         $this->assertContext($this->active);
     }
 
+    public function context(): CoordinatedChurchTransaction
+    {
+        if ($this->active === null) {
+            throw new LogicException('Publication requires the existing primary authority boundary.');
+        }
+        $this->assertContext($this->active);
+
+        return $this->active;
+    }
+
     /** Identity is verified against PostgreSQL, not just a mutable PHP marker. */
     public function assertContext(CoordinatedChurchTransaction $context): void
     {

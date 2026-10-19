@@ -3,6 +3,8 @@
 namespace App\Jobs;
 
 use App\Domain\Notifications\FindBirthdayRecipients;
+use App\Domain\Sync\TrustedSystemCoordination;
+use App\Domain\Sync\TrustedSystemPurpose;
 use App\Models\BirthdayNotificationDelivery;
 use App\Models\Church;
 use App\Models\ChurchMembership;
@@ -46,7 +48,7 @@ final class SendBirthdayPush implements ShouldBeUnique, ShouldQueue
 
     public function handle(TenantContext $tenancy, PushSender $sender, FindBirthdayRecipients $finder): void
     {
-        $claimed = $tenancy->runForSystem($this->churchId, function () use ($finder): ?array {
+        $claimed = app(TrustedSystemCoordination::class)->run($this->churchId, TrustedSystemPurpose::BirthdayNotification, function () use ($finder): ?array {
             $delivery = BirthdayNotificationDelivery::query()->whereKey($this->deliveryId)->lockForUpdate()->first();
             if ($delivery === null || in_array($delivery->status, ['delivered', 'revoked'], true)) {
                 return null;
@@ -89,7 +91,7 @@ final class SendBirthdayPush implements ShouldBeUnique, ShouldQueue
         }
 
         $result = $sender->send($claimed['subscription'], self::payload($claimed['count']));
-        $tenancy->runForSystem($this->churchId, function () use ($result): void {
+        app(TrustedSystemCoordination::class)->run($this->churchId, TrustedSystemPurpose::BirthdayNotification, function () use ($result): void {
             $delivery = BirthdayNotificationDelivery::query()->whereKey($this->deliveryId)->lockForUpdate()->firstOrFail();
             $subscription = PushSubscription::query()->whereKey($delivery->push_subscription_id)->lockForUpdate()->first();
             if ($result->successful) {

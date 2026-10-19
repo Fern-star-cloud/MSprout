@@ -3,6 +3,8 @@
 namespace App\Jobs;
 
 use App\Domain\Notifications\FindBirthdayRecipients;
+use App\Domain\Sync\TrustedSystemCoordination;
+use App\Domain\Sync\TrustedSystemPurpose;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Bus\Queueable;
@@ -29,7 +31,7 @@ final class DispatchBirthdayNotifications implements ShouldBeUnique, ShouldQueue
 
     public function handle(TenantContext $tenancy, FindBirthdayRecipients $finder): void
     {
-        $tenancy->runForSystem($this->churchId, function () use ($finder): void {
+        app(TrustedSystemCoordination::class)->run($this->churchId, TrustedSystemPurpose::BirthdayNotification, function () use ($finder): void {
             $date = CarbonImmutable::createFromFormat('!Y-m-d', $this->localDate, 'UTC');
             if ($date === false) {
                 throw new \InvalidArgumentException('Invalid local date.');

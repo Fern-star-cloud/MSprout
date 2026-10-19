@@ -1,5 +1,7 @@
 <?php
 
+use App\Domain\Audit\AuditEntry;
+use App\Domain\Audit\AuditWriter;
 use App\Domain\Sync\TrustedSystemCoordination;
 use App\Domain\Sync\TrustedSystemPurpose;
 use App\Support\Tenancy\TenantContext;
@@ -8,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\AuthorityScenario;
 use Tests\Support\ChurchScenario;
+use Tests\Support\MaintenanceScenario;
 use Tests\Support\PostgresTestDatabase;
 use Tests\TestCase;
 
@@ -31,12 +34,12 @@ it('keeps notification authority active-only while qualifying explicit inactive-
     }))->toBe(1);
     DB::connection('pgsql_migration')->table('churches')->where('id', $id)->update(['status' => 'suspended']);
     expect(fn () => $coordination->run($id, TrustedSystemPurpose::BirthdayNotification, fn () => true))->toThrow(AuthorizationException::class);
-    expect($coordination->run($id, TrustedSystemPurpose::RetentionCleanup, function ($context): bool {
+    expect(MaintenanceScenario::run(fn () => $coordination->run($id, TrustedSystemPurpose::RetentionCleanup, function ($context): bool {
         $context->assertUsable();
         expect(fn () => app(TenantContext::class)->role())->toThrow(LogicException::class);
 
         return DB::table('churches')->where('status', 'suspended')->count() === 1;
-    }))->toBeTrue();
+    })))->toBeTrue();
     expect(DB::transactionLevel())->toBe(0)
         ->and(DB::scalar("SELECT NULLIF(current_setting('app.current_church_id',true),'')"))->toBeNull();
 });
@@ -52,16 +55,19 @@ it('rejects human impersonation and untyped requester-supplied purposes', functi
 it('rolls back trusted callback work restores scope and expires its transaction capability without enabling publication', function (): void {
     $captured = null;
     expect(function () use (&$captured): void {
-        app(TrustedSystemCoordination::class)->run($this->systemChurch->id, TrustedSystemPurpose::RevokedDeviceCleanup, function ($context) use (&$captured): void {
-            $captured = $context;
-            DB::table('churches')->where('id', $context->churchId)->update(['name' => 'Rolled back synthetic name']);
-            throw new DomainException('Synthetic callback failure.');
+        MaintenanceScenario::run(function () use (&$captured): void {
+            app(TrustedSystemCoordination::class)->run($this->systemChurch->id, TrustedSystemPurpose::RevokedDeviceCleanup, function ($context) use (&$captured): void {
+                $captured = $context;
+                app(AuditWriter::class)->record(new AuditEntry('church', 'operations.retention.pruned', 'system', null, 'system', null, 'success', $context->churchId, metadata: ['count' => 0]));
+                throw new DomainException('Synthetic callback failure.');
+            });
         });
     })->toThrow(DomainException::class);
     expect($captured !== null)->toBeTrue();
     expect(fn () => $captured->assertUsable())->toThrow(LogicException::class);
     expect(DB::transactionLevel())->toBe(0)
         ->and(DB::table('churches')->count())->toBe(0)
+        ->and(DB::connection('pgsql_migration')->table('audit_events')->count())->toBe(0)
         ->and(DB::connection('pgsql_migration')->table('sync_recovery_progress')->count())->toBe(0)
         ->and(DB::scalar("SELECT has_function_privilege(current_user,'public.append_coordinated_change(uuid,uuid,text,uuid,uuid,character varying,uuid,integer,character varying,jsonb)','EXECUTE')"))->toBeFalse();
 });

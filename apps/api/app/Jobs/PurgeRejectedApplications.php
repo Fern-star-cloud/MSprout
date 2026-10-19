@@ -2,9 +2,12 @@
 
 namespace App\Jobs;
 
+use App\Domain\Audit\AuditEntry;
+use App\Domain\Audit\AuditWriter;
+use App\Domain\Sync\MaintenanceCoordinator;
 use App\Enums\ApplicationStatus;
 use App\Models\ChurchApplication;
-use App\Models\User;
+use App\Support\Auth\UserAuthorityLocks;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Queue\Queueable;
@@ -16,22 +19,28 @@ class PurgeRejectedApplications implements ShouldQueue
 
     public function handle(): int
     {
+        app(MaintenanceCoordinator::class)->assertWorker();
         $purged = 0;
         ChurchApplication::query()->where('status', 'rejected')->whereNull('purged_at')->where('decided_at', '<=', now()->subDays(30))
-            ->select('id')->chunkById(100, function ($applications) use (&$purged) {
+            ->select(['id', 'user_id'])->chunkById(100, function ($applications) use (&$purged) {
                 foreach ($applications as $candidate) {
-                    DB::transaction(function () use ($candidate, &$purged) {
+                    app(UserAuthorityLocks::class)->run([(int) $candidate->user_id => 'write'], function ($actors) use ($candidate, &$purged) {
                         $application = ChurchApplication::query()->lockForUpdate()->findOrFail($candidate->id);
+                        if ((int) $application->user_id !== (int) $candidate->user_id) {
+                            throw new \LogicException('Application identity changed during cleanup.');
+                        }
                         if ($application->purged_at || $application->status !== ApplicationStatus::Rejected || $application->decided_at->gt(now()->subDays(30))) {
                             return;
                         }
-                        $user = User::query()->lockForUpdate()->find($application->user_id);
+                        $user = $actors[$candidate->user_id] ?? null;
                         $application->forceFill([
                             'church_name' => null, 'city' => null, 'address' => null, 'timezone' => null,
                             'duplicate_key' => null, 'reason' => null, 'purged_at' => now(),
                         ])->save();
                         $purged++;
-                        if (! $user || ChurchApplication::query()->where('user_id', $user->id)->whereNull('purged_at')->exists()) {
+                        app(AuditWriter::class)->record(new AuditEntry('platform', 'application.retention.purged', 'system', null, 'application', $application->id, 'success', metadata: ['count' => 1]));
+                        if (! $user || ChurchApplication::query()->where('user_id', $user->id)->whereNull('purged_at')->exists()
+                            || DB::scalar('SELECT public.protected_user_has_memberships(?)', [$user->id])) {
                             return;
                         }
                         try {

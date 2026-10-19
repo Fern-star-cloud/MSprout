@@ -6,7 +6,7 @@ use App\Enums\ApplicationStatus;
 use App\Models\Church;
 use App\Models\ChurchApplication;
 use App\Models\ChurchMembership;
-use App\Models\User;
+use App\Support\Auth\UserAuthorityLocks;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -14,13 +14,18 @@ final class ApproveChurchApplication
 {
     public function handle(string $id, string $actorId, string $correlationId): ChurchApplication
     {
-        return DB::transaction(function () use ($id, $actorId, $correlationId) {
+        $applicantId = ChurchApplication::whereKey($id)->value('user_id');
+        abort_if($applicantId === null, 404);
+
+        return app(UserAuthorityLocks::class)->run([(int) $applicantId => 'write'], function ($actors) use ($id, $actorId, $correlationId, $applicantId) {
             $application = ChurchApplication::query()->lockForUpdate()->findOrFail($id);
+            abort_unless((int) $application->user_id === (int) $applicantId, 409);
             if ($application->status === ApplicationStatus::Approved) {
                 return $application;
             }
             abort_unless($application->status === ApplicationStatus::Pending, 409);
-            $applicant = User::query()->lockForUpdate()->findOrFail($application->user_id);
+            $applicant = $actors[$applicantId] ?? null;
+            abort_unless($applicant, 403);
             abort_unless($applicant->hasVerifiedEmail(), 403);
             $churchId = (string) Str::uuid();
             // A platform-authorized creation scope, not a borrowed membership. All RLS policies remain in force.

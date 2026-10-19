@@ -7,6 +7,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
+use Tests\Support\MaintenanceScenario;
 use Tests\Support\PostgresTestDatabase;
 
 beforeEach(fn () => PostgresTestDatabase::refresh());
@@ -22,8 +23,8 @@ it('purges rejected personal information at thirty days and deletes eligible ide
     DB::table('sessions')->insert(['id' => 'expired-applicant', 'user_id' => $user->id, 'payload' => 'test', 'last_activity' => now()->timestamp]);
     DB::table('password_reset_tokens')->insert(['email' => $user->email, 'token' => 'test', 'created_at' => now()]);
     $recent = rejectedApplication(User::factory()->create(), 29);
-    (new PurgeRejectedApplications)->handle();
-    (new PurgeRejectedApplications)->handle();
+    MaintenanceScenario::run(fn () => (new PurgeRejectedApplications)->handle());
+    MaintenanceScenario::run(fn () => (new PurgeRejectedApplications)->handle());
     expect($old->fresh()->only(['church_name', 'city', 'address', 'timezone', 'duplicate_key', 'reason', 'user_id']))->toBe(array_fill_keys(['church_name', 'city', 'address', 'timezone', 'duplicate_key', 'reason', 'user_id'], null));
     expect($old->fresh()->category)->toBe('incomplete')->and($old->fresh()->purged_at)->not->toBeNull();
     expect(User::find($user->id))->toBeNull();
@@ -40,7 +41,7 @@ it('preserves identities with active or recent applications and memberships hidd
     $teacher = User::findOrFail($teacher->id);
     $old = rejectedApplication($teacher);
     expect($teacher->memberships()->count())->toBe(0); // Runtime cannot see the membership without a tenant scope.
-    (new PurgeRejectedApplications)->handle();
+    MaintenanceScenario::run(fn () => (new PurgeRejectedApplications)->handle());
     expect(User::find($user->id))->not->toBeNull()->and(User::find($teacher->id))->not->toBeNull();
     expect($old->fresh()->reason)->toBeNull();
     expect(DB::connection('pgsql_migration')->table('church_memberships')->where('user_id', $teacher->id)->count())->toBe(1);

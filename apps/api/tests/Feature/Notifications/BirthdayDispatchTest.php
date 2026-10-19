@@ -9,7 +9,9 @@ use App\Support\Notifications\PushSender;
 use App\Support\Notifications\PushSendResult;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
@@ -143,7 +145,9 @@ it('dispatches only churches at local 08:00 and creates one recipient delivery a
         ->and(DB::connection('pgsql_migration')->table('birthday_notification_dispatches')->count())->toBe(1);
 
     Queue::fake();
+    birthdayQueueContext();
     $dispatch->handle(app(TenantContext::class), app(FindBirthdayRecipients::class));
+    birthdayQueueContext();
     $dispatch->handle(app(TenantContext::class), app(FindBirthdayRecipients::class));
     Queue::assertPushed(SendBirthdayPush::class, 1);
     expect(DB::connection('pgsql_migration')->table('birthday_notification_deliveries')->count())->toBe(1);
@@ -183,6 +187,7 @@ it('revokes a subscription after a permanent push-service failure without record
     $device = (string) Str::uuid();
     birthdaySubscription($this, $this->ownerMembership->id, $this->owner->id, $device);
     $dispatch = new DispatchBirthdayNotifications($this->church->id, '2026-09-29');
+    birthdayQueueContext();
     $dispatch->handle(app(TenantContext::class), app(FindBirthdayRecipients::class));
     $send = Queue::pushed(SendBirthdayPush::class)->first();
     $sender = new class implements PushSender
@@ -217,6 +222,7 @@ it('rechecks Teacher assignment before a queued delivery sends', function (): vo
         'assigned_by' => $this->owner->id, 'created_at' => now(), 'updated_at' => now(),
     ]);
     birthdaySubscription($this, $membership->id, $teacher->id, (string) Str::uuid());
+    birthdayQueueContext();
     (new DispatchBirthdayNotifications($this->church->id, '2026-09-29'))
         ->handle(app(TenantContext::class), app(FindBirthdayRecipients::class));
     $send = Queue::pushed(SendBirthdayPush::class)->first();
@@ -302,3 +308,11 @@ it('reuses registration identity on retry and revokes only the selected caller d
         expect(json_encode($event))->not->toContain('synthetic-retry')->not->toContain('synthetic-auth')->not->toContain('synthetic-public');
     }
 });
+
+function birthdayQueueContext(): void
+{
+    // Real queue jobs have no authenticated human request/borrowed session.
+    app('session.store')->flush();
+    Auth::forgetGuards();
+    app()->instance('request', Request::create('http://localhost'));
+}
