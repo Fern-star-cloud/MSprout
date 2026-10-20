@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Tests\Support\ChurchScenario;
+use Tests\Support\MaintenanceScenario;
 use Tests\Support\PostgresTestDatabase;
 use Tests\TestCase;
 
@@ -182,9 +183,13 @@ it('cleans only inactive terminal payloads and preserves run metadata and recove
         p21Transition($run, ['state' => 'superseded']);
     });
     expect(fn () => p21Scope($church, fn () => DB::select('SELECT cleanup_recovery_pages(?::uuid)', [$run['id']])))->toThrow(QueryException::class);
-    p21Scope($church, function () use ($run): void {
+    expect(fn () => MaintenanceScenario::run(fn () => p21Scope($church, fn () => DB::select('SELECT cleanup_recovery_pages(?::uuid)', [$run['id']]))))->toThrow(QueryException::class);
+    p21Scope($church, function (): void {
         DB::table('device_cursors')->update(['active_recovery_id' => null]);
-        expect((int) DB::scalar('SELECT cleanup_recovery_pages(?::uuid)', [$run['id']]))->toBe(1);
+    });
+    $purged = MaintenanceScenario::run(fn () => p21Scope($church, fn () => (int) DB::scalar('SELECT cleanup_recovery_pages(?::uuid)', [$run['id']])));
+    expect($purged)->toBe(1);
+    p21Scope($church, function (): void {
         expect(DB::table('offline_recovery_runs')->count())->toBe(1);
         expect(DB::table('device_cursors')->value('full_resync_required'))->toBeTrue();
     });
@@ -205,7 +210,7 @@ it('refuses automatic destructive rollback', function (): void {
 });
 
 it('migrates an existing baseline device without trusting its served cursor', function (): void {
-    $paths = array_values(array_filter(glob(database_path('migrations/*.php')), fn ($path) => ! str_ends_with($path, '2026_10_16_000001_create_recovery_foundations.php')));
+    $paths = array_values(array_filter(glob(database_path('migrations/*.php')), fn ($path) => ! in_array(basename($path), ['2026_10_16_000001_create_recovery_foundations.php', '2026_10_19_000003_qualify_recovery_snapshots.php'], true)));
     expect(Artisan::call('migrate:fresh', ['--database' => 'pgsql_migration', '--force' => true, '--path' => $paths, '--realpath' => true]))->toBe(0);
     [, $church, $member] = ChurchScenario::owner();
     $device = (string) Str::uuid();
@@ -215,6 +220,9 @@ it('migrates an existing baseline device without trusting its served cursor', fu
     expect((int) $row->cursor)->toBe(9000)->and($row->applied_cursor)->toBeNull()->and($row->applied_generation)->toBeNull()
         ->and($row->receipt_coverage)->toBe('unknown')->and($row->receipt_coverage_since)->toBeNull();
     expect(DB::connection('pgsql_migration')->table('sync_recovery_progress')->count())->toBe(0);
+    // Replay dependent additive snapshots only after the original foundation;
+    // retain the historical upgrade assertions above and restore current schema.
+    expect(Artisan::call('migrate', ['--database' => 'pgsql_migration', '--force' => true, '--path' => 'database/migrations/2026_10_19_000003_qualify_recovery_snapshots.php']))->toBe(0);
 });
 
 it('binds applied evidence to the sealed origin and prevents guessed receipt coverage', function (): void {

@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Domain\Audit\AuditEntry;
 use App\Domain\Audit\AuditWriter;
 use App\Domain\Sync\MaintenanceCoordinator;
+use App\Domain\Sync\RecoverySnapshotRetention;
 use App\Domain\Sync\TrustedSystemPurpose;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -36,6 +37,7 @@ final class PruneOperationalData implements ShouldQueue
                 now('UTC')->subDays((int) config('operations.change_feed_retention_days')),
             ]);
             $count = array_sum(array_map('intval', json_decode($value, true, flags: JSON_THROW_ON_ERROR)));
+            $count += app(RecoverySnapshotRetention::class)->pruneChurch($church);
             $audit->record(new AuditEntry('church', 'operations.retention.pruned', 'system', null, 'system', null, 'success', $church, metadata: ['count' => $count]));
 
             return $count;

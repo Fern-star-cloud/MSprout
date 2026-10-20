@@ -13,6 +13,974 @@ components:
       description: Missing means three-state-v1. Compatibility information only, never authorization or binary attestation. late-v1 is reserved and unsupported. Empty, list-valued or observable duplicate values are invalid.
       schema: { type: string, enum: [three-state-v1] }
   schemas:
+    RecoveryOriginalEvent:
+      type: object
+      description: Original descriptor preserved without acceptance. Its complete canonical page must be readable within the server JSON depth limit of 64; rejected originals remain on the client.
+      additionalProperties: false
+      required:
+        - client_event_id
+        - entity_id
+        - action
+        - base_version
+        - occurred_at
+        - payload
+      properties:
+        client_event_id:
+          type: string
+          format: uuid
+        entity_id:
+          type: string
+          format: uuid
+        action:
+          type: string
+          maxLength: 64
+        base_version:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+        occurred_at:
+          type: string
+          format: date-time
+        payload:
+          type: object
+          additionalProperties: true
+    RecoveryInputItem:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required:
+            - type
+            - session_id
+          properties:
+            type:
+              type: string
+              enum:
+                - reference
+            session_id:
+              type: string
+              format: uuid
+        - type: object
+          additionalProperties: false
+          required:
+            - type
+            - event
+          properties:
+            type:
+              type: string
+              enum:
+                - event
+            event:
+              $ref: "#/components/schemas/RecoveryOriginalEvent"
+    RecoveryBeginRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - schema
+        - device_id
+        - action
+        - request_id
+        - local_generation_id
+      properties:
+        schema:
+          type: string
+          enum:
+            - attendance-recovery-v1
+        device_id:
+          type: string
+          format: uuid
+        action:
+          type: string
+          enum:
+            - begin
+        request_id:
+          type: string
+          format: uuid
+        local_generation_id:
+          type: string
+          format: uuid
+    RecoveryManifestRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - schema
+        - device_id
+        - recovery_id
+        - generation
+        - action
+        - ordinal
+        - previous_digest
+        - items
+      properties:
+        schema:
+          type: string
+          enum:
+            - attendance-recovery-v1
+        device_id:
+          type: string
+          format: uuid
+        recovery_id:
+          type: string
+          format: uuid
+        generation:
+          type: string
+          format: uuid
+        action:
+          type: string
+          enum:
+            - manifest
+        ordinal:
+          type: integer
+          minimum: 0
+          maximum: 999
+        previous_digest:
+          anyOf:
+            - type: string
+              pattern: ^[a-f0-9]{64}$
+            - type: "null"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecoveryInputItem"
+          maxItems: 100
+    RecoverySealRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - schema
+        - device_id
+        - recovery_id
+        - generation
+        - action
+        - input_page_count
+        - input_item_count
+        - input_manifest_digest
+      properties:
+        schema:
+          type: string
+          enum:
+            - attendance-recovery-v1
+        device_id:
+          type: string
+          format: uuid
+        recovery_id:
+          type: string
+          format: uuid
+        generation:
+          type: string
+          format: uuid
+        action:
+          type: string
+          enum:
+            - seal
+        input_page_count:
+          type: integer
+          minimum: 1
+          maximum: 1000
+        input_item_count:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        input_manifest_digest:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+    RecoveryGeneration:
+      type: object
+      additionalProperties: false
+      required:
+        - schema
+        - recovery_id
+        - generation
+        - state
+        - expires_at
+        - client_recovered
+        - input_page_count
+        - input_item_count
+        - output_page_count
+        - output_item_count
+        - page_item_limit
+        - page_byte_limit
+        - input_manifest_digest
+        - manifest_digest
+        - page_digests
+        - snapshot_cursor
+        - coverage_epoch
+        - window_start
+        - window_end
+        - timezone
+        - limits
+      properties:
+        schema:
+          type: string
+          enum:
+            - attendance-recovery-v1
+        recovery_id:
+          type: string
+          format: uuid
+        generation:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+            - collecting
+            - ready
+        expires_at:
+          type: string
+          format: date-time
+        client_recovered:
+          const: false
+          type: boolean
+        input_page_count:
+          type: integer
+          minimum: 0
+          maximum: 1000
+        input_item_count:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        output_page_count:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        output_item_count:
+          type: integer
+          minimum: 0
+          maximum: 2000000
+        page_item_limit:
+          const: 100
+          type: integer
+        page_byte_limit:
+          const: 1048576
+          type: integer
+        input_manifest_digest:
+          anyOf:
+            - type: string
+              pattern: ^[a-f0-9]{64}$
+            - type: "null"
+        manifest_digest:
+          anyOf:
+            - type: string
+              pattern: ^[a-f0-9]{64}$
+            - type: "null"
+        page_digests:
+          type: array
+          items:
+            type: string
+            pattern: ^[a-f0-9]{64}$
+          maxItems: 10000
+        snapshot_cursor:
+          anyOf:
+            - type: string
+              pattern: ^[0-9]{1,19}$
+            - type: "null"
+        coverage_epoch:
+          type: string
+          format: uuid
+        window_start:
+          anyOf:
+            - type: string
+              format: date
+            - type: "null"
+        window_end:
+          anyOf:
+            - type: string
+              format: date
+            - type: "null"
+        timezone:
+          anyOf:
+            - type: string
+              maxLength: 64
+            - type: "null"
+        limits:
+          type: object
+          additionalProperties: false
+          required:
+            - input_pages
+            - output_pages
+            - total_items
+            - stored_bytes
+            - referenced_sessions
+          properties:
+            input_pages:
+              type: integer
+              minimum: 1
+              maximum: 1000
+            output_pages:
+              type: integer
+              minimum: 1
+              maximum: 10000
+            total_items:
+              type: integer
+              minimum: 1
+              maximum: 2000000
+            stored_bytes:
+              type: integer
+              minimum: 1
+              maximum: 536870912
+            referenced_sessions:
+              type: integer
+              const: 10000
+    RecoveryManifestAccepted:
+      type: object
+      additionalProperties: false
+      required:
+        - ordinal
+        - page_digest
+        - events_settled
+      properties:
+        ordinal:
+          type: integer
+          minimum: 0
+          maximum: 999
+        page_digest:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        events_settled:
+          const: false
+          type: boolean
+    RecoveryScope:
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - id
+        - actor_id
+        - role
+        - timezone
+      properties:
+        type:
+          type: string
+          enum:
+            - scope
+        id:
+          type: string
+          format: uuid
+        actor_id:
+          type: string
+          pattern: ^[0-9]+$
+        role:
+          type: string
+          enum:
+            - owner
+            - teacher
+        timezone:
+          type: string
+          maxLength: 64
+    RecoveryMinistry:
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - id
+        - name
+        - version
+        - archived_at
+        - deleted_at
+      properties:
+        type:
+          type: string
+          enum:
+            - ministry
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        version:
+          type: integer
+          minimum: 1
+        archived_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        deleted_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+    RecoveryRosterStudent:
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - id
+        - display_name
+        - gender
+        - version
+        - deleted_at
+        - enrollments
+      properties:
+        type:
+          type: string
+          enum:
+            - roster_student
+        id:
+          type: string
+          format: uuid
+        display_name:
+          type: string
+        gender:
+          type: string
+          enum:
+            - male
+            - female
+            - unspecified
+        version:
+          type: integer
+          minimum: 1
+        deleted_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        enrollments:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - ministry_id
+              - version
+            properties:
+              ministry_id:
+                type: string
+                format: uuid
+              version:
+                type: integer
+                minimum: 1
+    RecoveryHistoricalStudent:
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - id
+        - display_name
+        - gender
+        - version
+        - deleted_at
+        - session_id
+        - student_id
+      properties:
+        type:
+          type: string
+          enum:
+            - historical_student
+        id:
+          type: string
+          pattern: ^[a-f0-9-]{36}:[a-f0-9-]{36}$
+        display_name:
+          type: string
+        gender:
+          type: string
+          enum:
+            - male
+            - female
+            - unspecified
+        version:
+          type: integer
+          minimum: 1
+        deleted_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        session_id:
+          type: string
+          format: uuid
+        student_id:
+          type: string
+          format: uuid
+    RecoverySession:
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - id
+        - ministry_id
+        - attendance_date
+        - status
+        - version
+        - finalized_at
+        - deleted_at
+        - fragment_counts
+      properties:
+        type:
+          type: string
+          enum:
+            - session
+        id:
+          type: string
+          format: uuid
+        ministry_id:
+          type: string
+          format: uuid
+        attendance_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+            - draft
+            - finalized_pending
+            - finalized
+            - needs_review
+            - revised
+        version:
+          type: integer
+          minimum: 1
+        finalized_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        deleted_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        fragment_counts:
+          type: object
+          additionalProperties: false
+          required:
+            - records
+            - revisions
+            - guests
+            - conflicts
+            - students
+          properties:
+            records:
+              type: integer
+              minimum: 0
+            revisions:
+              type: integer
+              minimum: 0
+            guests:
+              type: integer
+              minimum: 0
+            conflicts:
+              type: integer
+              minimum: 0
+            students:
+              type: integer
+              minimum: 0
+    RecoveryRecord:
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - id
+        - session_id
+        - student_id
+        - original_state
+        - state
+        - version
+        - source_guest_id
+        - deleted_at
+        - recorded_at
+        - received_at
+      properties:
+        type:
+          type: string
+          enum:
+            - record
+        id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        student_id:
+          type: string
+          format: uuid
+        original_state:
+          type: string
+          enum:
+            - unmarked
+            - present
+            - absent
+        state:
+          type: string
+          enum:
+            - unmarked
+            - present
+            - absent
+        version:
+          type: integer
+          minimum: 1
+        source_guest_id:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        deleted_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        recorded_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        received_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+    RecoveryRevision:
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - id
+        - session_id
+        - record_id
+        - conflict_id
+        - before_state
+        - after_state
+        - revised_at
+      properties:
+        type:
+          type: string
+          enum:
+            - revision
+        id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        record_id:
+          type: string
+          format: uuid
+        conflict_id:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        before_state:
+          type: string
+          enum:
+            - present
+            - absent
+        after_state:
+          type: string
+          enum:
+            - present
+            - absent
+        revised_at:
+          type: string
+          format: date-time
+    RecoveryGuest:
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - id
+        - session_id
+        - display_name
+        - gender
+        - state
+        - status
+        - resolved_student_id
+        - merged_into_guest_id
+        - occurred_at
+        - received_at
+        - resolved_at
+      properties:
+        type:
+          type: string
+          enum:
+            - guest
+        id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        display_name:
+          type: string
+          maxLength: 120
+        gender:
+          type: string
+          enum:
+            - male
+            - female
+            - unspecified
+        state:
+          type: string
+          enum:
+            - present
+        status:
+          type: string
+          enum:
+            - pending
+            - promoted
+            - linked
+            - merged
+        resolved_student_id:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        merged_into_guest_id:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        occurred_at:
+          type: string
+          format: date-time
+        received_at:
+          type: string
+          format: date-time
+        resolved_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+    RecoveryConflict:
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - id
+        - session_id
+        - record_id
+        - incoming_event_id
+        - field
+        - base_version
+        - existing
+        - incoming
+        - was_finalized
+        - status
+        - resolution
+        - existing_occurred_at
+        - incoming_occurred_at
+        - existing_received_at
+        - incoming_received_at
+        - resolved_at
+      properties:
+        type:
+          type: string
+          enum:
+            - conflict
+        id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        record_id:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        incoming_event_id:
+          type: string
+          format: uuid
+        field:
+          type: string
+          enum:
+            - state
+            - session
+        base_version:
+          type: integer
+          minimum: 0
+        existing:
+          type: object
+          additionalProperties: false
+          properties:
+            state:
+              type: string
+              enum:
+                - unmarked
+                - present
+                - absent
+            status:
+              type: string
+              enum:
+                - draft
+                - finalized_pending
+                - finalized
+                - needs_review
+                - revised
+            version:
+              type: integer
+              minimum: 1
+        incoming:
+          type: object
+          additionalProperties: false
+          properties:
+            state:
+              type: string
+              enum:
+                - unmarked
+                - present
+                - absent
+            status:
+              type: string
+              enum:
+                - draft
+                - finalized_pending
+                - finalized
+                - needs_review
+                - revised
+            version:
+              type: integer
+              minimum: 1
+        was_finalized:
+          type: boolean
+        status:
+          type: string
+          enum:
+            - open
+            - resolved
+        resolution:
+          anyOf:
+            - type: string
+              enum:
+                - existing
+                - incoming
+            - type: "null"
+        existing_occurred_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        incoming_occurred_at:
+          type: string
+          format: date-time
+        existing_received_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        incoming_received_at:
+          type: string
+          format: date-time
+        resolved_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+    RecoveryReference:
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - id
+        - availability
+      properties:
+        type:
+          type: string
+          enum:
+            - reference
+        id:
+          type: string
+          format: uuid
+        availability:
+          type: string
+          enum:
+            - included
+            - unavailable
+    RecoverySnapshotItem:
+      oneOf:
+        - $ref: "#/components/schemas/RecoveryScope"
+        - $ref: "#/components/schemas/RecoveryMinistry"
+        - $ref: "#/components/schemas/RecoveryRosterStudent"
+        - $ref: "#/components/schemas/RecoveryHistoricalStudent"
+        - $ref: "#/components/schemas/RecoverySession"
+        - $ref: "#/components/schemas/RecoveryRecord"
+        - $ref: "#/components/schemas/RecoveryRevision"
+        - $ref: "#/components/schemas/RecoveryGuest"
+        - $ref: "#/components/schemas/RecoveryConflict"
+        - $ref: "#/components/schemas/RecoveryReference"
+    RecoverySnapshotPage:
+      type: object
+      additionalProperties: false
+      required:
+        - schema
+        - generation
+        - coverage_epoch
+        - snapshot_cursor
+        - scope_digest
+        - window_start
+        - window_end
+        - timezone
+        - ordinal
+        - previous_digest
+        - items
+      properties:
+        schema:
+          type: string
+          enum:
+            - attendance-recovery-v1
+        generation:
+          type: string
+          format: uuid
+        coverage_epoch:
+          type: string
+          format: uuid
+        snapshot_cursor:
+          type: string
+          pattern: ^[0-9]{1,19}$
+        scope_digest:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        window_start:
+          type: string
+          format: date
+        window_end:
+          type: string
+          format: date
+        timezone:
+          type: string
+          maxLength: 64
+        ordinal:
+          type: integer
+          minimum: 0
+          maximum: 9999
+        previous_digest:
+          anyOf:
+            - type: string
+              pattern: ^[a-f0-9]{64}$
+            - type: "null"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecoverySnapshotItem"
+          maxItems: 100
+    RecoveryPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - recovery_id
+        - page_digest
+        - manifest_digest
+        - page_count
+        - client_recovered
+        - page
+      properties:
+        recovery_id:
+          type: string
+          format: uuid
+        page_digest:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        manifest_digest:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        page_count:
+          type: integer
+          minimum: 1
+          maximum: 10000
+        client_recovered:
+          const: false
+          type: boolean
+        page:
+          $ref: "#/components/schemas/RecoverySnapshotPage"
     ApiError:
       type: object
       required:
@@ -1516,6 +2484,151 @@ components:
             type: string
             const: ""
 paths:
+  /offline/bootstrap/recovery:
+    post:
+      operationId: prepareRecoverySnapshot
+      description: "Qualification only: default-disabled and additionally restricted to the testing environment. Requires
+        qualified coordinated publication,verified current cookie/session membership,device authorization and existing
+        Owner MFA. Church gate and post-wait authority are mandatory. This resource prepares server snapshots only;no
+        completion/confirmation,applied credit,receipt history upgrade or ordinary sync enablement. Input originals remain
+        encrypted and unclassified. Four-hour test lifetime is not production approval. Canonical JSON recursively sorts
+        map keys using the existing PHP push canonicalization;page SHA-256 covers canonical plaintext;manifest SHA-256
+        covers the concatenation of ordered fixed64-character page digests. Every output page binds generation,epoch,scope
+        and cut. Repeated identical requests are idempotent;changed or missing pages refuse. Authorized historical
+        tables,not retained feed payloads,define the snapshot."
+      parameters:
+        - $ref: "#/components/parameters/AttendanceReader"
+        - name: X-Church-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/RecoveryBeginRequest"
+                - $ref: "#/components/schemas/RecoveryManifestRequest"
+                - $ref: "#/components/schemas/RecoverySealRequest"
+      responses:
+        "200":
+          description: Snapshot preparation only; never proof of client application or event acceptance.
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID.
+              schema:
+                type: string
+                format: uuid
+            Cache-Control:
+              description: Always no-store, private.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/RecoveryGeneration"
+                  - $ref: "#/components/schemas/RecoveryManifestAccepted"
+        default:
+          description: Privacy-safe error.404 disabled or unowned resource;409 stale,expired,superseded,incomplete,scope,integrity
+            or capacity refusal;401/403 authorization;419 CSRF;422 validation;429 rate limit. No work is settled.
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID.
+              schema:
+                type: string
+                format: uuid
+            Cache-Control:
+              description: Always no-store, private.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    get:
+      operationId: readRecoverySnapshotPage
+      description: "Qualification only: default-disabled and additionally restricted to the testing environment. Requires
+        qualified coordinated publication,verified current cookie/session membership,device authorization and existing
+        Owner MFA. Church gate and post-wait authority are mandatory. This resource prepares server snapshots only;no
+        completion/confirmation,applied credit,receipt history upgrade or ordinary sync enablement. Input originals remain
+        encrypted and unclassified. Four-hour test lifetime is not production approval. Canonical JSON recursively sorts
+        map keys using the existing PHP push canonicalization;page SHA-256 covers canonical plaintext;manifest SHA-256
+        covers the concatenation of ordered fixed64-character page digests. Every output page binds generation,epoch,scope
+        and cut. Repeated identical requests are idempotent;changed or missing pages refuse. Authorized historical
+        tables,not retained feed payloads,define the snapshot. Every page rechecks current
+        actor,membership,device,ministry and roster authority. Missing and inaccessible references share unavailable
+        status;no cross-scope target existence oracle."
+      parameters:
+        - $ref: "#/components/parameters/AttendanceReader"
+        - name: X-Church-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: device_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: recovery_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: generation
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 9999
+      responses:
+        "200":
+          description: Snapshot preparation only; never proof of client application or event acceptance.
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID.
+              schema:
+                type: string
+                format: uuid
+            Cache-Control:
+              description: Always no-store, private.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecoveryPageResponse"
+        default:
+          description: Privacy-safe error.404 disabled or unowned resource;409 stale,expired,superseded,incomplete,scope,integrity
+            or capacity refusal;401/403 authorization;419 CSRF;422 validation;429 rate limit. No work is settled.
+          headers:
+            X-Correlation-Id:
+              description: Request correlation UUID.
+              schema:
+                type: string
+                format: uuid
+            Cache-Control:
+              description: Always no-store, private.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /health/live:
     servers: [{ url: / }]
     get:

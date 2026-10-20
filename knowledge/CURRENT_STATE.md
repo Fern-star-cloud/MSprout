@@ -1,3 +1,46 @@
+## P2-2-REV-01 corrected review checkpoint — 2026-10-20
+
+**YELLOW: FINAL CORRECTED CANDIDATE AND SOURCE-REVIEW ZIP READY; publication held.**
+Same unstaged33-path P2-2 candidate (nine modified/24 new), branch
+`feat/mvp-foundation`, published parent `39d40a6c443cd7a8563a38378647c3fde3b5c603`.
+The [consolidated report, section11](../docs/qa/compat-01-b4-p2-2-server-recovery-snapshots.md#11-p2-2-rev-01-final-source-review-closure--2026-10-20)
+records the reproduced six-case200-versus409 failure, initialized/delegating clock
+fixture, date-bound PostgreSQL scope and final revalidation/rollback correction.
+Existing original encrypted work, holds, generation binding and completion fences
+remain intact; no API shape, SQL/schema/permission or client-recovery change.
+
+Fresh affected snapshots: 56 passed (647 assertions); full backend:
+535 passed (5346 assertions); workloads: 3 passed (7158 assertions); Chrome/native-WebKit:
+4/4 PASS. Full Pint310, changed PHP syntax and affected OWASP zero findings/errors
+close the source correction. Earlier failed fixture/aggregate attempts remain
+recorded, including the workload UTC-versus-persisted-timezone mismatch and its
+three-case passing closure without weakened completeness assertions. Final
+regression-file newline normalization is text-equivalent; final workload
+seals match all current API/harness bytes. Unchanged frontend/contracts/dependencies
+and PWA8 retain prior valid evidence. Source-review v2 ZIP includes current33
+files, complete baseline diff, inventory, safe qualification references and hashes.
+
+Zero BLOCKING/SHOULD FIX findings. Protected42 files,11 stashes,10 backups,
+32 frozen assets/two manifests,733 unrelated sources, main/history and other
+worktree identities remain preserved. Protected39-table entry evidence is retained
+without reconnecting to development data. Default-disabled production recovery
+and publication remain unactivated; no protected migration/grant/credential change.
+All five B4 defects remain OPEN overall. P2-3/P2-4, deployment, lifetime/quota
+approval and normalized-email target preflight remain separate prerequisites.
+No stage/commit/push; STOP for independent stakeholder review.
+
+<!-- Preserved earlier P2-2 qualification follows. -->
+
+## Current P2-2 server snapshot review checkpoint — 2026-10-19
+
+**COMPAT-01 B4-P2-2 — YELLOW: FULL SERVER SNAPSHOT IMPLEMENTATION COMPLETE, STAKEHOLDER REVIEW REQUIRED.** Unstaged33-path candidate (nine modified/24 new) on published BDE parent `39d40a6c443cd7a8563a38378647c3fde3b5c603`, branch `feat/mvp-foundation`. No stage/commit/push, protected migration, deployment, production activation or later-stage work is authorized. See the [consolidated report and exact inventory](../docs/qa/compat-01-b4-p2-2-server-recovery-snapshots.md).
+
+Server-only generation begin, bounded encrypted original-input manifests, consistent authoritative ninety-day/older-reference projection, immutable digest-bound output, retry/expiry/supersession and independently authenticated atomic cleanup/audit are implemented. Production entry remains default-disabled and testing-only; no applied cursor, complete receipt history, original-event settlement or client reconstruction. Full API524/5,174 passes; affected snapshots46/480 and workloads3/7,152 pass. Four distinct real Chrome/WebKit cases close through two Chrome passes/two WebKit closures; PWA8/8 passes. Final permission74-case qualification closes through73 passes plus one unchanged isolated1/7 closure after a documented autovacuum admission refusal. All original failures remain evidence, not clean aggregate passes.
+
+Zero BLOCKING/SHOULD FIX findings within P2-2. Protected42 files,11 stashes,32 frozen assets/two manifests,733 unrelated source hashes, main/history and other worktree identities remain preserved. All39 protected database entry fingerprints are retained; the resumed phase does not reconnect to protected development data. Feature local/tracking/live remain parent at0/0 with empty staging. Next action is stakeholder review only; P2-3/P2-4 remain unauthorized.
+
+<!-- P2-2 preserved prior knowledge -->
+
 # Current State
 
 ## COMPAT-01 B4-P2-1B-B+D+E — current BDE-SEC-01 closure; stakeholder review hold

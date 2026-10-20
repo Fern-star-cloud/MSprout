@@ -2,6 +2,7 @@
 
 use App\Domain\Attendance\AttendanceCompatibilityException;
 use App\Domain\Audit\CorrelationContext;
+use App\Domain\Sync\RecoveryException;
 use App\Http\Middleware\AuditAuthentication;
 use App\Http\Middleware\AuthResponseHeaders;
 use App\Http\Middleware\CorrelationId;
@@ -117,7 +118,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 default => ['internal_error', 'An unexpected server error occurred.'],
             };
 
-            if ($exception instanceof AttendanceCompatibilityException) {
+            if ($exception instanceof AttendanceCompatibilityException || $exception instanceof RecoveryException) {
                 $code = $exception->errorCode;
                 $message = $exception->getMessage();
             }

@@ -1,3 +1,48 @@
+## P2-2-REV-01 corrected review checkpoint — 2026-10-20
+
+**YELLOW: FINAL CORRECTED CANDIDATE AND SOURCE-REVIEW ZIP READY; publication held.**
+Same unstaged33-path P2-2 candidate (nine modified/24 new), branch
+`feat/mvp-foundation`, published parent `39d40a6c443cd7a8563a38378647c3fde3b5c603`.
+The [consolidated report, section11](../docs/qa/compat-01-b4-p2-2-server-recovery-snapshots.md#11-p2-2-rev-01-final-source-review-closure--2026-10-20)
+records the reproduced six-case200-versus409 failure, initialized/delegating clock
+fixture, date-bound PostgreSQL scope and final revalidation/rollback correction.
+Existing original encrypted work, holds, generation binding and completion fences
+remain intact; no API shape, SQL/schema/permission or client-recovery change.
+
+Fresh affected snapshots: 56 passed (647 assertions); full backend:
+535 passed (5346 assertions); workloads: 3 passed (7158 assertions); Chrome/native-WebKit:
+4/4 PASS. Full Pint310, changed PHP syntax and affected OWASP zero findings/errors
+close the source correction. Earlier failed fixture/aggregate attempts remain
+recorded, including the workload UTC-versus-persisted-timezone mismatch and its
+three-case passing closure without weakened completeness assertions. Final
+regression-file newline normalization is text-equivalent; final workload
+seals match all current API/harness bytes. Unchanged frontend/contracts/dependencies
+and PWA8 retain prior valid evidence. Source-review v2 ZIP includes current33
+files, complete baseline diff, inventory, safe qualification references and hashes.
+
+Zero BLOCKING/SHOULD FIX findings. Protected42 files,11 stashes,10 backups,
+32 frozen assets/two manifests,733 unrelated sources, main/history and other
+worktree identities remain preserved. Protected39-table entry evidence is retained
+without reconnecting to development data. Default-disabled production recovery
+and publication remain unactivated; no protected migration/grant/credential change.
+All five B4 defects remain OPEN overall. P2-3/P2-4, deployment, lifetime/quota
+approval and normalized-email target preflight remain separate prerequisites.
+No stage/commit/push; STOP for independent stakeholder review.
+
+<!-- Preserved earlier P2-2 qualification follows. -->
+
+## Current P2-2 server snapshot review checkpoint — 2026-10-19
+
+**COMPAT-01 B4-P2-2 — YELLOW: FULL SERVER SNAPSHOT IMPLEMENTATION COMPLETE, STAKEHOLDER REVIEW REQUIRED.** Unstaged33-path candidate (nine modified/24 new) on published BDE parent `39d40a6c443cd7a8563a38378647c3fde3b5c603`, branch `feat/mvp-foundation`. No stage/commit/push, protected migration, deployment, production activation or later-stage work is authorized. See the [consolidated report and exact inventory](../docs/qa/compat-01-b4-p2-2-server-recovery-snapshots.md).
+
+Use the opt-in pinned-parent runner `node scripts/compatibility/snapshots/run.mjs test ...` and its README. Reuse the verified PostgreSQL18 target `msprout-b4-p2-2-dfa8c8f80b-postgres`, systemID `7698202853928955942`, database `pc_dfa8c8f80b_test`, separate volume/internal network and restricted runtime/independent maintenance identities. Never run backend/browser fixtures concurrently or repeat preparation on resume. Protected development data is not a test resource.
+
+Actual comprehensive API524/5,174; post-depth snapshot46/480; optimized workload3/7,152. Final permission/foundation/maintenance/isolation/concurrency qualification has73 passes/one strict activation refusal (autovacuum observed),535 assertions; unchanged failed-case closure1/7 passes. New maintenance transition EXECUTE is explicitly revoked and actual direct SQL confirms no transition/device-update privilege. Frontend805 initial passes/eight failures close through121 passes in seven affected files; no invented clean813 aggregate. Chrome2 passes plus native-WebKit2 closures qualify all four new HTTP cases. Real PWA8 passes. Full Pint310 plus late closures, types/lint/build/contracts/syntax, strict Composer/locked audit and pnpm audit pass. Current raw contract/structure commands pass; historical Windows-CRLF limitation is not claimed fixed.
+
+OWASP519+104 distinct-input coverage has zero findings with exactly two unchanged test-mock PartialParsing warnings; four-input, two-input and final three-input closures have zero findings/errors. Final secret/reference/whitespace/source/preservation receipts remain ignored under `.git/msprout-compat-b4-p2-2-20261019/`. Workload seals measure0.516/3.410/35.425 seconds for100/1,000/10,000 sessions; transfer is modeled separately, not a production SLA. No protected database refresh, real CAPTCHA validation, installed-client reconstruction or new hosted run is claimed.
+
+<!-- P2-2 preserved prior knowledge -->
+
 # Testing Environment
 
 ## COMPAT-01 B4-P2-1B-B+D+E — current BDE-SEC-01 closure; stakeholder review hold

@@ -4,6 +4,24 @@
  */
 
 export interface paths {
+    "/offline/bootstrap/recovery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Qualification only: default-disabled and additionally restricted to the testing environment. Requires qualified coordinated publication,verified current cookie/session membership,device authorization and existing Owner MFA. Church gate and post-wait authority are mandatory. This resource prepares server snapshots only;no completion/confirmation,applied credit,receipt history upgrade or ordinary sync enablement. Input originals remain encrypted and unclassified. Four-hour test lifetime is not production approval. Canonical JSON recursively sorts map keys using the existing PHP push canonicalization;page SHA-256 covers canonical plaintext;manifest SHA-256 covers the concatenation of ordered fixed64-character page digests. Every output page binds generation,epoch,scope and cut. Repeated identical requests are idempotent;changed or missing pages refuse. Authorized historical tables,not retained feed payloads,define the snapshot. Every page rechecks current actor,membership,device,ministry and roster authority. Missing and inaccessible references share unavailable status;no cross-scope target existence oracle. */
+        get: operations["readRecoverySnapshotPage"];
+        put?: never;
+        /** @description Qualification only: default-disabled and additionally restricted to the testing environment. Requires qualified coordinated publication,verified current cookie/session membership,device authorization and existing Owner MFA. Church gate and post-wait authority are mandatory. This resource prepares server snapshots only;no completion/confirmation,applied credit,receipt history upgrade or ordinary sync enablement. Input originals remain encrypted and unclassified. Four-hour test lifetime is not production approval. Canonical JSON recursively sorts map keys using the existing PHP push canonicalization;page SHA-256 covers canonical plaintext;manifest SHA-256 covers the concatenation of ordered fixed64-character page digests. Every output page binds generation,epoch,scope and cut. Repeated identical requests are idempotent;changed or missing pages refuse. Authorized historical tables,not retained feed payloads,define the snapshot. */
+        post: operations["prepareRecoverySnapshot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health/live": {
         parameters: {
             query?: never;
@@ -1363,6 +1381,323 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description Original descriptor preserved without acceptance. Its complete canonical page must be readable within the server JSON depth limit of 64; rejected originals remain on the client. */
+        RecoveryOriginalEvent: {
+            /** Format: uuid */
+            client_event_id: string;
+            /** Format: uuid */
+            entity_id: string;
+            action: string;
+            base_version: number;
+            /** Format: date-time */
+            occurred_at: string;
+            payload: {
+                [key: string]: unknown;
+            };
+        };
+        RecoveryInputItem: {
+            /** @enum {string} */
+            type: "reference";
+            /** Format: uuid */
+            session_id: string;
+        } | {
+            /** @enum {string} */
+            type: "event";
+            event: components["schemas"]["RecoveryOriginalEvent"];
+        };
+        RecoveryBeginRequest: {
+            /** @enum {string} */
+            schema: "attendance-recovery-v1";
+            /** Format: uuid */
+            device_id: string;
+            /** @enum {string} */
+            action: "begin";
+            /** Format: uuid */
+            request_id: string;
+            /** Format: uuid */
+            local_generation_id: string;
+        };
+        RecoveryManifestRequest: {
+            /** @enum {string} */
+            schema: "attendance-recovery-v1";
+            /** Format: uuid */
+            device_id: string;
+            /** Format: uuid */
+            recovery_id: string;
+            /** Format: uuid */
+            generation: string;
+            /** @enum {string} */
+            action: "manifest";
+            ordinal: number;
+            previous_digest: string | null;
+            items: components["schemas"]["RecoveryInputItem"][];
+        };
+        RecoverySealRequest: {
+            /** @enum {string} */
+            schema: "attendance-recovery-v1";
+            /** Format: uuid */
+            device_id: string;
+            /** Format: uuid */
+            recovery_id: string;
+            /** Format: uuid */
+            generation: string;
+            /** @enum {string} */
+            action: "seal";
+            input_page_count: number;
+            input_item_count: number;
+            input_manifest_digest: string;
+        };
+        RecoveryGeneration: {
+            /** @enum {string} */
+            schema: "attendance-recovery-v1";
+            /** Format: uuid */
+            recovery_id: string;
+            /** Format: uuid */
+            generation: string;
+            /** @enum {string} */
+            state: "collecting" | "ready";
+            /** Format: date-time */
+            expires_at: string;
+            /** @constant */
+            client_recovered: false;
+            input_page_count: number;
+            input_item_count: number;
+            output_page_count: number;
+            output_item_count: number;
+            /** @constant */
+            page_item_limit: 100;
+            /** @constant */
+            page_byte_limit: 1048576;
+            input_manifest_digest: string | null;
+            manifest_digest: string | null;
+            page_digests: string[];
+            snapshot_cursor: string | null;
+            /** Format: uuid */
+            coverage_epoch: string;
+            window_start: string | null;
+            window_end: string | null;
+            timezone: string | null;
+            limits: {
+                input_pages: number;
+                output_pages: number;
+                total_items: number;
+                stored_bytes: number;
+                /** @constant */
+                referenced_sessions: 10000;
+            };
+        };
+        RecoveryManifestAccepted: {
+            ordinal: number;
+            page_digest: string;
+            /** @constant */
+            events_settled: false;
+        };
+        RecoveryScope: {
+            /** @enum {string} */
+            type: "scope";
+            /** Format: uuid */
+            id: string;
+            actor_id: string;
+            /** @enum {string} */
+            role: "owner" | "teacher";
+            timezone: string;
+        };
+        RecoveryMinistry: {
+            /** @enum {string} */
+            type: "ministry";
+            /** Format: uuid */
+            id: string;
+            name: string;
+            version: number;
+            archived_at: string | null;
+            deleted_at: string | null;
+        };
+        RecoveryRosterStudent: {
+            /** @enum {string} */
+            type: "roster_student";
+            /** Format: uuid */
+            id: string;
+            display_name: string;
+            /** @enum {string} */
+            gender: "male" | "female" | "unspecified";
+            version: number;
+            deleted_at: string | null;
+            enrollments: {
+                /** Format: uuid */
+                ministry_id: string;
+                version: number;
+            }[];
+        };
+        RecoveryHistoricalStudent: {
+            /** @enum {string} */
+            type: "historical_student";
+            id: string;
+            display_name: string;
+            /** @enum {string} */
+            gender: "male" | "female" | "unspecified";
+            version: number;
+            deleted_at: string | null;
+            /** Format: uuid */
+            session_id: string;
+            /** Format: uuid */
+            student_id: string;
+        };
+        RecoverySession: {
+            /** @enum {string} */
+            type: "session";
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            ministry_id: string;
+            /** Format: date */
+            attendance_date: string;
+            /** @enum {string} */
+            status: "draft" | "finalized_pending" | "finalized" | "needs_review" | "revised";
+            version: number;
+            finalized_at: string | null;
+            deleted_at: string | null;
+            fragment_counts: {
+                records: number;
+                revisions: number;
+                guests: number;
+                conflicts: number;
+                students: number;
+            };
+        };
+        RecoveryRecord: {
+            /** @enum {string} */
+            type: "record";
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            session_id: string;
+            /** Format: uuid */
+            student_id: string;
+            /** @enum {string} */
+            original_state: "unmarked" | "present" | "absent";
+            /** @enum {string} */
+            state: "unmarked" | "present" | "absent";
+            version: number;
+            source_guest_id: string | null;
+            deleted_at: string | null;
+            recorded_at: string | null;
+            received_at: string | null;
+        };
+        RecoveryRevision: {
+            /** @enum {string} */
+            type: "revision";
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            session_id: string;
+            /** Format: uuid */
+            record_id: string;
+            conflict_id: string | null;
+            /** @enum {string} */
+            before_state: "present" | "absent";
+            /** @enum {string} */
+            after_state: "present" | "absent";
+            /** Format: date-time */
+            revised_at: string;
+        };
+        RecoveryGuest: {
+            /** @enum {string} */
+            type: "guest";
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            session_id: string;
+            display_name: string;
+            /** @enum {string} */
+            gender: "male" | "female" | "unspecified";
+            /** @enum {string} */
+            state: "present";
+            /** @enum {string} */
+            status: "pending" | "promoted" | "linked" | "merged";
+            resolved_student_id: string | null;
+            merged_into_guest_id: string | null;
+            /** Format: date-time */
+            occurred_at: string;
+            /** Format: date-time */
+            received_at: string;
+            resolved_at: string | null;
+        };
+        RecoveryConflict: {
+            /** @enum {string} */
+            type: "conflict";
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            session_id: string;
+            record_id: string | null;
+            /** Format: uuid */
+            incoming_event_id: string;
+            /** @enum {string} */
+            field: "state" | "session";
+            base_version: number;
+            existing: {
+                /** @enum {string} */
+                state?: "unmarked" | "present" | "absent";
+                /** @enum {string} */
+                status?: "draft" | "finalized_pending" | "finalized" | "needs_review" | "revised";
+                version?: number;
+            };
+            incoming: {
+                /** @enum {string} */
+                state?: "unmarked" | "present" | "absent";
+                /** @enum {string} */
+                status?: "draft" | "finalized_pending" | "finalized" | "needs_review" | "revised";
+                version?: number;
+            };
+            was_finalized: boolean;
+            /** @enum {string} */
+            status: "open" | "resolved";
+            resolution: ("existing" | "incoming") | null;
+            existing_occurred_at: string | null;
+            /** Format: date-time */
+            incoming_occurred_at: string;
+            existing_received_at: string | null;
+            /** Format: date-time */
+            incoming_received_at: string;
+            resolved_at: string | null;
+        };
+        RecoveryReference: {
+            /** @enum {string} */
+            type: "reference";
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            availability: "included" | "unavailable";
+        };
+        RecoverySnapshotItem: components["schemas"]["RecoveryScope"] | components["schemas"]["RecoveryMinistry"] | components["schemas"]["RecoveryRosterStudent"] | components["schemas"]["RecoveryHistoricalStudent"] | components["schemas"]["RecoverySession"] | components["schemas"]["RecoveryRecord"] | components["schemas"]["RecoveryRevision"] | components["schemas"]["RecoveryGuest"] | components["schemas"]["RecoveryConflict"] | components["schemas"]["RecoveryReference"];
+        RecoverySnapshotPage: {
+            /** @enum {string} */
+            schema: "attendance-recovery-v1";
+            /** Format: uuid */
+            generation: string;
+            /** Format: uuid */
+            coverage_epoch: string;
+            snapshot_cursor: string;
+            scope_digest: string;
+            /** Format: date */
+            window_start: string;
+            /** Format: date */
+            window_end: string;
+            timezone: string;
+            ordinal: number;
+            previous_digest: string | null;
+            items: components["schemas"]["RecoverySnapshotItem"][];
+        };
+        RecoveryPageResponse: {
+            /** Format: uuid */
+            recovery_id: string;
+            page_digest: string;
+            manifest_digest: string;
+            page_count: number;
+            /** @constant */
+            client_recovered: false;
+            page: components["schemas"]["RecoverySnapshotPage"];
+        };
         ApiError: {
             code: string;
             message: string;
@@ -2246,6 +2581,97 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    readRecoverySnapshotPage: {
+        parameters: {
+            query: {
+                device_id: string;
+                recovery_id: string;
+                generation: string;
+                page: number;
+            };
+            header: {
+                /** @description Missing means three-state-v1. Compatibility information only, never authorization or binary attestation. late-v1 is reserved and unsupported. Empty, list-valued or observable duplicate values are invalid. */
+                "X-MSprout-Attendance-Reader"?: components["parameters"]["AttendanceReader"];
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Snapshot preparation only; never proof of client application or event acceptance. */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    /** @description Always no-store, private. */
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecoveryPageResponse"];
+                };
+            };
+            /** @description Privacy-safe error.404 disabled or unowned resource;409 stale,expired,superseded,incomplete,scope,integrity or capacity refusal;401/403 authorization;419 CSRF;422 validation;429 rate limit. No work is settled. */
+            default: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    /** @description Always no-store, private. */
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    prepareRecoverySnapshot: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Missing means three-state-v1. Compatibility information only, never authorization or binary attestation. late-v1 is reserved and unsupported. Empty, list-valued or observable duplicate values are invalid. */
+                "X-MSprout-Attendance-Reader"?: components["parameters"]["AttendanceReader"];
+                "X-Church-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecoveryBeginRequest"] | components["schemas"]["RecoveryManifestRequest"] | components["schemas"]["RecoverySealRequest"];
+            };
+        };
+        responses: {
+            /** @description Snapshot preparation only; never proof of client application or event acceptance. */
+            200: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    /** @description Always no-store, private. */
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecoveryGeneration"] | components["schemas"]["RecoveryManifestAccepted"];
+                };
+            };
+            /** @description Privacy-safe error.404 disabled or unowned resource;409 stale,expired,superseded,incomplete,scope,integrity or capacity refusal;401/403 authorization;419 CSRF;422 validation;429 rate limit. No work is settled. */
+            default: {
+                headers: {
+                    /** @description Request correlation UUID. */
+                    "X-Correlation-Id"?: string;
+                    /** @description Always no-store, private. */
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     getLiveness: {
         parameters: {
             query?: never;

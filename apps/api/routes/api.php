@@ -8,6 +8,7 @@ use App\Http\Controllers\BirthdayController;
 use App\Http\Controllers\ChurchApplicationController;
 use App\Http\Controllers\OfflineBootstrapController;
 use App\Http\Controllers\PushSubscriptionController;
+use App\Http\Controllers\RecoverySnapshotController;
 use App\Http\Controllers\RosterController;
 use App\Http\Controllers\StudentImportController;
 use App\Http\Controllers\SyncController;
@@ -46,6 +47,11 @@ Route::get('/audit-events', [AuditController::class, 'church'])
 
 Route::get('/offline/bootstrap', OfflineBootstrapController::class)
     ->middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction', 'owner.mfa', 'throttle:offline-bootstrap']);
+
+Route::middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction', 'owner.mfa', ApplicationRequest::class, 'throttle:sync'])->group(function () {
+    Route::post('/offline/bootstrap/recovery', [RecoverySnapshotController::class, 'store']);
+    Route::get('/offline/bootstrap/recovery', [RecoverySnapshotController::class, 'show']);
+});
 
 Route::middleware(['auth:web', 'verified', 'tenant.resolve', 'tenant.transaction', 'owner.mfa', 'throttle:sync'])->group(function () {
     Route::post('/sync/push', [SyncController::class, 'push']);
